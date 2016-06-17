@@ -1,0 +1,22 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+  <h:panelGroup>
+    <p:outputLabel for="#{id}" value="#{label}" styleClass="lance-label"/>
+    <h:panelGroup id="#{id}Info"
+                  styleClass="fa fa-info-circle lance-info-icon"
+                  rendered="#{info != null}"/>
+    <p:tooltip id="#{id}InfoTooltip" for="#{id}Info" value="#{info}"
+               rendered="#{info != null}" escape="false"/>
+  </h:panelGroup>
+  <p:selectOneMenu id="#{id}" value="#{value}" required="#{required}" disabled="#{editing == null ? false : !editing}"
+                   label="#{label}" style="min-width: 150px;">
+    <ui:insert/>
+    <f:selectItems value="#{options}" var="option"
+                   itemLabel="#{option.label}" itemValue="#{option}"/>
+  </p:selectOneMenu>
+  <p:message for="#{id}"
+             rendered="#{renderMessage == null ? true : renderMessage}"/>
+</ui:composition>

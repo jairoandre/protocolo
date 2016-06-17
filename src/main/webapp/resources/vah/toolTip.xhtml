@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:composite="http://java.sun.com/jsf/composite">
+
+<composite:interface>
+  <composite:attribute name="id"/>
+  <composite:attribute name="for"/>
+  <composite:attribute name="value"/>
+  <composite:attribute name="index"/>
+</composite:interface>
+
+<composite:implementation>
+  <h:panelGroup id="#{cc.attrs.id}">
+    <div id="mdl#{cc.attrs.id}#{cc.attrs.index}" for="#{cc.attrs.for}" class="mdl-tooltip guia-tooltip">
+      <h:outputText value="#{cc.attrs.value}"/>
+    </div>
+    <script>
+      componentHandler.upgradeElement($('#mdl#{cc.attrs.id}#{cc.attrs.index}')[0]);
+    </script>
+  </h:panelGroup>
+</composite:implementation>
+
+</html>

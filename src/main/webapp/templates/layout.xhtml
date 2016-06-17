@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+<ui:insert name="metadata"/>
+<h:head>
+  <title>PROTOCOLO v2.0</title>
+  <h:outputStylesheet library="css" name="default.css"/>
+  <link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.blue-light_blue.min.css" />
+  <h:outputScript library="js" name="locales.js"/>
+  <h:outputScript library="js" name="jquery.maskMoney.min.js"/>
+  <h:outputScript library="js" name="guiabi.js"/>
+  <h:outputScript library="js" name="jquery.numberMask.min.js"/>
+  <h:outputScript library="js" name="material.min.js"/>
+  <h:outputScript library="js" name="jquery.maskedinput.min.js"/>
+  <link rel="shortcut icon" type="image/x-icon"
+        href="#{resource['img/favicon.ico']}"/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+</h:head>
+<h:body>
+  <p:ajaxStatus onstart="PF('statusDialog').show()"
+                onerror="PF('statusDialog').hide()"
+                onsuccess="PF('statusDialog').hide()"/>
+  <p:dialog widgetVar="statusDialog" modal="false" draggable="false"
+            closable="false" resizable="false" showHeader="false"
+            hideEffect="fade" position="right bottom"
+            style="margin: 0 20px 20px 0; font-size: 25px !important;">
+    <span class="fa fa-refresh fa-spin" style=""/>
+  </p:dialog>
+  <p:dialog widgetVar="changePage" modal="true" draggable="false"
+            closable="false" resizable="false" showHeader="false"
+            hideEffect="fade" position="center">
+    <span class="fa fa-refresh fa-spin" style=""/>
+  </p:dialog>
+  <h:panelGroup layout="block" style="padding: 5px 5px">
+    <ui:include src="../templates/tiles/top-menu.xhtml"/>
+  </h:panelGroup>
+  <h:panelGroup layout="block" style="padding: 5px 5px;">
+    <ui:insert name="content"/>
+  </h:panelGroup>
+</h:body>
+</html>

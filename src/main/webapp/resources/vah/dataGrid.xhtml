@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:composite="http://java.sun.com/jsf/composite"
+      xmlns:p="http://primefaces.org/ui">
+
+<composite:interface>
+  <composite:attribute name="id"/>
+  <composite:attribute name="columns"/>
+</composite:interface>
+
+<composite:implementation>
+  <p:panel id="#{cc.attrs.id}" header="#{cc.attrs.controller.editLabel}">
+    <h:panelGrid id="grid"
+                 columns="#{cc.attrs.columns == null ? 5 : cc.attrs.columns}"
+                 cellpadding="5">
+      <composite:insertChildren/>
+    </h:panelGrid>
+  </p:panel>
+</composite:implementation>
+
+</html>

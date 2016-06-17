@@ -1,0 +1,22 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html">
+  <p:outputLabel value="#{label}" for="#{id}" styleClass="lance-label"
+                 rendered="#{rendered == null ? true : rendered}"/>
+  <p:autoComplete id="#{id}" value="#{value}"
+                  queryDelay="200"
+                  var="item"
+                  readonly="#{editing == null ? false : !editing}"
+                  itemLabel="#{item[itemLabel]}"
+                  itemValue="#{item}"
+                  converter="#{converter}"
+                  required="#{required == null ? false : required}"
+                  inputStyleClass="lance-input"
+                  completeMethod="#{controller[completeMethod]}"
+                  placeholder="#{placeholder == null ? 'Digite o termo...' : placeholder}"
+                  rendered="#{rendered == null ? true : rendered}">
+    <ui:insert/>
+  </p:autoComplete>
+  <p:message for="#{id}" rendered="#{rendered == null ? true : rendered}"/>
+</ui:composition>

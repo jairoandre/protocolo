@@ -1,0 +1,82 @@
+<ui:composition template="/templates/layout.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:uivah="http://vah.com.br/vah">
+
+  <ui:define name="metadata">
+    <f:metadata>
+      <f:viewParam name="id" value="#{protocoloController.id}"/>
+      <f:viewAction action="#{protocoloController.onLoad}"/>
+    </f:metadata>
+  </ui:define>
+
+  <ui:define name="content">
+
+    <h:form id="form">
+
+      <p:panel header="Enviar documentos">
+        <h:panelGroup id="protocoloPnlWrapper" layout="block" style="position: relative">
+          <p:focus context="protocoloPnlWrapper"/>
+
+          <h:panelGrid id="grid01" columns="3">
+
+            <uivah:autoComplete id="atendimento" value="#{protocoloController.item.atendimento}" label="Atendimento"
+                                controller="#{atendimentoController}" completeMethod="completeAtendimento"
+                                editing="#{protocoloController.editing and protocoloController.item.id == null}"
+                                converter="#{atendimentoConverter}" itemLabel="id"
+                                placeholder="Número/Nome paciente">
+              <p:ajax event="itemSelect" oncomplete="nextFocus('#{p:component('carregarDocsBtn')}')"/>
+              <p:column>
+                #{item.id}
+              </p:column>
+              <p:column>
+                #{item.paciente.name}
+              </p:column>
+            </uivah:autoComplete>
+
+            <uivah:inputDate id="inicioDate" label="Início"
+                             value="#{protocoloController.inicioDate}"
+                             editing="#{protocoloController.editing}"
+                             pattern="dd/MM/yyyy HH:mm"
+                             rendered="#{protocoloController.item.id == null}"/>
+
+            <uivah:inputDate id="terminoDate" label="Término"
+                             value="#{protocoloController.terminoDate}"
+                             editing="#{protocoloController.editing}"
+                             pattern="dd/MM/yyyy HH:mm"
+                             rendered="#{protocoloController.item.id == null}"/>
+          </h:panelGrid>
+
+          <p:commandButton id="carregarDocsBtn" value="Buscar documentos" icon="fa fa-search" ajax="true"
+                           process="@this grid01" update="tabView" validateClient="true"
+                           styleClass="margin-top" action="#{protocoloController.carregarDocumentos}"
+                           style="position: absolute; right: 0; top: 0; font-size: 20px;"
+                           rendered="#{protocoloController.editing}"/>
+
+
+        </h:panelGroup>
+
+        <p:tabView id="tabView" styleClass="margin-top" widgetVar="tabView">
+          <p:tab id="preMedTab" title="Prescrições/Evoluções">
+          </p:tab>
+          <p:tab id="prontuarioTab" title="Prontuários">
+          </p:tab>
+        </p:tabView>
+
+        <h:panelGroup id="panelBtns" layout="block"
+                      style="margin-top: 10px;">
+          <p:commandButton id="saveBtn" value="Salvar" icon="fa fa-floppy-o" ajax="true"
+                           process="@this form" update="form" validateClient="true"
+                           style="margin-right:10px" action="#{protocoloController.doSave}"
+                           rendered="#{protocoloController.editing}"/>
+          <p:commandButton id="backBtn" value="Voltar" ajax="false" immediate="true" icon="fa fa-undo"
+                           onstart="PF('changePage').show()"
+                           action="#{protocoloController.back}"/>
+        </h:panelGroup>
+      </p:panel>
+    </h:form>
+  </ui:define>
+</ui:composition>

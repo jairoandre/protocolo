@@ -1,0 +1,58 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+  <h:panelGroup rendered="#{rendered == null ? true : rendered}">
+    <p:outputLabel
+      for="#{id}Input" value="#{label}" styleClass="lance-label"/>
+    <h:panelGroup id="#{id}Info"
+                  styleClass="fa fa-info-circle lance-info-icon"
+                  rendered="#{info != null}"/>
+    <p:tooltip id="#{id}InfoTooltip" for="#{id}Info" value="#{info}"
+               rendered="#{info != null}"/>
+  </h:panelGroup>
+  <h:panelGroup id="#{id}" rendered="#{rendered == null ? true : rendered}">
+    <h:outputText
+      value="#{value == null ? null : value[title]}" rendered="#{!editing}"/>
+    <p:inputText
+      id="#{id}Hidden"
+      value="#{value.id}"
+      type="hidden"
+      required="#{required == null ? false : required}"
+      label="#{label}"
+      rendered="#{editing and value.id != null}"/>
+    <p:inputText
+      id="#{id}InputEmpty" placeholder="Selecione..."
+      styleClass="lance-input"
+      value="#{value}"
+      rendered="#{editing and value == null}"
+      required="#{required}"
+      onkeydown="event.preventDefault()"/>
+    <p:inputText
+      id="#{id}Input" placeholder="Selecione..."
+      styleClass="lance-input"
+      value="#{value[title]}"
+      rendered="#{editing and value != null}"
+      required="#{required}"
+      readonly="true"/>
+    <span/>
+    <p:commandButton
+      id="#{id}OpenDlgBtn" process="@none" onclick="PF('#{dialog}').show()"
+      rendered="#{editing == null ? true : editing}" icon="fa fa-search"/>
+    <p:commandButton ajax="true" process="@this" update="#{id}"
+                     id="#{id}ClearBtn" rendered="#{editing == null ? true : editing}" icon="fa fa-trash">
+      <f:setPropertyActionListener value="#{null}" target="#{value}"/>
+    </p:commandButton>
+  </h:panelGroup>
+  <h:panelGroup rendered="#{rendered == null ? true : rendered}">
+    <h:panelGroup
+      rendered="#{renderMessage == null ? true : renderMessage}">
+      <p:message id="#{id}Msg" for="#{id}InputEmpty"/>
+    </h:panelGroup>
+  </h:panelGroup>
+
+</ui:composition>
+
+
+

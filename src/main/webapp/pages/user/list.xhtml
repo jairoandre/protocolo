@@ -1,0 +1,27 @@
+<ui:composition template="/templates/layout.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:vah="http://java.sun.com/jsf/composite/vah">
+  <ui:define name="content">
+    <h:form id="form">
+      <p:panel header="Usuários">
+        <vah:dataTable id="dataTable" controller="#{userController}"
+                         renderDeleteAction="false" renderAddBtn="false">
+          <p:column sortBy="#{item.id}" headerText="Id"
+                    style="text-align: left;" width="100">
+            <h:outputText value="#{item.id}"/>
+          </p:column>
+          <p:column sortBy="#{item.login}" headerText="Login"
+                    style="text-align: left;" width="200">
+            <h:outputText value="#{item.login}"/>
+          </p:column>
+          <p:column headerText="Perfil" style="text-align: left;">
+            <h:outputText value="#{item.role.label}"/>
+          </p:column>
+        </vah:dataTable>
+      </p:panel>
+    </h:form>
+  </ui:define>
+</ui:composition>

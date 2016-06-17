@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE jboss-web PUBLIC "http://www.jboss.org/j2ee/dtd" "http://www.jboss.org/j2ee/dtd/jboss-service_5_0.dtd">
+<jboss-web>
+    <context-root>/protocolo</context-root>
+	<security-domain>ldap-vah</security-domain>
+</jboss-web>

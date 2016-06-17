@@ -1,0 +1,90 @@
+<ui:composition template="/templates/layout.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:guiabi="http://java.sun.com/jsf/composite/vah"
+                xmlns:uiguiabi="http://vah.com.br/guiabi">
+  <ui:define name="content">
+    <p:panel>
+      <h2>Ajuda</h2>
+      <p:accordionPanel>
+        <p:tab title="1 - Ingresso no sistema">
+          <h:panelGroup layout="block" styleClass="margin-top">
+            <h:outputText value="O login do sistema é o mesmo utilizado para ingressar nas estações de trabalho."/>
+          </h:panelGroup>
+          <h:panelGroup layout="block" styleClass="margin-top">
+            <h:graphicImage library="img" name="help01.png" />
+          </h:panelGroup>
+        </p:tab>
+        <p:tab title="2 - Selecionar setor">
+          <h:panelGroup layout="block" styleClass="margin-top">
+            <h:outputText value="Após o login será necessário indicar o setor no qual se deseja realizar o controle de guias:"/>
+          </h:panelGroup>
+          <h:panelGroup layout="block" styleClass="margin-top">
+            <h:graphicImage library="img" name="help02.png" />
+          </h:panelGroup>
+          <h:panelGroup layout="block" styleClass="margin-top">
+            <h:outputText value="O campo de entrada realiza a busca de setores pelo código e pelo nome."/>
+          </h:panelGroup>
+          <h:panelGroup layout="block" styleClass="margin-top">
+            <h:graphicImage library="img" name="help03.png" />
+          </h:panelGroup>
+        </p:tab>
+        <p:tab title="3 - Listagem de guias">
+          <h:panelGroup layout="block" styleClass="margin-top">
+            <h:outputText value="Com o setor selecionado, é apresentada a listagem de guias cadastras."/>
+          </h:panelGroup>
+          <h:panelGroup layout="block" styleClass="margin-top">
+            <h:graphicImage library="img" name="help04.png" />
+          </h:panelGroup>
+          <h:panelGroup layout="block" styleClass="margin-top">
+            <h:outputText value="Neste tela o usuário pode realizar ações nas guias existentes ou mesmo registrar uma nova guia."/>
+          </h:panelGroup>
+        </p:tab>
+        <p:tab title="4 - Registro de guia">
+          <h:panelGroup layout="block" styleClass="margin-top">
+            <h:outputText value="A tela de registro de guias apresenta os seguintes campos:"/>
+          </h:panelGroup>
+          <h:panelGroup layout="block" styleClass="margin-top">
+            <h:graphicImage library="img" name="help05.png" />
+          </h:panelGroup>
+          <h:panelGroup layout="block" styleClass="margin-top">
+            <h:outputText value="Com os campos preenchidos, o usuário será redirecionado à tela de listagem ao acionar a opção 'Salvar'"/>
+          </h:panelGroup>
+          <h:panelGroup layout="block" styleClass="margin-top">
+            <h:graphicImage library="img" name="help06.png" />
+          </h:panelGroup>
+          <h:panelGroup layout="block" styleClass="margin-top">
+            <h:outputText value="A guia recém cadastrada se encontrará no estado 'Pendente' e só mudará para 'Finalizado' quando a data de resposta do convênio estiver preenchida."/>
+          </h:panelGroup>
+        </p:tab>
+        <p:tab title="5 - Ações sobre guia">
+          <h:panelGroup layout="block" styleClass="margin-top">
+            <h:outputText value="As ações que o usuário pode realizar em uma guia são as seguintes: Recebimento, Auditoria, Solicitação ao convênio, Resposta do convênio."/>
+          </h:panelGroup>
+          <h:panelGroup layout="block" styleClass="margin-top">
+            <h:graphicImage library="img" name="help07.png" />
+          </h:panelGroup>
+          <h:panelGroup layout="block" styleClass="margin-top">
+            <h:outputText value="Essas ações registram as datas de acionamento das mesmas. Essas datas não podem ser alteradas, de forma que o usuário deve antetar-se à suas ações."/>
+          </h:panelGroup>
+          <h:panelGroup layout="block" styleClass="margin-top">
+            <h:graphicImage library="img" name="help08.png" />
+          </h:panelGroup>
+        </p:tab>
+        <p:tab title="6 - Finalizando guia">
+          <h:panelGroup layout="block" styleClass="margin-top">
+            <h:outputText value="A opção resposta convênio só estará disponível quando as datas da guia e do recebimento estiverem preenchidas. Após o acionamento desta opção, a guia estará finalizada para o sistema."/>
+          </h:panelGroup>
+          <h:panelGroup layout="block" styleClass="margin-top">
+            <h:graphicImage library="img" name="help09.png" />
+          </h:panelGroup>
+        </p:tab>
+      </p:accordionPanel>
+    </p:panel>
+
+
+  </ui:define>
+</ui:composition>

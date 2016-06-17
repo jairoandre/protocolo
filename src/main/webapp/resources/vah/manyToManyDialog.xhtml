@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:composite="http://java.sun.com/jsf/composite"
+	xmlns:vah="http://java.sun.com/jsf/composite/vah"
+	xmlns:p="http://primefaces.org/ui">
+
+<composite:interface>
+	<composite:attribute name="id" />
+	<composite:attribute name="header" />
+	<composite:attribute name="width" />
+	<composite:attribute name="update" />
+	<composite:attribute name="controller" />
+	<composite:attribute name="bean" />
+	<composite:attribute name="targetController" />
+	<composite:attribute name="toggleAction" />
+	<composite:attribute name="targetItems" />
+</composite:interface>
+
+<composite:implementation>
+
+	<p:dialog id="#{cc.attrs.id}" widgetVar="#{cc.attrs.id}" modal="true"
+		header="#{cc.attrs.header}"
+		width="#{cc.attrs.width == null ? '50%' : cc.attrs.width}">
+		<p:ajax event="close" update=":#{p:component(cc.attrs.update)}" />
+		<vah:dataTable id="#{cc.attrs.id}Tbl"
+			controller="#{cc.attrs.controller}" renderAddBtn="false"
+			renderActionColumn="false">
+			<p:column id="selector" style="text-align: center;" width="50">
+				<p:commandLink id="checkbox" ajax="true"
+					action="#{cc.attrs.targetController[cc.attrs.toggleAction]}"
+					styleClass="action-link" process="@this" update="@(.action-link)">
+					<f:setPropertyActionListener value="#{item}"
+						target="#{cc.attrs.bean}" />
+					<h:panelGroup
+						styleClass="fa fa#{cc.attrs.targetItems.contains(item) ? '-check' : ''}-square-o" />
+				</p:commandLink>
+			</p:column>
+			<composite:insertChildren/>
+			<p:column id="detail" sortBy="#{item.title}" headerText="Descrição"
+				style="text-align: left;">
+				<h:outputText value="#{item.title}" />
+			</p:column>
+		</vah:dataTable>
+
+		<f:facet name="footer">
+			<p:commandButton id="#{cc.attrs.id}CloseBtn" ajax="true"
+				onclick="PF('#{cc.attrs.id}').hide()" value="Fechar diálogo" />
+		</f:facet>
+
+	</p:dialog>
+
+</composite:implementation>
+
+</html>

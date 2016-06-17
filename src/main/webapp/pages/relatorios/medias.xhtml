@@ -1,0 +1,74 @@
+<ui:composition template="/templates/layout.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+
+  <ui:define name="content">
+    <h:form>
+      <p:panel header="Gerar relatório - Tempos médios">
+
+        <h:panelGrid columns="2">
+          <p:outputLabel value="Início" for="inicioDate" styleClass="lance-label"/>
+          <p:calendar id="inicioDate" value="#{relatorioMediasController.inicioDate}" pattern="dd/MM/yyyy" required="true"/>
+          <p:outputLabel value="Término" for="terminoDate" styleClass="lance-label"/>
+          <p:calendar id="terminoDate" value="#{relatorioMediasController.terminoDate}" pattern="dd/MM/yyyy" required="true"/>
+          <p:outputLabel value="Setores" for="setores" styleClass="lance-label"/>
+          <h:panelGroup>
+            <p:autoComplete id="setores" value="#{relatorioMediasController.setorToAdd}"
+                            widgetVar="setores"
+                            queryDelay="200"
+                            var="item"
+                            itemLabel="#{item['title']}"
+                            itemValue="#{item}"
+                            converter="#{setorConverter}"
+                            inputStyleClass="lance-input"
+                            completeMethod="#{setorController.completeSetor}"
+                            placeholder="Filtrar por setores...">
+              <p:ajax event="itemSelect" listener="#{relatorioMediasController.addSetor}" process="@this"
+                      update="@this setoresList" oncomplete="$(PF('setores').jqId + '_input').val('')"/>
+              <p:column>
+                #{item.id}
+              </p:column>
+              <p:column>
+                #{item.title}
+              </p:column>
+            </p:autoComplete>
+            <h:panelGroup id="setoresList" layout="block">
+              <ui:repeat value="#{relatorioMediasController.setores}" var="setor">
+                <h:panelGroup layout="block" styleClass="list-block">
+                  <p:commandLink styleClass="fa fa-close" action="#{relatorioMediasController.removeSetor(setor)}"
+                                 process="@this" update="#{p:component('setoresList')}"/>
+                  <h:outputText value="#{setor.title}"/>
+                </h:panelGroup>
+              </ui:repeat>
+            </h:panelGroup>
+
+          </h:panelGroup>
+        </h:panelGrid>
+
+        <h:panelGroup layout="block" styleClass="margin-top">
+          <p:commandButton rendered="true" id="gerarRelatorio" value="Gerar Relatório" ajax="false"
+                           process="@form"
+                           style="font-size: 25px;"
+                           onclick="PrimeFaces.monitorDownload(start, stop);">
+            <p:fileDownload value="#{relatorioMediasController.relatorio}"/>
+          </p:commandButton>
+        </h:panelGroup>
+
+
+      </p:panel>
+      <script type="text/javascript">
+        function start() {
+          PF('changePage').show();
+        }
+
+        function stop() {
+          PF('changePage').hide();
+        }
+      </script>
+
+    </h:form>
+  </ui:define>
+
+</ui:composition>

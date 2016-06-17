@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+<h:body>
+  <h:form id="menuForm">
+    <p:growl id="messages" showDetail="true" showSummary="true"
+             autoUpdate="true" globalOnly="true"/>
+    <p:menubar rendered="#{request.getUserPrincipal() != null}" toggleEvent="click">
+      <p:menuitem action="/pages/index.xhtml?faces-redirect=true" onstart="PF('changePage').show()">
+        <h:graphicImage library="img" name="favicon.png" height="15"/>
+      </p:menuitem>
+      <p:menuitem value="Usuários"
+                  action="/pages/user/list.xhtml?faces-redirect=true" ajax="false"
+                  rendered="#{sessionController.isUserInRoles('ADMINISTRATOR')}"
+                  icon="fa fa-user" onstart="PF('changePage').show()"/>
+      <p:menuitem value="Protocolos"
+                  action="/pages/protocolo/list.xhtml?faces-redirect=true" ajax="false"
+                  icon="fa fa-file" onstart="PF('changePage').show()"/>
+      <p:menuitem value="Relatórios"
+                  action="/pages/relatorios/medias.xhtml?faces-redirect=true" ajax="false"
+                  icon="fa fa-bar-chart" onstart="PF('changePage').show()"/>
+      <p:menuitem value="Ajuda"
+                  action="/ajuda.xhtml?faces-redirect=true" ajax="false"
+                  icon="fa fa-book" onstart="PF('changePage').show()"/>
+      <f:facet name="options">
+
+        <h:panelGroup style="margin-top: 3px;" layout="block">
+          <p:commandButton value="#{sessionController.setor.title}"
+                           action="/selecionarSetor.xhtml?faces-redirect=true" ajax="false"
+                           icon="fa fa-hospital-o" rendered="#{sessionController.setor != null}" onstart="PF('changePage').show()"/>
+          <p:commandButton value="#{sessionController.username}"
+                           action="/pages/guia/index.xhtml?faces-redirect=true" ajax="false"
+                           icon="fa fa-user" rendered="#{request.getUserPrincipal() != null}"/>
+          <p:commandButton value="Logout" action="#{sessionController.logout}"
+                           icon="fa fa-sign-out"
+                           rendered="#{request.getUserPrincipal() != null}" onstart="PF('changePage').show()"/>
+        </h:panelGroup>
+      </f:facet>
+    </p:menubar>
+  </h:form>
+</h:body>
+</html>

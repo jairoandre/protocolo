@@ -1,0 +1,42 @@
+<ui:composition template="/templates/layout.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+  <ui:define name="content">
+    <h:form styleClass="login-pnl">
+      <p:growl id="msgs" showDetail="true" sticky="false"/>
+      <h:graphicImage library="img" name="logo.png" height="50"/>
+      <h:panelGroup layout="block" styleClass="login-input-pnl">
+        <div id="tt1" class="icon material-icons login-info">info</div>
+        <div class="mdl-tooltip" for="tt1">
+          Login LDAP (O mesmo utilizado para as estações de trabalho)
+        </div>
+        <div class="login-system-name">PROTOCOLO 2.0</div>
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+          <h:inputText id="username" value="#{sessionController.username}"
+                       required="true" requiredMessage="Usuário requerido"
+                       styleClass="mdl-textfield__input">
+            <f:validateLength minimum="1"/>
+          </h:inputText>
+          <h:outputLabel value="Usuário" for="username" styleClass="mdl-textfield__label"/>
+        </div>
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+          <h:inputSecret id="password" value="#{sessionController.password}"
+                         required="true" requiredMessage="Senha requerido"
+                         styleClass="mdl-textfield__input">
+            <f:validateLength minimum="1"/>
+          </h:inputSecret>
+          <h:outputLabel value="Senha" for="password" styleClass="mdl-textfield__label"/>
+        </div>
+        <p:commandButton value="Entrar" update="msgs"
+                         actionListener="#{sessionController.login}" type="submit"
+                         onstart="PF('changePage').show()"
+                         oncomplete="PF('changePage').hide()"
+                         styleClass="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect"
+                         icon="fa fa-sign-in" style="margin:0"/>
+      </h:panelGroup>
+    </h:form>
+  </ui:define>
+</ui:composition>

@@ -1,0 +1,56 @@
+<ui:composition template="/templates/layout.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+  <ui:define name="content">
+    <h:form>
+
+      <p:panel id="setorPnl" header="Selecione o setor">
+        <h:panelGroup layout="block" styleClass="margin-top">
+          <div class="ui-messages ui-widget" aria-live="polite">
+            <div class="ui-messages-info ui-corner-all">
+              <span class="ui-messages-info-icon"></span>
+              <ul>
+                <li>
+                  <h:panelGroup styleClass="ui-messages-info-detail">
+                    Bem vindo ao <b>PROTOCOLO 2.0</b>, por favor informe o setor no qual deseja realizar o controle de documentos.
+                  </h:panelGroup>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <p:focus context="setorPnl"/>
+          <h:panelGrid id="grid"
+                       columns="2"
+                       cellpadding="5" style="margin-top: 25px;">
+            <p:outputLabel value="Setor:" styleClass="lance-label"/>
+            <p:autoComplete id="setor" value="#{sessionController.setor}"
+                            var="setor"
+                            itemLabel="#{setor.title}"
+                            itemValue="#{setor}"
+                            converter="#{setorConverter}"
+                            inputStyleClass="lance-input"
+                            queryDelay="250"
+                            completeMethod="#{setorController.completeSetor}"
+                            placeholder="Digite o código ou o nome do setor.">
+              <p:ajax event="itemSelect" update="prosseguirBtn"
+                      oncomplete="nextFocus('#{p:component('prosseguirBtn')}')"/>
+              <p:column>
+                #{setor.id}
+              </p:column>
+              <p:column>
+                #{setor.title}
+              </p:column>
+            </p:autoComplete>
+          </h:panelGrid>
+        </h:panelGroup>
+        <p:commandButton id="prosseguirBtn" value="Prosseguir" action="#{sessionController.prosseguir}"
+                         style="font-size: 25px; margin-top: 25px"
+                         onstart="PF('changePage').show()"
+                         onerror="PF('changePage').hide()"
+                         disabled="#{sessionController.setor == null or sessionController.setor.id == null}"/>
+      </p:panel>
+    </h:form>
+  </ui:define>
+</ui:composition>

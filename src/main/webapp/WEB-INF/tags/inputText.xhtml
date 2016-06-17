@@ -1,0 +1,23 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+  <h:panelGroup rendered="#{label != null}">
+    <p:outputLabel for="#{id}" value="#{label}" styleClass="lance-label"/>
+    <h:panelGroup id="#{id}Info"
+                  styleClass="fa fa-info-circle lance-info-icon"
+                  rendered="#{info != null}"/>
+    <p:tooltip id="#{id}InfoTooltip" for="#{id}Info" value="#{info}"
+               rendered="#{info != null}"/>
+  </h:panelGroup>
+  <h:panelGroup>
+    <p:inputText id="#{id}" value="#{value}"
+                 required="#{required == null ? false : required}" label="#{label}"
+                 rendered="#{rendered == null ? true : rendered}"
+                 disabled="#{editing == null ? false : !editing}"
+                 styleClass="lance-input">
+      <ui:insert/>
+    </p:inputText>
+  </h:panelGroup>
+  <p:message for="#{id}" rendered="#{renderMessage == null ? true : renderMessage}"/>
+</ui:composition>

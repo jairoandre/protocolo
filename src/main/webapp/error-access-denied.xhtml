@@ -1,0 +1,24 @@
+<ui:composition template="/templates/layout.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+  <ui:define name="content">
+    <p:panel id="error-panel" header="Acesso negado!">
+      <h:panelGroup layout="block" styleClass="margin-top">
+        <div id="error-access-denied" class="ui-messages ui-widget" aria-live="polite">
+          <div class="ui-messages-warn ui-corner-all"><span class="ui-messages-warn-icon"></span>
+            <ul>
+              <li>
+                <span class="ui-messages-warn-summary">Atenção - </span>
+              <span class="ui-messages-warn-detail">
+                Olá, <b>#{sessionController.user.login}</b>. Você não possui permissão de acesso para esta página. Procure o administrador de sistemas.
+              </span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </h:panelGroup>
+    </p:panel>
+  </ui:define>
+</ui:composition>

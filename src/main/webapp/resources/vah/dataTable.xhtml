@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:composite="http://java.sun.com/jsf/composite"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:lance="http://java.sun.com/jsf/composite/vah">
+
+<composite:interface>
+  <composite:attribute name="id"/>
+  <composite:attribute name="controller"/>
+  <composite:attribute name="renderAddBtn"/>
+  <composite:attribute name="renderDetailAction"/>
+  <composite:attribute name="renderEditAction"/>
+  <composite:attribute name="renderDeleteAction"/>
+  <composite:attribute name="renderActionColumn"/>
+  <composite:attribute name="renderDefaultFilter" default="true"/>
+  <composite:attribute name="placeholder"/>
+</composite:interface>
+
+<composite:implementation>
+  <h:panelGroup id="#{cc.attrs.id}" layout="block">
+    <h:panelGroup id="panel" layout="block"
+                  style="margin-bottom: 20px; position: relative;">
+      <p:focus context="panel"/>
+      <h:panelGroup rendered="#{cc.attrs.renderDefaultFilter}" layout="block">
+        <p:inputText id="searchInput"
+                     value="#{cc.attrs.controller.searchTerm}"
+                     placeholder="#{cc.attrs.placeholder == null ? 'Digite o termo...' : cc.attrs.placeholder}"
+                     style="width: 50%;"/>
+        <p:commandButton id="searchBtn" value="Buscar"
+                         action="#{cc.attrs.controller.prepareSearch}" icon="fa fa-search"
+                         ajax="true" process="@form"
+                         update="table"
+                         title="Procurar #{cc.attrs.controller.entityName}"
+                         style="margin-left: 10px;"/>
+      </h:panelGroup>
+      <composite:renderFacet name="customFilters"/>
+      <p:commandButton value="Enviar Documentos"
+                       icon="fa fa-send"
+                       action="#{cc.attrs.controller.add}"
+                       title="Criar novo #{cc.attrs.controller.entityName}"
+                       onstart="PF('changePage').show();"
+                       rendered="#{cc.attrs.renderAddBtn == null ? true : cc.attrs.renderAddBtn}"
+                       style="position: absolute; right: 0; top: 0; font-size: 20px;"/>
+      <p:hotkey bind="ctrl+shift+n" onstart="PF('changePage').show();" action="#{cc.attrs.controller.add}"
+                rendered="#{cc.attrs.renderAddBtn == null ? true : cc.attrs.renderAddBtn}"/>
+    </h:panelGroup>
+    <p:dataTable id="table" var="item" value="#{cc.attrs.controller.lazyModel}"
+                 paginator="true" emptyMessage="Sem registros" styleClass="table-left-header"
+                 paginatorPosition="bottom" rows="25" rowKey="index" rowIndexVar="indexVar"
+                 paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                 lazy="true" rowsPerPageTemplate="25,50,100">
+      <composite:insertChildren/>
+      <p:column width="100" headerText="Ações" styleClass="action-link"
+                rendered="#{cc.attrs.renderActionColumn == null ? true : cc.attrs.renderActionColumn}">
+        <composite:renderFacet name="customAction"/>
+        <p:commandLink id="detailAction"
+                       action="#{cc.attrs.controller.detail(item)}"
+                       rendered="#{cc.attrs.renderDetailAction == null ? true : cc.attrs.renderDetailAction}">
+          <span class="fa fa-search"/>
+        </p:commandLink>
+        <lance:toolTip id="detailToolTip" for="#{p:component('detailAction')}"
+                       value="Detalhar #{cc.attrs.controller.entityName}" index="#{indexVar}"/>
+        <span/>
+        <p:commandLink id="editAction"
+                       action="#{cc.attrs.controller.edit(item)}"
+                       rendered="#{cc.attrs.renderEditAction == null ? true : cc.attrs.renderEditAction}">
+          <span class="fa fa-pencil"/>
+        </p:commandLink>
+        <lance:toolTip id="editToolTip" for="#{p:component('editAction')}"
+                       value="Editar #{cc.attrs.controller.entityName}" index="#{indexVar}"/>
+        <span/>
+        <p:commandLink id="deleteAction"
+                       action="#{cc.attrs.controller.preDelete(item.id, index)}"
+                       ajax="true" oncomplete="PF('deleteDlg_#{cc.attrs.id}').show();"
+                       rendered="#{cc.attrs.renderDeleteAction == null ? true : cc.attrs.renderDeleteAction}">
+          <span class="fa fa-trash"/>
+        </p:commandLink>
+        <lance:toolTip id="deleteToolTip" for="#{p:component('deleteAction')}"
+                       value="Deletar #{cc.attrs.controller.entityName}" index="#{indexVar}"/>
+
+      </p:column>
+      <f:facet name="footer">
+        <h:outputText
+          value="#{cc.attrs.controller.lazyModel.rowCount} registro(s)"/>
+      </f:facet>
+    </p:dataTable>
+
+  </h:panelGroup>
+  <p:defaultCommand target="searchBtn"
+                    scope="panel"/>
+  <p:dialog id="deleteDlg" header="Atenção"
+            widgetVar="deleteDlg_#{cc.attrs.id}" modal="true">
+    <h:outputText
+      value="Você deseja realmente excluir o #{cc.attrs.controller.entityName}?"/>
+    <f:facet name="footer">
+      <p:commandButton value="Excluir" ajax="true" update="@form"
+                       action="#{cc.attrs.controller.doDelete}"
+                       oncomplete="PF('deleteDlg_#{cc.attrs.id}').hide();"
+                       icon="fa fa-warning"/>
+      <p:commandButton value="Cancelar"
+                       oncomplete="PF('deleteDlg_#{cc.attrs.id}').hide();"
+                       icon="fa fa-arrow-left"/>
+    </f:facet>
+  </p:dialog>
+</composite:implementation>
+
+</html>
+
+

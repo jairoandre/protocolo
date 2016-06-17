@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:composite="http://java.sun.com/jsf/composite">
+
+<composite:interface>
+  <composite:attribute name="id"/>
+  <composite:attribute name="for"/>
+  <composite:attribute name="value"/>
+  <composite:attribute name="index"/>
+  <composite:attribute name="label"/>
+</composite:interface>
+
+<composite:implementation>
+  <h:panelGroup id="#{cc.attrs.id}">
+    <div id="mdl_#{cc.attrs.id}#{cc.attrs.index}" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+      <h:inputText id="field_#{cc.attrs.id}"
+                   value="#{cc.attrs.value}"
+                   required="#{cc.attrs.required == null ? false : cc.attrs.required}"
+                   requiredMessage="#{cc.attrs.requiredMessage == null ? 'Campo requerido' : cc.attrs.requiredMessage}"
+                   styleClass="mdl-textfield__input">
+        <composite:insertChildren/>
+      </h:inputText>
+      <h:outputLabel value="#{cc.attrs.label}" styleClass="mdl-textfield__label"/>
+    </div>
+    <script>
+      componentHandler.upgradeElement($('#mdl_#{cc.attrs.id}#{cc.attrs.index}')[0]);
+    </script>
+  </h:panelGroup>
+</composite:implementation>
+
+</html>

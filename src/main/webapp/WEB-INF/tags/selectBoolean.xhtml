@@ -1,0 +1,23 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+  <h:panelGroup>
+    <p:outputLabel for="#{id}" value="#{label}" styleClass="lance-label"/>
+    <h:panelGroup id="#{id}Info" styleClass="fa fa-info-circle lance-info-icon"
+                  rendered="#{info != null}"/>
+    <p:tooltip id="#{id}InfoTooltip" for="#{id}Info" value="#{info}"
+               rendered="#{info != null}"/>
+  </h:panelGroup>
+  <h:outputText value="#{value == null ? '-' : (value ? 'Sim' : 'Não')}"
+                rendered="#{!editing}"/>
+  <p:selectOneRadio id="#{id}" value="#{value}" required="#{required}"
+                    label="#{label}" rendered="#{editing}" style="cursor: pointer;">
+    <f:selectItem itemLabel="Sim" itemValue="true"/>
+    <f:selectItem itemLabel="Não" itemValue="false"/>
+    <ui:insert/>
+  </p:selectOneRadio>
+  <p:message for="#{id}"
+             rendered="#{renderMessage == null ? true : renderMessage}"/>
+</ui:composition>
