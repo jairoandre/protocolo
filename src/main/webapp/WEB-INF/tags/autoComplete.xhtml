@@ -1,7 +1,6 @@
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
-                xmlns:p="http://primefaces.org/ui"
-                xmlns:h="http://java.sun.com/jsf/html">
+                xmlns:p="http://primefaces.org/ui">
   <p:outputLabel value="#{label}" for="#{id}" styleClass="lance-label"
                  rendered="#{rendered == null ? true : rendered}"/>
   <p:autoComplete id="#{id}" value="#{value}"

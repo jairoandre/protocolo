@@ -50,7 +50,7 @@
                              rendered="#{protocoloController.item.id == null}"/>
           </h:panelGrid>
 
-          <p:commandButton id="carregarDocsBtn" value="Buscar documentos" icon="fa fa-search" ajax="true"
+          <p:commandButton id="carregarDocsBtn" value="Buscar documentos" ajax="true"
                            process="@this grid01" update="tabView" validateClient="true"
                            styleClass="margin-top" action="#{protocoloController.buscarPrescricoes()}"
                            style="position: absolute; right: 0; top: 0; font-size: 20px;"
@@ -59,31 +59,36 @@
 
         </h:panelGroup>
 
-        <p:tabView id="tabView" value="#{protocoloController.documentos}" var="docEntry" styleClass="margin-top" widgetVar="tabView">
-          <p:tab id="preMedTab" title="#{docEntry.key}" >
-          
-          	<p:dataTable value="#{docEntry.value}" var="doc" selection="#{protocoloController.mapSelectedDocumentos[docEntry.key]}" rowKey="#{doc.codigo}">         		
-          		
-          		<p:column selectionMode="multiple" style="width:16px;text-align:center"  />
-          		
-          		<p:column headerText="Código" style="width:50px;text-align:center">
-          			<h:outputText value="#{doc.codigo}"/>
-          		</p:column>
-          		<p:column headerText="Prestador" style="text-align:center">
-          			<h:outputText value="#{doc.prestador}" />
-          		</p:column>
-          		<p:column headerText="Data/Hora criação" style="text-align:center">
-          			<h:outputText value="#{doc.dataHoraCriacao}" >
-          				<f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
-          			</h:outputText>
-          		</p:column>
-          		<p:column headerText="Data/Hora impressão" style="text-align:center">
-          			<h:outputText value="#{doc.dataHoraImpressao}" >
-          				<f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
-          			</h:outputText>
-          		</p:column>
+        <p:tabView id="tabView" value="#{protocoloController.documentos}" var="docEntry" styleClass="margin-top"
+                   widgetVar="tabView">
+          <p:tab id="preMedTab" title="#{docEntry.key}">
 
-          	</p:dataTable>
+            <p:dataTable value="#{docEntry.value}" var="doc"
+                         selection="#{protocoloController.mapSelectedDocumentos[docEntry.key]}" rowKey="#{doc.codigo}">
+
+              <p:column selectionMode="multiple" width="16"/>
+
+              <p:column headerText="Código" width="50" styleClass="left-align">
+                <h:outputText value="#{doc.codigo}"/>
+              </p:column>
+              <p:column headerText="Prestador" styleClass="left-align">
+                <h:outputText value="#{doc.prestador}"/>
+              </p:column>
+              <p:column headerText="Data/Hora criação" styleClass="left-align">
+                <h:outputText value="#{doc.dataHoraCriacao}">
+                  <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
+                </h:outputText>
+              </p:column>
+              <p:column headerText="Data/Hora impressão" styleClass="left-align">
+                <h:outputText value="#{doc.dataHoraImpressao}">
+                  <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
+                </h:outputText>
+              </p:column>
+              <p:column headerText="Evolução" styleClass="left-align">
+                <h:outputText value="#{doc.hasEvolucao}"/>
+              </p:column>
+
+            </p:dataTable>
           </p:tab>
           <p:tab id="prontuarioTab" title="Prontuários">
           </p:tab>
