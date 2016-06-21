@@ -67,9 +67,8 @@ public class AtendimentoController extends AbstractController<Atendimento> {
 
   public List<Atendimento> completeAtendimento(String query) {
     setSearchTerm(query);
-    super.prepareSearch();
-    setSearchParam("paciente", query);
-    setSearchParam("semAltaRecente", true);
+    resetSearchParams();
+    searchById();
     return getLazyModel().load(10);
   }
 }

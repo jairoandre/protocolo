@@ -2,8 +2,10 @@ package br.com.vah.protocolo.service;
 
 
 import br.com.vah.protocolo.constants.EstadosProtocoloEnum;
+import br.com.vah.protocolo.dto.DocumentoDTO;
 import br.com.vah.protocolo.entities.dbamv.Atendimento;
 import br.com.vah.protocolo.entities.dbamv.Convenio;
+import br.com.vah.protocolo.entities.dbamv.PrescricaoMedica;
 import br.com.vah.protocolo.entities.dbamv.Setor;
 import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 import br.com.vah.protocolo.exceptions.ProtocoloPersistException;
@@ -18,6 +20,8 @@ import org.primefaces.model.StreamedContent;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -29,7 +33,10 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
   private
   @Inject
   ReportLoader reportLoader;
-
+  
+  @Inject
+  private PrescricaoMedicaService prescricaoMedicaService;
+  
   public ProtocoloService() {
     super(Protocolo.class);
   }
@@ -171,6 +178,59 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
 
     }
 
+  }
+  
+  public List<DocumentoDTO> buscarDocumentos(Atendimento atendimento, Date inicioDate, Date terminoDate){
+	  
+	  List<DocumentoDTO> documentoDTO = new ArrayList<>();
+	  
+	  List<PrescricaoMedica> prescricoes = prescricaoMedicaService.consultarPrescricoes(atendimento, inicioDate, terminoDate);
+	  
+	  
+	  for (PrescricaoMedica prescricao : prescricoes){
+		  
+		  documentoDTO.add(new DocumentoDTO(prescricao));
+	  }
+	  
+	  return documentoDTO;
+  }
+  
+  public List<Map.Entry<String, List<DocumentoDTO>>> mapearDataDocumento(Atendimento atendimento, Date inicioDate, Date terminoDate){
+	  
+	  List<DocumentoDTO> documentos = buscarDocumentos(atendimento, inicioDate, terminoDate);
+	  
+	  Map<String, List<DocumentoDTO>> mapDocumentos = new HashMap<>();
+	  
+	  SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+	  
+	  for ( DocumentoDTO documento : documentos){
+		  
+		  String data = sdf.format(documento.getData());
+		  
+		  List<DocumentoDTO> listaDoc = mapDocumentos.get(data);
+		  
+		  if (listaDoc == null){
+			  listaDoc = new ArrayList<>();
+			  
+			  mapDocumentos.put(data, listaDoc);
+		  }
+		  
+		  listaDoc.add(documento);
+	  }
+	  
+	  List<Map.Entry<String, List<DocumentoDTO>>> mapearData = new ArrayList<>(mapDocumentos.entrySet());
+	  
+	  Collections.sort(mapearData, new Comparator<Map.Entry<String, List<DocumentoDTO>>>() {
+
+		@Override
+		public int compare(Map.Entry<String, List<DocumentoDTO>> o1, Map.Entry<String, List<DocumentoDTO>> o2) {
+			return o1.getKey().compareTo(o2.getKey());
+		}
+		
+	});
+	  
+	  return mapearData;
+	
   }
 
 }

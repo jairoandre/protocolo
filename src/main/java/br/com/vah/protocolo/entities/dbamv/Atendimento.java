@@ -72,6 +72,6 @@ public class Atendimento extends BaseEntity {
 
   @Override
   public String getLabelForSelectItem() {
-    return String.format("%l - %s", id, paciente.getName());
+    return String.format("%d - %s", id, paciente.getName());
   }
 }
