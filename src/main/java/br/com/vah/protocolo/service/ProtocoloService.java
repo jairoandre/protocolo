@@ -185,7 +185,7 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
     List<DocumentoDTO> documentoDTO = new ArrayList<>();
 
     List<PrescricaoMedica> prescricoes = prescricaoMedicaService.consultarPrescricoes(atendimento, inicioDate, terminoDate);
-
+    
 
     for (PrescricaoMedica prescricao : prescricoes) {
 
