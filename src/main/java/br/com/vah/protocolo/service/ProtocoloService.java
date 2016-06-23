@@ -3,10 +3,7 @@ package br.com.vah.protocolo.service;
 
 import br.com.vah.protocolo.constants.EstadosProtocoloEnum;
 import br.com.vah.protocolo.dto.DocumentoDTO;
-import br.com.vah.protocolo.entities.dbamv.Atendimento;
-import br.com.vah.protocolo.entities.dbamv.Convenio;
-import br.com.vah.protocolo.entities.dbamv.PrescricaoMedica;
-import br.com.vah.protocolo.entities.dbamv.Setor;
+import br.com.vah.protocolo.entities.dbamv.*;
 import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 import br.com.vah.protocolo.exceptions.ProtocoloPersistException;
 import br.com.vah.protocolo.reports.ReportLoader;
@@ -34,8 +31,13 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
   @Inject
   ReportLoader reportLoader;
 
+  private
   @Inject
-  private PrescricaoMedicaService prescricaoMedicaService;
+  PrescricaoMedicaService prescricaoMedicaService;
+
+  private
+  @Inject
+  AvisoCirurgiaService avisoCirurgiaService;
 
   public ProtocoloService() {
     super(Protocolo.class);
@@ -180,26 +182,28 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
 
   }
 
-  public List<DocumentoDTO> buscarDocumentos(Atendimento atendimento, Date inicioDate, Date terminoDate) {
+  public List<DocumentoDTO> buscarDocumentos(Atendimento atendimento, Date inicio, Date fim, Setor setor) {
 
-    List<DocumentoDTO> documentoDTO = new ArrayList<>();
+    List<DocumentoDTO> documentos = new ArrayList<>();
 
-    List<PrescricaoMedica> prescricoes = prescricaoMedicaService.consultarPrescricoes(atendimento, inicioDate, terminoDate);
-    
-
+    // Prescrições e evoluções médicas
+    List<PrescricaoMedica> prescricoes = prescricaoMedicaService.consultarPrescricoes(atendimento, inicio, fim);
     for (PrescricaoMedica prescricao : prescricoes) {
-
       Boolean hasEvolucao = prescricaoMedicaService.hasEvolucao(prescricao);
-
-      documentoDTO.add(new DocumentoDTO(prescricao, hasEvolucao));
+      documentos.add(new DocumentoDTO(prescricao, hasEvolucao));
     }
 
-    return documentoDTO;
+    // Avisos de cirurgia
+    List<AvisoCirurgia> avisos = avisoCirurgiaService.consultarAvisos(atendimento, inicio, fim,  setor);
+    for (AvisoCirurgia aviso : avisos) {
+      documentos.add(new DocumentoDTO(aviso));
+    }
+    return documentos;
   }
 
-  public List<Map.Entry<String, List<DocumentoDTO>>> mapearDataDocumento(Atendimento atendimento, Date inicioDate, Date terminoDate) {
+  public List<Map.Entry<String, List<DocumentoDTO>>> mapearDataDocumento(Atendimento atendimento, Date inicio, Date fim, Setor setor) {
 
-    List<DocumentoDTO> documentos = buscarDocumentos(atendimento, inicioDate, terminoDate);
+    List<DocumentoDTO> documentos = buscarDocumentos(atendimento, inicio, fim, setor);
 
     Map<String, List<DocumentoDTO>> mapDocumentos = new HashMap<>();
 

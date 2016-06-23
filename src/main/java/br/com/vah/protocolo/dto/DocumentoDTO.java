@@ -3,151 +3,166 @@ package br.com.vah.protocolo.dto;
 import java.util.Date;
 
 import br.com.vah.protocolo.constants.TipoDocumentoEnum;
+import br.com.vah.protocolo.entities.dbamv.AvisoCirurgia;
 import br.com.vah.protocolo.entities.dbamv.PrescricaoMedica;
 
 public class DocumentoDTO {
 
-	private TipoDocumentoEnum tipo;
-	private PrescricaoMedica prescricao;
-	private Date data;
-	private String codigo;
-	private String prestador;
-	private Date dataHoraCriacao;
-	private Date dataHoraImpressao;
-	private String dsEvolucao;
-	private Boolean hasEvolucao;
-	private Integer qtdDoc = 1;
-	private String conselho;
+  private TipoDocumentoEnum tipo;
+  private PrescricaoMedica prescricao;
+  private AvisoCirurgia aviso;
+  private Date data;
+  private String codigo;
+  private String prestador;
+  private Date dataHoraCriacao;
+  private Date dataHoraImpressao;
+  private Boolean hasEvolucao;
+  private Integer qtdDoc = 1;
+  private String conselho;
 
-	public DocumentoDTO(PrescricaoMedica prescricao, Boolean hasEvolucao) {
-		
-		validaTipoDoc(prescricao, hasEvolucao);
-		
-		this.prescricao = prescricao;
-		this.data = prescricao.getDatePreMed();
-		this.codigo = String.valueOf(prescricao.getId());
-		this.prestador = prescricao.getPrestador().getNome();
-		this.dataHoraCriacao = prescricao.getDataHoraCriacao();
-		this.dataHoraImpressao = prescricao.getDataHoraImpressao();
-		this.hasEvolucao = hasEvolucao;
+  public DocumentoDTO(PrescricaoMedica prescricao, Boolean hasEvolucao) {
 
-		if (prescricao.getTipoPrescricao().equals("E")) {
-			this.conselho = "COREN";
-		} else {
-			this.conselho = "CRM";
-		}
-	}
+    this.prescricao = prescricao;
+    this.data = prescricao.getDatePreMed();
+    this.codigo = String.valueOf(prescricao.getId());
+    this.prestador = prescricao.getPrestador().getNome();
+    this.dataHoraCriacao = prescricao.getDataHoraCriacao();
+    this.dataHoraImpressao = prescricao.getDataHoraImpressao();
+    this.hasEvolucao = hasEvolucao;
 
-	public Integer getQtdDoc() {
-		return qtdDoc;
-	}
+    // Atributos inferidos
+    resolverConselho();
+    resolverTipoDoc();
+  }
 
-	public void setQtdDoc(Integer qtdDoc) {
-		this.qtdDoc = qtdDoc;
-	}
+  public DocumentoDTO(AvisoCirurgia aviso) {
 
-	public Date getData() {
-		return data;
-	}
+    this.aviso = aviso;
+    this.data = aviso.getInicioCirurgia();
+    this.codigo = String.valueOf(aviso.getId());
+    this.qtdDoc = 2;
+    this.tipo =TipoDocumentoEnum.AVISO_CIRURGIA;
 
-	public void setData(Date data) {
-		this.data = data;
-	}
+  }
 
-	public String getCodigo() {
-		return codigo;
-	}
+  public DocumentoDTO() {
+    // Documentos de prontuário
+  }
 
-	public void setCodigo(String codigo) {
-		this.codigo = codigo;
-	}
+  private void resolverConselho () {
+    if (prescricao.getTipoPrescricao().equals("E")) {
+      conselho = "COREN";
+    } else {
+      conselho = "CRM";
+    }
+  }
 
-	public String getPrestador() {
-		return prestador;
-	}
+  private void resolverTipoDoc () {
+    // LISTA DE ITENS PRESCRITOS NAO E VAZIO
+    if(prescricao != null) {
+      if (!prescricao.getItPreMed().isEmpty() && hasEvolucao) {
+        qtdDoc = 2;
+      }
+      if (qtdDoc > 1) {
+        tipo = TipoDocumentoEnum.PRESCRICAO_EVOLUCAO;
+      } else {
+        if (qtdDoc < 2 && !hasEvolucao) {
+          tipo = TipoDocumentoEnum.PRESCRICAO;
+        } else {
+          tipo = TipoDocumentoEnum.EVOLUCAO;
+        }
+      }
+    } if (aviso != null) {
+      tipo = TipoDocumentoEnum.AVISO_CIRURGIA;
+    }
+  }
 
-	public void setPrestador(String prestador) {
-		this.prestador = prestador;
-	}
+  public Integer getQtdDoc() {
+    return qtdDoc;
+  }
 
-	public Date getDataHoraCriacao() {
-		return dataHoraCriacao;
-	}
+  public void setQtdDoc(Integer qtdDoc) {
+    this.qtdDoc = qtdDoc;
+  }
 
-	public void setDataHoraCriacao(Date dataHoraCriacao) {
-		this.dataHoraCriacao = dataHoraCriacao;
-	}
+  public Date getData() {
+    return data;
+  }
 
-	public Date getDataHoraImpressao() {
-		return dataHoraImpressao;
-	}
+  public void setData(Date data) {
+    this.data = data;
+  }
 
-	public void setDataHoraImpressao(Date dataHoraImpressao) {
-		this.dataHoraImpressao = dataHoraImpressao;
-	}
+  public String getCodigo() {
+    return codigo;
+  }
 
-	public TipoDocumentoEnum getTipo() {
-		return tipo;
-	}
+  public void setCodigo(String codigo) {
+    this.codigo = codigo;
+  }
 
-	public void setTipo(TipoDocumentoEnum tipo) {
-		this.tipo = tipo;
-	}
+  public String getPrestador() {
+    return prestador;
+  }
 
-	public PrescricaoMedica getPrescricao() {
-		return prescricao;
-	}
+  public void setPrestador(String prestador) {
+    this.prestador = prestador;
+  }
 
-	public void setPrescricao(PrescricaoMedica prescricao) {
-		this.prescricao = prescricao;
-	}
+  public Date getDataHoraCriacao() {
+    return dataHoraCriacao;
+  }
 
-	public String getDsEvolucao() {
-		return dsEvolucao;
-	}
+  public void setDataHoraCriacao(Date dataHoraCriacao) {
+    this.dataHoraCriacao = dataHoraCriacao;
+  }
 
-	public void setDsEvolucao(String dsEvolucao) {
-		this.dsEvolucao = dsEvolucao;
-	}
+  public Date getDataHoraImpressao() {
+    return dataHoraImpressao;
+  }
 
-	public Boolean getHasEvolucao() {
-		return hasEvolucao;
-	}
+  public void setDataHoraImpressao(Date dataHoraImpressao) {
+    this.dataHoraImpressao = dataHoraImpressao;
+  }
 
-	public void setHasEvolucao(Boolean hasEvolucao) {
-		this.hasEvolucao = hasEvolucao;
-	}
+  public TipoDocumentoEnum getTipo() {
+    return tipo;
+  }
 
-	public String getConselho() {
-		return conselho;
-	}
+  public void setTipo(TipoDocumentoEnum tipo) {
+    this.tipo = tipo;
+  }
 
-	public void setConselho(String conselho) {
-		this.conselho = conselho;
-	}
+  public PrescricaoMedica getPrescricao() {
+    return prescricao;
+  }
 
-	public void validaTipoDoc(PrescricaoMedica prescricao, Boolean hasEvolucao){
-		
-		// LISTA DE ITENS PRESCRITOS NAO E VAZIO
-		if (!prescricao.getItPreMed().isEmpty() && hasEvolucao) {
-			this.qtdDoc = 2;
-		}
-		if ( this.qtdDoc > 1) {
-			this.tipo = TipoDocumentoEnum.PRESCRICAO_EVOLUCAO;
-		}
-		else {
-			
-			if (this.qtdDoc < 2 && !hasEvolucao) {
-				this.tipo = TipoDocumentoEnum.PRESCRICAO;
-			}
-			else {
-				this.tipo = TipoDocumentoEnum.EVOLUCAO;
-			}
-		}
-	}
-	
-	public DocumentoDTO() {
-		// Documentos de prontuário
-	}
-	
+  public void setPrescricao(PrescricaoMedica prescricao) {
+    this.prescricao = prescricao;
+  }
+
+  public AvisoCirurgia getAviso() {
+    return aviso;
+  }
+
+  public void setAviso(AvisoCirurgia aviso) {
+    this.aviso = aviso;
+  }
+
+  public Boolean getHasEvolucao() {
+    return hasEvolucao;
+  }
+
+  public void setHasEvolucao(Boolean hasEvolucao) {
+    this.hasEvolucao = hasEvolucao;
+  }
+
+  public String getConselho() {
+    return conselho;
+  }
+
+  public void setConselho(String conselho) {
+    this.conselho = conselho;
+  }
+
 }

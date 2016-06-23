@@ -212,7 +212,7 @@ public class ProtocoloController extends AbstractController<Protocolo> {
 	}
 
 	public void buscarPrescricoes() {
-		this.documentos = service.mapearDataDocumento(getItem().getAtendimento(), inicioDate, terminoDate);
+		this.documentos = service.mapearDataDocumento(getItem().getAtendimento(), inicioDate, terminoDate, session.getSetor());
 	}
 
 	public PrescricaoMedica[] getSelectedPrescricoes() {
