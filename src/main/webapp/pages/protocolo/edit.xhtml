@@ -19,6 +19,7 @@
 
       <p:panel header="Enviar documentos">
         <h:panelGroup id="protocoloPnlWrapper" layout="block" style="position: relative">
+
           <p:focus context="protocoloPnlWrapper"/>
 
           <h:panelGrid id="grid01" columns="3">
@@ -28,7 +29,9 @@
                                 editing="#{protocoloController.editing and protocoloController.item.id == null}"
                                 converter="#{atendimentoConverter}" itemLabel="labelForSelectItem"
                                 placeholder="Número/Nome paciente">
-              <p:ajax event="itemSelect" oncomplete="nextFocus('#{p:component('carregarDocsBtn')}')"/>
+              <p:ajax event="itemSelect" listener="#{protocoloController.recuperarDadosRascunho()}"
+                      process="@this" update="dadosProtocoloPnl"
+                      oncomplete="nextFocus('#{p:component('carregarDocsBtn')}')"/>
               <p:column>
                 #{item.id}
               </p:column>
@@ -37,74 +40,121 @@
               </p:column>
             </uivah:autoComplete>
 
-            <uivah:inputDate id="inicioDate" label="Início"
-                             value="#{protocoloController.inicioDate}"
-                             editing="#{protocoloController.editing}"
-                             pattern="dd/MM/yyyy"
-                             rendered="#{protocoloController.item.id == null}"/>
-
-            <uivah:inputDate id="terminoDate" label="Término"
-                             value="#{protocoloController.terminoDate}"
-                             editing="#{protocoloController.editing}"
-                             pattern="dd/MM/yyyy"
-                             rendered="#{protocoloController.item.id == null}"/>
           </h:panelGrid>
 
-          <p:commandButton id="carregarDocsBtn" value="Buscar documentos" ajax="true"
-                           process="@this grid01" update="tabView" validateClient="true"
-                           styleClass="margin-top" action="#{protocoloController.buscarPrescricoes()}"
-                           style="position: absolute; right: 0; top: 0; font-size: 20px;"
-                           rendered="#{protocoloController.editing}"/>
+          <h:panelGroup id="dadosProtocoloPnl" layout="block" styleClass="margin-top">
+            <p:fieldset legend="Incluir documentos" rendered="#{not empty protocoloController.item.atendimento}">
+              <h:panelGrid id="grid02" columns="3">
+                <uivah:inputDate id="inicioDate" label="Início"
+                                 value="#{protocoloController.inicioDate}"
+                                 editing="#{protocoloController.editing}"
+                                 pattern="dd/MM/yyyy"/>
 
+                <uivah:inputDate id="terminoDate" label="Término"
+                                 value="#{protocoloController.terminoDate}"
+                                 editing="#{protocoloController.editing}"
+                                 pattern="dd/MM/yyyy"/>
+              </h:panelGrid>
+              <p:commandButton id="carregarDocsBtn" value="Buscar" ajax="true"
+                               process="@this grid02" update="tabPnl" validateClient="true"
+                               styleClass="margin-top" action="#{protocoloController.buscarDocumentos}"
+                               rendered="#{protocoloController.editing}"/>
 
+              <h:panelGroup id="tabPnl" layout="block">
+                <p:tabView id="tabView" value="#{protocoloController.documentos}" var="docEntry" styleClass="margin-top"
+                           widgetVar="tabView" rendered="#{not empty protocoloController.documentos}">
+                  <p:tab id="preMedTab" title="#{docEntry.key}">
+                    <p:dataTable value="#{docEntry.value}" var="doc"
+                                 selection="#{protocoloController.selectedDocumentos}"
+                                 rowKey="#{doc.codigo}"
+                                 sortBy="#{doc.dataHoraCriacao}">
+
+                      <p:column selectionMode="multiple" width="15"/>
+
+                      <p:column headerText="Código" width="50" styleClass="left-align">
+                        <h:outputText value="#{doc.codigo}"/>
+                      </p:column>
+                      <p:column headerText="Descrição" styleClass="left-align ellipsis-text" width="150">
+                        <h:outputText value="#{doc.descricao}"/>
+                      </p:column>
+                      <p:column headerText="Prestador" styleClass="left-align">
+                        <h:outputText value="#{doc.prestador}"/>
+                      </p:column>
+                      <p:column headerText="Conselho" styleClass="left-align">
+                        <h:outputText value="#{doc.conselho}"/>
+                      </p:column>
+                      <p:column headerText="Data/Hora criação" styleClass="left-align">
+                        <h:outputText value="#{doc.dataHoraCriacao}">
+                          <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
+                        </h:outputText>
+                      </p:column>
+                      <p:column headerText="Data/Hora impressão" styleClass="left-align">
+                        <h:outputText value="#{doc.dataHoraImpressao}">
+                          <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
+                        </h:outputText>
+                      </p:column>
+                      <p:column headerText="Tipo" styleClass="left-align">
+                        <h:outputText value="#{doc.tipo}"/>
+                      </p:column>
+                      <p:column headerText="Quantidade Docs" styleClass="left-align">
+                        <h:outputText value="#{doc.qtdDoc}"/>
+                      </p:column>
+                    </p:dataTable>
+                  </p:tab>
+                </p:tabView>
+              </h:panelGroup>
+
+            </p:fieldset>
+            <p:fieldset legend="Documentos incluídos" rendered="#{not empty protocoloController.item.atendimento}" styleClass="margin-top">
+              <p:tabView id="docSelecionadosTabView" value="#{protocoloController.documentosSelecionados}" var="docEntry" styleClass="margin-top"
+                         widgetVar="tabView" rendered="#{not empty protocoloController.documentosSelecionados}">
+                <p:tab title="#{docEntry.key}">
+                  <p:dataTable value="#{docEntry.value}" var="doc"
+                               sortBy="#{doc.dataHoraCriacao}">
+                    <p:column headerText="Código" width="50" styleClass="left-align">
+                      <h:outputText value="#{doc.codigo}"/>
+                    </p:column>
+                    <p:column headerText="Descrição" styleClass="left-align ellipsis-text" width="150">
+                      <h:outputText value="#{doc.descricao}"/>
+                    </p:column>
+                    <p:column headerText="Prestador" styleClass="left-align">
+                      <h:outputText value="#{doc.prestador}"/>
+                    </p:column>
+                    <p:column headerText="Conselho" styleClass="left-align">
+                      <h:outputText value="#{doc.conselho}"/>
+                    </p:column>
+                    <p:column headerText="Data/Hora criação" styleClass="left-align">
+                      <h:outputText value="#{doc.dataHoraCriacao}">
+                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
+                      </h:outputText>
+                    </p:column>
+                    <p:column headerText="Data/Hora impressão" styleClass="left-align">
+                      <h:outputText value="#{doc.dataHoraImpressao}">
+                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
+                      </h:outputText>
+                    </p:column>
+                    <p:column headerText="Tipo" styleClass="left-align">
+                      <h:outputText value="#{doc.tipo}"/>
+                    </p:column>
+                    <p:column headerText="Quantidade Docs" styleClass="left-align">
+                      <h:outputText value="#{doc.qtdDoc}"/>
+                    </p:column>
+                  </p:dataTable>
+                </p:tab>
+              </p:tabView>
+            </p:fieldset>
+          </h:panelGroup>
         </h:panelGroup>
-
-        <p:tabView id="tabView" value="#{protocoloController.documentos}" var="docEntry" styleClass="margin-top"
-                   widgetVar="tabView">
-          <p:tab id="preMedTab" title="#{docEntry.key}">
-
-            <p:dataTable value="#{docEntry.value}" var="doc"
-                         selection="#{protocoloController.mapSelectedDocumentos[docEntry.key]}" rowKey="#{doc.codigo}" sortBy="#{doc.dataHoraCriacao}">
-
-              <p:column selectionMode="multiple" width="16"/>
-
-              <p:column headerText="Código" width="50" styleClass="left-align">
-                <h:outputText value="#{doc.codigo}"/>
-              </p:column>
-              <p:column headerText="Prestador" styleClass="left-align">
-                <h:outputText value="#{doc.prestador}"/>
-              </p:column>
-              <p:column headerText="Conselho" styleClass="left-align">
-                <h:outputText value="#{doc.conselho}"/>
-              </p:column>
-              <p:column headerText="Data/Hora criação" styleClass="left-align">
-                <h:outputText value="#{doc.dataHoraCriacao}">
-                  <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
-                </h:outputText>
-              </p:column>
-              <p:column headerText="Data/Hora impressão" styleClass="left-align">
-                <h:outputText value="#{doc.dataHoraImpressao}">
-                  <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
-                </h:outputText>
-              </p:column>
-              <p:column headerText="Tipo" styleClass="left-align">
-                <h:outputText value="#{doc.tipo}"/>
-              </p:column>
-              <p:column headerText="Quantidade Docs" styleClass="left-align">
-                <h:outputText value="#{doc.qtdDoc}"/>
-              </p:column>
-
-            </p:dataTable>
-          </p:tab>
-          <p:tab id="prontuarioTab" title="Prontuários">
-          </p:tab>
-        </p:tabView>
 
         <h:panelGroup id="panelBtns" layout="block"
                       style="margin-top: 10px;">
-          <p:commandButton id="saveBtn" value="Salvar" icon="fa fa-floppy-o" ajax="true"
+          <p:commandButton id="saveBtn" value="Salvar Parcial" icon="fa fa-floppy-o" ajax="true"
                            process="@this form" update="form" validateClient="true"
-                           style="margin-right:10px" action="#{protocoloController.doSave}"
+                           style="margin-right:10px" action="#{protocoloController.salvarParcial}"
+                           rendered="#{protocoloController.editing}"/>
+          <p:commandButton id="enviarBtn" value="Enviar" icon="fa fa-send" ajax="true"
+                           process="@this form" update="form" validateClient="true"
+                           style="margin-right:10px" action="#{protocoloController.back}"
                            rendered="#{protocoloController.editing}"/>
           <p:commandButton id="backBtn" value="Voltar" ajax="false" immediate="true" icon="fa fa-undo"
                            onstart="PF('changePage').show()"

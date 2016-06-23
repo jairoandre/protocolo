@@ -8,7 +8,8 @@ public enum EstadosProtocoloEnum {
   RECEBIDO("Recebido"),
   RECUSADO("Recusado"),
   CORRIGIDO("Corrigido"),
-  ARQUIVADO("Arquivado");
+  ARQUIVADO("Arquivado"),
+  RASCUNHO("Rascunho");
 
   private String label;
 

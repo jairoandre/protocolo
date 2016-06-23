@@ -5,12 +5,15 @@ import java.util.Date;
 import br.com.vah.protocolo.constants.TipoDocumentoEnum;
 import br.com.vah.protocolo.entities.dbamv.AvisoCirurgia;
 import br.com.vah.protocolo.entities.dbamv.PrescricaoMedica;
+import br.com.vah.protocolo.entities.dbamv.RegistroDocumento;
 
 public class DocumentoDTO {
 
   private TipoDocumentoEnum tipo;
   private PrescricaoMedica prescricao;
   private AvisoCirurgia aviso;
+  private RegistroDocumento registro;
+  private String descricao;
   private Date data;
   private String codigo;
   private String prestador;
@@ -42,6 +45,18 @@ public class DocumentoDTO {
     this.codigo = String.valueOf(aviso.getId());
     this.qtdDoc = 2;
     this.tipo =TipoDocumentoEnum.AVISO_CIRURGIA;
+
+  }
+
+  public DocumentoDTO(RegistroDocumento registro) {
+
+    this.registro = registro;
+    this.data = registro.getDataRegistro();
+    this.codigo = String.valueOf(registro.getId());
+    this.descricao = registro.getDocumento().getDescricao();
+    this.qtdDoc = 1;
+    this.tipo = TipoDocumentoEnum.REGISTRO_DOCUMENTO;
+    this.prestador = registro.getNomeUsuario();
 
   }
 
@@ -109,6 +124,14 @@ public class DocumentoDTO {
     this.prestador = prestador;
   }
 
+  public RegistroDocumento getRegistro() {
+    return registro;
+  }
+
+  public void setRegistro(RegistroDocumento registro) {
+    this.registro = registro;
+  }
+
   public Date getDataHoraCriacao() {
     return dataHoraCriacao;
   }
@@ -165,4 +188,11 @@ public class DocumentoDTO {
     this.conselho = conselho;
   }
 
+  public String getDescricao() {
+    return descricao;
+  }
+
+  public void setDescricao(String descricao) {
+    this.descricao = descricao;
+  }
 }

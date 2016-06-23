@@ -39,6 +39,10 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
   @Inject
   AvisoCirurgiaService avisoCirurgiaService;
 
+  private
+  @Inject
+  RegistroDocumentoService registroDocumentoService;
+
   public ProtocoloService() {
     super(Protocolo.class);
   }
@@ -129,6 +133,30 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
 
   }
 
+  public Protocolo salvarParcial (Protocolo protocolo, List<DocumentoDTO> documentos) {
+
+    if (documentos != null) {
+      for (DocumentoDTO documento : documentos) {
+        PrescricaoMedica prescricao = documento.getPrescricao();
+        AvisoCirurgia aviso = documento.getAviso();
+        RegistroDocumento registro = documento.getRegistro();
+        if(prescricao != null) {
+          protocolo.getPrescricoes().add(prescricao);
+        }
+        if(aviso != null) {
+          protocolo.getAvisos().add(aviso);
+        }
+        if(registro != null) {
+          protocolo.getRegistros().add(registro);
+        }
+      }
+    }
+
+    // TODO: Verificar numero conta do protocolo
+
+    return this.update(protocolo);
+  }
+
   public Criteria createCriteria(PaginatedSearchParam params) {
     Session session = getEm().unwrap(Session.class);
     Criteria criteria = session.createCriteria(Protocolo.class);
@@ -182,29 +210,27 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
 
   }
 
-  public List<DocumentoDTO> buscarDocumentos(Atendimento atendimento, Date inicio, Date fim, Setor setor) {
-
+  private List<DocumentoDTO> gerarListaDTO(List<PrescricaoMedica> prescricoes, List<AvisoCirurgia> avisos, List<RegistroDocumento> registros) {
     List<DocumentoDTO> documentos = new ArrayList<>();
-
     // Prescrições e evoluções médicas
-    List<PrescricaoMedica> prescricoes = prescricaoMedicaService.consultarPrescricoes(atendimento, inicio, fim);
     for (PrescricaoMedica prescricao : prescricoes) {
       Boolean hasEvolucao = prescricaoMedicaService.hasEvolucao(prescricao);
       documentos.add(new DocumentoDTO(prescricao, hasEvolucao));
     }
 
     // Avisos de cirurgia
-    List<AvisoCirurgia> avisos = avisoCirurgiaService.consultarAvisos(atendimento, inicio, fim,  setor);
     for (AvisoCirurgia aviso : avisos) {
       documentos.add(new DocumentoDTO(aviso));
+    }
+
+    // Registro de Documentos
+    for (RegistroDocumento registro : registros) {
+      documentos.add(new DocumentoDTO(registro));
     }
     return documentos;
   }
 
-  public List<Map.Entry<String, List<DocumentoDTO>>> mapearDataDocumento(Atendimento atendimento, Date inicio, Date fim, Setor setor) {
-
-    List<DocumentoDTO> documentos = buscarDocumentos(atendimento, inicio, fim, setor);
-
+  private List<Map.Entry<String, List<DocumentoDTO>>> gerarListaEntryDTO(List<DocumentoDTO> documentos) {
     Map<String, List<DocumentoDTO>> mapDocumentos = new HashMap<>();
 
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
@@ -236,7 +262,69 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
     });
 
     return mapearData;
+  }
 
+  private List<DocumentoDTO> buscarDocumentos(Atendimento atendimento, Date inicio, Date fim, Setor setor, Protocolo protocolo) {
+
+    List<PrescricaoMedica> prescricoes = prescricaoMedicaService.consultarPrescricoes(atendimento, inicio, fim);
+    List<AvisoCirurgia> avisos = avisoCirurgiaService.consultarAvisos(atendimento, inicio, fim, setor);
+    List<RegistroDocumento> registros = registroDocumentoService.consultarRegistros(atendimento, inicio, fim);
+
+    if (protocolo.getId() != null) {
+      List<PrescricaoMedica> prescricoesToRemove = new ArrayList<>();
+      for (PrescricaoMedica prescricao : prescricoes) {
+        if (protocolo.getPrescricoes().contains(prescricao)) {
+          prescricoesToRemove.add(prescricao);
+        }
+
+      }
+      List<AvisoCirurgia> avisosToRemove = new ArrayList<>();
+      for (AvisoCirurgia aviso : avisos) {
+        if (protocolo.getAvisos().contains(aviso)) {
+          avisosToRemove.add(aviso);
+        }
+      }
+      List<RegistroDocumento> registrosToRemove = new ArrayList<>();
+      for (RegistroDocumento registro : registros) {
+        if (protocolo.getRegistros().contains(registro)) {
+          registrosToRemove.add(registro);
+        }
+      }
+      prescricoes.removeAll(prescricoesToRemove);
+      avisos.removeAll(avisosToRemove);
+      registros.removeAll(registrosToRemove);
+    }
+
+    return gerarListaDTO(prescricoes, avisos, registros);
+
+
+  }
+
+  public List<Map.Entry<String, List<DocumentoDTO>>> buscarMapaDocumentos(Atendimento atendimento, Date inicio, Date fim, Setor setor, Protocolo protocolo) {
+
+    List<DocumentoDTO> documentos = buscarDocumentos(atendimento, inicio, fim, setor, protocolo);
+
+    return gerarListaEntryDTO(documentos);
+
+  }
+
+  public List<Map.Entry<String, List<DocumentoDTO>>> mapearDocumentosSelecionados(Protocolo protocolo) {
+    return gerarListaEntryDTO(gerarListaDTO(protocolo.getPrescricoes(), protocolo.getAvisos(), protocolo.getRegistros()));
+  }
+
+  public Protocolo buscarDadosRascunho(Atendimento atendimento) {
+    Session session = getEm().unwrap(Session.class);
+    Criteria criteria = session.createCriteria(Protocolo.class);
+    criteria.add(Restrictions.eq("atendimento", atendimento));
+    criteria.add(Restrictions.eq("estado", EstadosProtocoloEnum.RASCUNHO));
+    criteria.setFetchMode("prescricoes", FetchMode.SELECT);
+    criteria.setFetchMode("avisos", FetchMode.SELECT);
+    criteria.setFetchMode("registros", FetchMode.SELECT);
+    criteria.setFetchMode("historico", FetchMode.SELECT);
+    criteria.setFetchMode("comentarios", FetchMode.SELECT);
+    criteria.setFetchMode("documentosManuais", FetchMode.SELECT);
+    List<Protocolo> protocolos = criteria.list();
+    return protocolos.isEmpty() ? null : protocolos.get(0);
   }
 
 }

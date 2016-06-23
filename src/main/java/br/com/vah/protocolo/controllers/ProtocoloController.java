@@ -1,10 +1,6 @@
 package br.com.vah.protocolo.controllers;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
@@ -30,202 +26,244 @@ import br.com.vah.protocolo.util.ViewUtils;
 @ViewScoped
 public class ProtocoloController extends AbstractController<Protocolo> {
 
-	private @Inject transient Logger logger;
+  private
+  @Inject
+  transient Logger logger;
 
-	private @Inject ProtocoloService service;
+  private
+  @Inject
+  ProtocoloService service;
 
-	private @Inject SessionController session;
+  private
+  @Inject
+  SessionController session;
 
-	private @Inject AtendimentoService atendimentoService;
+  private
+  @Inject
+  AtendimentoService atendimentoService;
 
-	public static final String[] RELATIONS = { "prescricoes", "historico", "comentarios" };
+  public static final String[] RELATIONS = {"prescricoes", "avisos", "registros", "historico", "comentarios"};
 
-	private Setor setor;
+  private Setor setor;
 
-	private EstadosProtocoloEnum[] estados = EstadosProtocoloEnum.values();
+  private EstadosProtocoloEnum[] estados = EstadosProtocoloEnum.values();
 
-	private EstadosProtocoloEnum[] selectedEstados;
+  private EstadosProtocoloEnum[] selectedEstados;
 
-	private Date inicioDate;
+  private Date inicioDate;
 
-	private Date terminoDate;
+  private Date terminoDate;
 
-	private String comentario;
+  private String comentario;
 
-	private PrescricaoMedica[] selectedPrescricoes;
+  private Map<String, List<DocumentoDTO>> mapSelectedDocumentos = new HashMap<>();
 
-	private Map<Date, DocumentoDTO[]> mapSelectedDocumentos = new HashMap<>();
-	
-	private List<Map.Entry<String, List<DocumentoDTO>>> documentos; 
-	
-	@PostConstruct
-	public void init() {
-		logger.info(this.getClass().getSimpleName() + " created");
-		setItem(createNewItem());
-		initLazyModel(service, RELATIONS);
-		prepareSearch();
-		Date[] range = ViewUtils.getDateRange2Days();
-		inicioDate = range[0];
-		terminoDate = range[1];
-	}
+  List<DocumentoDTO> selectedDocumentos;
 
-	@Override
-	public void prepareSearch() {
-		resetSearchParams();
-		String regex = "[0-9]+";
-		if (getSearchTerm() != null && getSearchTerm().matches(regex)) {
-			setSearchParam("atendimento", Long.valueOf(getSearchTerm()));
-		} else {
-			setSearchParam("paciente", getSearchTerm());
-		}
-		if (setor != null) {
-			setSearchParam("setor", setor);
-		}
-		if (session.getSetor() != null) {
-			setSearchParam("setor", session.getSetor());
-		}
-		if (selectedEstados != null && selectedEstados.length > 0) {
-			setSearchParam("estados", selectedEstados);
-		}
-		if (inicioDate != null || terminoDate != null) {
-			setSearchParam("dateRange", new Date[] { inicioDate, terminoDate });
-		}
-	}
+  private List<Map.Entry<String, List<DocumentoDTO>>> documentos;
 
-	public void filterCurrentMonth() {
-		Date[] thisMonth = ViewUtils.getDateRangeForThisMonth();
-		inicioDate = thisMonth[0];
-		terminoDate = thisMonth[1];
-		prepareSearch();
-	}
+  private List<Map.Entry<String, List<DocumentoDTO>>> documentosSelecionados;
 
-	public void clearSelectedEstados() {
-		this.selectedEstados = null;
-		prepareSearch();
-	}
+  @PostConstruct
+  public void init() {
+    logger.info(this.getClass().getSimpleName() + " created");
+    setItem(createNewItem());
+    initLazyModel(service, RELATIONS);
+    prepareSearch();
+    Date[] range = ViewUtils.getDateRange2Days();
+    inicioDate = range[0];
+    terminoDate = range[1];
+  }
 
-	public void clearSetor() {
-		setor = null;
-		prepareSearch();
-	}
+  @Override
+  public void prepareSearch() {
+    resetSearchParams();
+    String regex = "[0-9]+";
+    if (getSearchTerm() != null && getSearchTerm().matches(regex)) {
+      setSearchParam("atendimento", Long.valueOf(getSearchTerm()));
+    } else {
+      setSearchParam("paciente", getSearchTerm());
+    }
+    if (setor != null) {
+      setSearchParam("setor", setor);
+    }
+    if (session.getSetor() != null) {
+      setSearchParam("setor", session.getSetor());
+    }
+    if (selectedEstados != null && selectedEstados.length > 0) {
+      setSearchParam("estados", selectedEstados);
+    }
+    if (inicioDate != null || terminoDate != null) {
+      setSearchParam("dateRange", new Date[]{inicioDate, terminoDate});
+    }
+  }
 
-	public void receber(Protocolo protocolo) {
+  public void filterCurrentMonth() {
+    Date[] thisMonth = ViewUtils.getDateRangeForThisMonth();
+    inicioDate = thisMonth[0];
+    terminoDate = thisMonth[1];
+    prepareSearch();
+  }
 
-	}
+  public void clearSelectedEstados() {
+    this.selectedEstados = null;
+    prepareSearch();
+  }
 
-	public Boolean showRefuseButton(Protocolo protocolo) {
-		// TODO: Implementar verificação de exibição
-		return true;
-	}
+  public void clearSetor() {
+    setor = null;
+    prepareSearch();
+  }
 
-	public Boolean showEditButton(Protocolo protocolo) {
-		return true;
-	}
+  public void receber(Protocolo protocolo) {
 
-	public Boolean showDeleteButton(Protocolo protocolo) {
-		return true;
-	}
+  }
 
-	public void salvarNovoComentario() {
+  public Boolean showRefuseButton(Protocolo protocolo) {
+    // TODO: Implementar verificação de exibição
+    return true;
+  }
 
-	}
+  public Boolean showEditButton(Protocolo protocolo) {
+    return true;
+  }
 
-	@Override
-	public DataAccessService<Protocolo> getService() {
-		return service;
-	}
+  public Boolean showDeleteButton(Protocolo protocolo) {
+    return true;
+  }
 
-	@Override
-	public Logger getLogger() {
-		return logger;
-	}
+  public void salvarNovoComentario() {
 
-	@Override
-	public Protocolo createNewItem() {
-		return new Protocolo();
-	}
+  }
 
-	@Override
-	public String path() {
-		return "protocolo";
-	}
+  public void buscarDocumentos() {
+    documentos = service.buscarMapaDocumentos(getItem().getAtendimento(), inicioDate, terminoDate, session.getSetor(), getItem());
+    mapSelectedDocumentos = new HashMap<>();
+    for (Map.Entry<String, List<DocumentoDTO>> entryDoc : documentos) {
+      mapSelectedDocumentos.put(entryDoc.getKey(), new ArrayList<DocumentoDTO>());
+    }
+  }
 
-	@Override
-	public String getEntityName() {
-		return "Protocolo";
-	}
+  public List<Map.Entry<String, List<DocumentoDTO>>> getDocumentos() {
+    return this.documentos;
+  }
 
-	public Setor getSetor() {
-		return setor;
-	}
+  public void recuperarDadosRascunho() {
 
-	public void setSetor(Setor setor) {
-		this.setor = setor;
-	}
+    Protocolo rascunho = service.buscarDadosRascunho(getItem().getAtendimento());
+    if(rascunho != null){
+      setItem(rascunho);
+    }
 
-	public EstadosProtocoloEnum[] getEstados() {
-		return estados;
-	}
+    documentosSelecionados = service.mapearDocumentosSelecionados(getItem());
 
-	public void setEstados(EstadosProtocoloEnum[] estados) {
-		this.estados = estados;
-	}
+  }
 
-	public EstadosProtocoloEnum[] getSelectedEstados() {
-		return selectedEstados;
-	}
+  @Override
+  public DataAccessService<Protocolo> getService() {
+    return service;
+  }
 
-	public void setSelectedEstados(EstadosProtocoloEnum[] selectedEstados) {
-		this.selectedEstados = selectedEstados;
-	}
+  @Override
+  public Logger getLogger() {
+    return logger;
+  }
 
-	public Date getInicioDate() {
-		return inicioDate;
-	}
+  @Override
+  public Protocolo createNewItem() {
+    return new Protocolo();
+  }
 
-	public void setInicioDate(Date inicioDate) {
-		this.inicioDate = inicioDate;
-	}
+  @Override
+  public String path() {
+    return "protocolo";
+  }
 
-	public Date getTerminoDate() {
-		return terminoDate;
-	}
+  @Override
+  public String getEntityName() {
+    return "Protocolo";
+  }
 
-	public void setTerminoDate(Date terminoDate) {
-		this.terminoDate = terminoDate;
-	}
+  public Setor getSetor() {
+    return setor;
+  }
 
-	public String getComentario() {
-		return comentario;
-	}
+  public void setSetor(Setor setor) {
+    this.setor = setor;
+  }
 
-	public void setComentario(String comentario) {
-		this.comentario = comentario;
-	}
+  public EstadosProtocoloEnum[] getEstados() {
+    return estados;
+  }
 
-	public Map<Date, DocumentoDTO[]> getMapSelectedDocumentos() {
-		return mapSelectedDocumentos;
-	}
+  public void setEstados(EstadosProtocoloEnum[] estados) {
+    this.estados = estados;
+  }
 
-	public void setMapSelectedDocumentos(Map<Date, DocumentoDTO[]> mapSelectedDocumentos) {
-		this.mapSelectedDocumentos = mapSelectedDocumentos;
-	}
+  public EstadosProtocoloEnum[] getSelectedEstados() {
+    return selectedEstados;
+  }
 
-	public void buscarPrescricoes() {
-		this.documentos = service.mapearDataDocumento(getItem().getAtendimento(), inicioDate, terminoDate, session.getSetor());
-	}
+  public void setSelectedEstados(EstadosProtocoloEnum[] selectedEstados) {
+    this.selectedEstados = selectedEstados;
+  }
 
-	public PrescricaoMedica[] getSelectedPrescricoes() {
-		return selectedPrescricoes;
-	}
+  public Date getInicioDate() {
+    return inicioDate;
+  }
 
-	public void setSelectedPrescricoes(PrescricaoMedica[] selectedPrescricoes) {
-		this.selectedPrescricoes = selectedPrescricoes;
-	}
-	
-	public List<Map.Entry<String, List<DocumentoDTO>>> getDocumentos(){
-		return this.documentos;
-	}
+  public void setInicioDate(Date inicioDate) {
+    this.inicioDate = inicioDate;
+  }
 
+  public Date getTerminoDate() {
+    return terminoDate;
+  }
 
+  public void setTerminoDate(Date terminoDate) {
+    this.terminoDate = terminoDate;
+  }
+
+  public String getComentario() {
+    return comentario;
+  }
+
+  public void setComentario(String comentario) {
+    this.comentario = comentario;
+  }
+
+  public Map<String, List<DocumentoDTO>> getMapSelectedDocumentos() {
+    return mapSelectedDocumentos;
+  }
+
+  public void setMapSelectedDocumentos(Map<String, List<DocumentoDTO>> mapSelectedDocumentos) {
+    this.mapSelectedDocumentos = mapSelectedDocumentos;
+  }
+
+  public List<Map.Entry<String, List<DocumentoDTO>>> getDocumentosSelecionados() {
+    return documentosSelecionados;
+  }
+
+  public List<DocumentoDTO> getSelectedDocumentos() {
+    return selectedDocumentos;
+  }
+
+  public void setSelectedDocumentos(List<DocumentoDTO> selectedDocumentos) {
+    this.selectedDocumentos = selectedDocumentos;
+  }
+
+  public void salvarParcial() {
+//    List<DocumentoDTO> documentosSelecionados = new ArrayList<>();
+//    for (List<DocumentoDTO> documentosArray : mapSelectedDocumentos.values()) {
+//      documentosSelecionados.addAll(documentosArray);
+//    }
+    Protocolo savedProtocolo = service.salvarParcial(getItem(), selectedDocumentos);
+    setItem(savedProtocolo);
+  }
+
+  @Override
+  public void onLoad() {
+    super.onLoad();
+    recuperarDadosRascunho();
+  }
 }

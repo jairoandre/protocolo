@@ -2,19 +2,17 @@ package br.com.vah.protocolo.entities.usrdbvah;
 
 import br.com.vah.protocolo.constants.EstadosProtocoloEnum;
 import br.com.vah.protocolo.entities.BaseEntity;
-import br.com.vah.protocolo.entities.dbamv.Atendimento;
-import br.com.vah.protocolo.entities.dbamv.PrescricaoMedica;
-import br.com.vah.protocolo.entities.dbamv.RegFaturamento;
-import br.com.vah.protocolo.entities.dbamv.Setor;
+import br.com.vah.protocolo.entities.dbamv.*;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
 /**
  * Entidade que representa um protocolo.
- *
+ * <p>
  * Created by Jairoportela on 05/04/2016.
  */
 @Entity
@@ -36,13 +34,12 @@ public class Protocolo extends BaseEntity {
   @JoinColumn(name = "CD_ATENDIMENTO")
   private Atendimento atendimento;
 
-  @ManyToOne
-  @JoinColumn(name = "CD_REG_FAT")
-  private RegFaturamento conta;
+  @Column(name = "CD_REG_FAT")
+  private Long conta;
 
   @Column(name = "CD_STATUS")
   @Enumerated(EnumType.ORDINAL)
-  private EstadosProtocoloEnum estado;
+  private EstadosProtocoloEnum estado = EstadosProtocoloEnum.RASCUNHO;
 
   @ManyToOne
   @JoinColumn(name = "CD_SETOR_ORIGEM")
@@ -67,7 +64,17 @@ public class Protocolo extends BaseEntity {
   @ManyToMany(cascade = CascadeType.DETACH, fetch = FetchType.EAGER)
   @JoinTable(name = "TB_NPTC_PROT_PRESC", joinColumns = {
       @JoinColumn(name = "ID_PROTOCOLO")}, inverseJoinColumns = {@JoinColumn(name = "CD_PRE_MED")}, schema = "USRDBVAH")
-  private List<PrescricaoMedica> prescricoes;
+  private List<PrescricaoMedica> prescricoes = new ArrayList<>();
+
+  @ManyToMany(cascade = CascadeType.DETACH, fetch = FetchType.EAGER)
+  @JoinTable(name = "TB_NPTC_PROT_AVISO", joinColumns = {
+      @JoinColumn(name = "ID_PROTOCOLO")}, inverseJoinColumns = {@JoinColumn(name = "CD_AVISO_CIRURGIA")}, schema = "USRDBVAH")
+  private List<AvisoCirurgia> avisos = new ArrayList<>();
+
+  @ManyToMany(cascade = CascadeType.DETACH, fetch = FetchType.EAGER)
+  @JoinTable(name = "TB_NPTC_PROT_REG_DOC", joinColumns = {
+      @JoinColumn(name = "ID_PROTOCOLO")}, inverseJoinColumns = {@JoinColumn(name = "CD_REGISTRO_DOCUMENTO")}, schema = "USRDBVAH")
+  private List<RegistroDocumento> registros = new ArrayList<>();
 
   @OneToMany(mappedBy = "protocolo")
   private Set<DocumentoManual> documentosManuais;
@@ -96,11 +103,11 @@ public class Protocolo extends BaseEntity {
     this.atendimento = atendimento;
   }
 
-  public RegFaturamento getConta() {
+  public Long getConta() {
     return conta;
   }
 
-  public void setConta(RegFaturamento conta) {
+  public void setConta(Long conta) {
     this.conta = conta;
   }
 
@@ -190,6 +197,22 @@ public class Protocolo extends BaseEntity {
 
   public void setComentarios(List<Comentario> comentarios) {
     this.comentarios = comentarios;
+  }
+
+  public List<AvisoCirurgia> getAvisos() {
+    return avisos;
+  }
+
+  public void setAvisos(List<AvisoCirurgia> avisos) {
+    this.avisos = avisos;
+  }
+
+  public List<RegistroDocumento> getRegistros() {
+    return registros;
+  }
+
+  public void setRegistros(List<RegistroDocumento> registros) {
+    this.registros = registros;
   }
 
   @Override

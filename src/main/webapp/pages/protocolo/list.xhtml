@@ -90,7 +90,7 @@
 
           <p:columnGroup type="header">
             <p:row>
-              <p:column headerText="Protocolo" styleClass="left-align" sortBy="#{item.protocolo}"/>
+              <p:column headerText="Protocolo" styleClass="left-align" sortBy="#{item.id}"/>
               <p:column headerText="Atendimento" styleClass="left-align" sortBy="#{item.atendimento.id}"/>
               <p:column headerText="Paciente" styleClass="left-align" sortBy="#{item.atendimento.paciente.name}"/>
               <p:column headerText="Conta" styleClass="left-align"/>
@@ -108,8 +108,8 @@
           <!-- ############## -->
 
 
-          <p:column sortBy="#{item.protocolo}" styleClass="left-align ellipsis-text">
-            <h:outputText id="protocolo" value="#{item.protocolo}"/>
+          <p:column sortBy="#{item.id}" styleClass="left-align ellipsis-text">
+            <h:outputText id="protocolo" value="#{item.id}"/>
           </p:column>
 
           <p:column sortBy="#{item.atendimento.id}" styleClass="left-align">
@@ -126,30 +126,28 @@
             <h:outputText value="#{item.conta.id}" rendered="#{not empty item.conta}"/>
           </p:column>
 
-          <p:column sortBy="#{item.estado}" styleClass="left-align">
+          <p:column id="estado" sortBy="#{item.estado}" styleClass="left-align">
             <h:outputText value="#{item.estado.label}"/>
           </p:column>
 
           <p:column styleClass="left-align ellipsis-text">
-            <h:outputText id="origemOutputText" value="#{item.origem.title}"/>
+            <h:outputText id="origemOutputText" value="#{item.origem.title}" rendered="#{not empty item.origem}"/>
             <vah:toolTip id="origemToolTip" value="#{item.origem.title}" index="#{indexVar}"
-                         for="#{p:component('origemOutputText')}"/>
+                         for="#{p:component('origemOutputText')}" rendered="#{not empty item.origem}"/>
           </p:column>
 
           <p:column styleClass="left-align ellipsis-text">
-            <h:outputText id="destinoOutput" value="#{item.destino.title}"/>
-            <vah:toolTip id="destinoToolTip" value="#{item.destino.title}" index="#{indexVar}"
-                         for="#{p:component('destinoOutput')}"/>
+            <h:outputText id="destinoOutput" value="#{item.destino.title}" rendered="#{not empty item.destino}"/>
           </p:column>
 
-          <p:column sortBy="#{item.envio}" styleClass="left-align">
-            <h:outputText id="envioOutput" value="#{item.envio}">
+          <p:column sortBy="#{item.dataEnvio}" styleClass="left-align">
+            <h:outputText id="envioOutput" value="#{item.dataEnvio}">
               <f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="GMT-3"/>
             </h:outputText>
           </p:column>
 
-          <p:column sortBy="#{item.resposta}" styleClass="left-align">
-            <h:outputText id="respostaOutput" value="#{item.dataRecebimento}">
+          <p:column sortBy="#{item.dataResposta}" styleClass="left-align">
+            <h:outputText id="respostaOutput" value="#{item.dataResposta}">
               <f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="GMT-3"/>
             </h:outputText>
           </p:column>
@@ -157,7 +155,7 @@
           <p:column style="text-align: center">
             <p:menuButton id="menuButton" value="Ações">
               <p:menuitem value="Receber" action="#{protocoloController.receber(item)}"
-                          ajax="true" process="@this" update="estado, menuButton, dataRecebimento"
+                          ajax="true" process="@this" update="estado, menuButton"
                           icon="fa fa-thumbs-up" disabled="#{item.dataResposta != null}"/>
               <p:menuitem value="Recusar" action="#{protocoloController.setItem(item)}"
                           process="@this" update="#{p:component('novoComentarioDlg')}"
@@ -174,14 +172,14 @@
               <p:menuitem value="Comentários" action="#{protocoloController.setItem(item)}"
                           process="@this" update="#{p:component('comentarioDlg')}"
                           oncomplete="PF('comentarioDlg').show()"
-                          icon="fa fa-comments" rendered="#{sessionController.isUserInRoles('AUTHORIZER')}"/>
+                          icon="fa fa-comments"/>
               <p:menuitem value="Editar" action="#{protocoloController.edit(item)}"
                           process="@this" onstart="PF('changePage').show()"
-                          disabled="#{item.dataRespostaConvenio != null}"
+                          disabled="#{item.dataResposta != null}"
                           icon="fa fa-pencil" rendered="#{protocoloController.showEditButton(item)}"/>
               <p:menuitem value="Excluir" actionListener="#{protocoloController.preDelete(item.id, index)}"
                           process="@this" update="#{p:component('deleteDlg')}" oncomplete="PF('deleteDlg').show()"
-                          disabled="#{item.dataRespostaConvenio != null}"
+                          disabled="#{item.dataResposta != null}"
                           icon="fa fa-trash" rendered="#{protocoloController.showDeleteButton(item)}"/>
             </p:menuButton>
           </p:column>

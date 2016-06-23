@@ -47,7 +47,7 @@ public class PrescricaoMedica extends BaseEntity {
 	@JoinColumn(name = "CD_PRESTADOR")
 	private Prestador prestador;
 	
-	@OneToMany
+	@OneToMany(fetch = FetchType.EAGER)
 	@JoinColumn(name = "CD_PRE_MED")
 	private List<ItPreMed> itPreMed;
 	

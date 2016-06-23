@@ -9,6 +9,7 @@
                   readonly="#{editing == null ? false : !editing}"
                   itemLabel="#{item[itemLabel]}"
                   itemValue="#{item}"
+                  onclick="this.setSelectionRange(0, this.value.length)"
                   converter="#{converter}"
                   required="#{required == null ? false : required}"
                   inputStyleClass="lance-input"
