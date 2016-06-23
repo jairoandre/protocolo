@@ -75,7 +75,7 @@ public class DocumentoDTO {
   private void resolverTipoDoc () {
     // LISTA DE ITENS PRESCRITOS NAO E VAZIO
     if(prescricao != null) {
-      if (!prescricao.getItPreMed().isEmpty() && hasEvolucao) {
+      if (!prescricao.getItems().isEmpty() && hasEvolucao) {
         qtdDoc = 2;
       }
       if (qtdDoc > 1) {

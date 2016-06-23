@@ -49,7 +49,7 @@ public class PrescricaoMedica extends BaseEntity {
 	
 	@OneToMany(fetch = FetchType.EAGER)
 	@JoinColumn(name = "CD_PRE_MED")
-	private List<ItPreMed> itPreMed;
+	private List<ItemPrescricaoMedica> items;
 	
 	@Override
 	public Long getId() {
@@ -114,12 +114,12 @@ public class PrescricaoMedica extends BaseEntity {
 		this.tipoPrescricao = tpPreMed;
 	}
 
-	public List<ItPreMed> getItPreMed() {
-		return itPreMed;
+	public List<ItemPrescricaoMedica> getItems() {
+		return items;
 	}
 
-	public void setItPreMed(List<ItPreMed> itPreMed) {
-		this.itPreMed = itPreMed;
+	public void setItems(List<ItemPrescricaoMedica> items) {
+		this.items = items;
 	}
 	
 	

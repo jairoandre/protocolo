@@ -12,9 +12,9 @@ import br.com.vah.protocolo.entities.BaseEntity;
  * 
  */
 @Entity
-@NamedQuery(name="ItpreMed.findAll", query="SELECT i FROM ItPreMed i")
+@NamedQuery(name="ItpreMed.findAll", query="SELECT i FROM ItemPrescricaoMedica i")
 @Table(name = "ITPRE_MED", schema = "DBAMV")
-public class ItPreMed extends BaseEntity {
+public class ItemPrescricaoMedica extends BaseEntity {
 
 	@Id
 	@Column(name = "CD_ITPRE_MED")
@@ -35,7 +35,7 @@ public class ItPreMed extends BaseEntity {
 	@Column(name = "DS_ITPRE_MED")
 	private String dsItpreMed;
 
-	public ItPreMed() {
+	public ItemPrescricaoMedica() {
 	}
 	
 	@Override

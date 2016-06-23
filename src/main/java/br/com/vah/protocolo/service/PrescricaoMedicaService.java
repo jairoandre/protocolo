@@ -7,6 +7,7 @@ import javax.ejb.Stateless;
 import javax.persistence.Query;
 
 import org.hibernate.Criteria;
+import org.hibernate.FetchMode;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
 
@@ -34,6 +35,8 @@ public class PrescricaoMedicaService extends DataAccessService<PrescricaoMedica>
     criteria.add(Restrictions.eq("atendimento", atendimento));
 
     criteria.add(Restrictions.between("datePreMed", inicioDate, terminoDate));
+
+    criteria.setFetchMode("items", FetchMode.SELECT);
 
     return criteria.list();
   }
