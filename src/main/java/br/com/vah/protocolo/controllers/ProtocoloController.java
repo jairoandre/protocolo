@@ -17,6 +17,8 @@ import br.com.vah.protocolo.service.AtendimentoService;
 import br.com.vah.protocolo.service.DataAccessService;
 import br.com.vah.protocolo.service.PrescricaoMedicaService;
 import br.com.vah.protocolo.service.ProtocoloService;
+import br.com.vah.protocolo.util.DtoKey;
+import br.com.vah.protocolo.util.DtoKeyMap;
 import br.com.vah.protocolo.util.ViewUtils;
 
 /**
@@ -56,13 +58,9 @@ public class ProtocoloController extends AbstractController<Protocolo> {
 
   private String comentario;
 
-  private Map<String, List<DocumentoDTO>> mapSelectedDocumentos = new HashMap<>();
+  private DtoKeyMap<DocumentoDTO> documentosNaoSelecionados;
 
-  List<DocumentoDTO> selectedDocumentos;
-
-  private List<Map.Entry<String, List<DocumentoDTO>>> documentos;
-
-  private List<Map.Entry<String, List<DocumentoDTO>>> documentosSelecionados;
+  private DtoKeyMap<DocumentoDTO> documentosSelecionados;
 
   @PostConstruct
   public void init() {
@@ -136,27 +134,25 @@ public class ProtocoloController extends AbstractController<Protocolo> {
 
   }
 
-  public void buscarDocumentos() {
-    documentos = service.buscarMapaDocumentos(getItem().getAtendimento(), inicioDate, terminoDate, session.getSetor(), getItem());
-    mapSelectedDocumentos = new HashMap<>();
-    for (Map.Entry<String, List<DocumentoDTO>> entryDoc : documentos) {
-      mapSelectedDocumentos.put(entryDoc.getKey(), new ArrayList<DocumentoDTO>());
-    }
-  }
-
-  public List<Map.Entry<String, List<DocumentoDTO>>> getDocumentos() {
-    return this.documentos;
+  public void buscarDocumentosNaoSelecionados() {
+    documentosNaoSelecionados = service.buscarDocumentosNaoSelecionados(getItem().getAtendimento(), inicioDate, terminoDate, session.getSetor(), getItem());
   }
 
   public void recuperarDadosRascunho() {
-
     Protocolo rascunho = service.buscarDadosRascunho(getItem().getAtendimento());
-    if(rascunho != null){
+    if (rascunho != null) {
       setItem(rascunho);
     }
+    documentosSelecionados = service.gerarDocumentosSelecionados(getItem());
+    documentosNaoSelecionados = null;
+  }
 
-    documentosSelecionados = service.mapearDocumentosSelecionados(getItem());
-
+  public String getEditTitle() {
+    if (getItem().getId() == null) {
+      return "Enviar documentos";
+    } else {
+      return String.format("Protocolo %d", getItem().getId());
+    }
   }
 
   @Override
@@ -232,38 +228,35 @@ public class ProtocoloController extends AbstractController<Protocolo> {
     this.comentario = comentario;
   }
 
-  public Map<String, List<DocumentoDTO>> getMapSelectedDocumentos() {
-    return mapSelectedDocumentos;
-  }
-
-  public void setMapSelectedDocumentos(Map<String, List<DocumentoDTO>> mapSelectedDocumentos) {
-    this.mapSelectedDocumentos = mapSelectedDocumentos;
-  }
-
-  public List<Map.Entry<String, List<DocumentoDTO>>> getDocumentosSelecionados() {
-    return documentosSelecionados;
-  }
-
-  public List<DocumentoDTO> getSelectedDocumentos() {
-    return selectedDocumentos;
-  }
-
-  public void setSelectedDocumentos(List<DocumentoDTO> selectedDocumentos) {
-    this.selectedDocumentos = selectedDocumentos;
-  }
-
   public void salvarParcial() {
-//    List<DocumentoDTO> documentosSelecionados = new ArrayList<>();
-//    for (List<DocumentoDTO> documentosArray : mapSelectedDocumentos.values()) {
-//      documentosSelecionados.addAll(documentosArray);
-//    }
-    Protocolo savedProtocolo = service.salvarParcial(getItem(), selectedDocumentos);
-    setItem(savedProtocolo);
+    setItem(service.salvarParcial(getItem(), documentosNaoSelecionados.getSelecionados()));
+    recuperarDadosRascunho();
+    buscarDocumentosNaoSelecionados();
   }
 
   @Override
   public void onLoad() {
     super.onLoad();
     recuperarDadosRascunho();
+  }
+
+  public DtoKeyMap<DocumentoDTO> getDocumentosNaoSelecionados() {
+    return documentosNaoSelecionados;
+  }
+
+  public void setDocumentosNaoSelecionados(DtoKeyMap<DocumentoDTO> documentosNaoSelecionados) {
+    this.documentosNaoSelecionados = documentosNaoSelecionados;
+  }
+
+  public DtoKeyMap<DocumentoDTO> getDocumentosSelecionados() {
+    return documentosSelecionados;
+  }
+
+  public void setDocumentosSelecionados(DtoKeyMap<DocumentoDTO> documentosSelecionados) {
+    this.documentosSelecionados = documentosSelecionados;
+  }
+
+  public void onTabChange() {
+
   }
 }

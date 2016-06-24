@@ -8,6 +8,8 @@ import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 import br.com.vah.protocolo.exceptions.ProtocoloPersistException;
 import br.com.vah.protocolo.reports.ReportLoader;
 import br.com.vah.protocolo.reports.ReportTotalPorSetor;
+import br.com.vah.protocolo.util.DtoKey;
+import br.com.vah.protocolo.util.DtoKeyMap;
 import br.com.vah.protocolo.util.PaginatedSearchParam;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
@@ -230,38 +232,27 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
     return documentos;
   }
 
-  private List<Map.Entry<String, List<DocumentoDTO>>> gerarListaEntryDTO(List<DocumentoDTO> documentos) {
-    Map<String, List<DocumentoDTO>> mapDocumentos = new HashMap<>();
+  private DtoKeyMap<DocumentoDTO> gerarDtoKeyMap(List<DocumentoDTO> documentos) {
+    DtoKeyMap<DocumentoDTO> dtoKeyMap = new DtoKeyMap<>();
 
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
     for (DocumentoDTO documento : documentos) {
 
       String data = sdf.format(documento.getData());
+      DtoKey<DocumentoDTO> dtoKey = new DtoKey<>(data);
 
-      List<DocumentoDTO> listaDoc = mapDocumentos.get(data);
+      List<DocumentoDTO> listaDoc = dtoKeyMap.get(dtoKey);
 
       if (listaDoc == null) {
         listaDoc = new ArrayList<>();
-
-        mapDocumentos.put(data, listaDoc);
+        dtoKeyMap.put(dtoKey, listaDoc);
       }
 
       listaDoc.add(documento);
     }
 
-    List<Map.Entry<String, List<DocumentoDTO>>> mapearData = new ArrayList<>(mapDocumentos.entrySet());
-
-    Collections.sort(mapearData, new Comparator<Map.Entry<String, List<DocumentoDTO>>>() {
-
-      @Override
-      public int compare(Map.Entry<String, List<DocumentoDTO>> o1, Map.Entry<String, List<DocumentoDTO>> o2) {
-        return o1.getKey().compareTo(o2.getKey());
-      }
-
-    });
-
-    return mapearData;
+    return dtoKeyMap;
   }
 
   private List<DocumentoDTO> buscarDocumentos(Atendimento atendimento, Date inicio, Date fim, Setor setor, Protocolo protocolo) {
@@ -300,16 +291,14 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
 
   }
 
-  public List<Map.Entry<String, List<DocumentoDTO>>> buscarMapaDocumentos(Atendimento atendimento, Date inicio, Date fim, Setor setor, Protocolo protocolo) {
-
+  public DtoKeyMap<DocumentoDTO> buscarDocumentosNaoSelecionados(Atendimento atendimento, Date inicio, Date fim, Setor setor, Protocolo protocolo) {
     List<DocumentoDTO> documentos = buscarDocumentos(atendimento, inicio, fim, setor, protocolo);
-
-    return gerarListaEntryDTO(documentos);
+    return gerarDtoKeyMap(documentos);
 
   }
 
-  public List<Map.Entry<String, List<DocumentoDTO>>> mapearDocumentosSelecionados(Protocolo protocolo) {
-    return gerarListaEntryDTO(gerarListaDTO(protocolo.getPrescricoes(), protocolo.getAvisos(), protocolo.getRegistros()));
+  public DtoKeyMap<DocumentoDTO> gerarDocumentosSelecionados(Protocolo protocolo) {
+    return gerarDtoKeyMap(gerarListaDTO(protocolo.getPrescricoes(), protocolo.getAvisos(), protocolo.getRegistros()));
   }
 
   public Protocolo buscarDadosRascunho(Atendimento atendimento) {

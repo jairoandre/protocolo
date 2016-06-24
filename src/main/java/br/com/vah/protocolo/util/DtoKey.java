@@ -1,35 +1,38 @@
 package br.com.vah.protocolo.util;
 
+import br.com.vah.protocolo.dto.DocumentoDTO;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by jairoportela on 23/06/2016.
  */
-public class DtoKey<T> {
+public class DtoKey<T extends DocumentoDTO> {
 
-  private String key;
-  private List<T> selectedItems;
+  private String value;
+  private List<T> selectedItems = new ArrayList<>();
 
-  public DtoKey(String key) {
-    this.key = key;
+  public DtoKey(String value) {
+    this.value = value;
   }
 
   @Override
   public int hashCode() {
-    return key.hashCode();
+    return value.hashCode();
   }
 
   @Override
   public boolean equals(Object obj) {
-    return key.equals(((DtoKey) obj).key);
+    return value.equals(((DtoKey) obj).value);
   }
 
-  public String getKey() {
-    return key;
+  public String getValue() {
+    return value;
   }
 
-  public void setKey(String key) {
-    this.key = key;
+  public void setValue(String value) {
+    this.value = value;
   }
 
   public List<T> getSelectedItems() {

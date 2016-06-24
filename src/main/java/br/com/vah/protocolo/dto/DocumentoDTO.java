@@ -22,6 +22,7 @@ public class DocumentoDTO {
   private Boolean hasEvolucao;
   private Integer qtdDoc = 1;
   private String conselho;
+  private Boolean selected;
 
   public DocumentoDTO(PrescricaoMedica prescricao, Boolean hasEvolucao) {
 
@@ -194,5 +195,13 @@ public class DocumentoDTO {
 
   public void setDescricao(String descricao) {
     this.descricao = descricao;
+  }
+
+  public Boolean getSelected() {
+    return selected;
+  }
+
+  public void setSelected(Boolean selected) {
+    this.selected = selected;
   }
 }

@@ -342,3 +342,12 @@ input.ui-state-disabled {
 .ui-chkbox {
   vertical-align: middle !important;
 }
+
+.rascunho-title {
+  position: absolute;
+  font-size: 50px;
+  right: 0;
+  top: 15px;
+  font-weight: bold;
+  color: #cdcdcd;
+}

@@ -1,5 +1,7 @@
 package br.com.vah.protocolo.entities.dbamv;
 
+import br.com.vah.protocolo.entities.BaseEntity;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
@@ -9,7 +11,7 @@ import java.util.Date;
  */
 @Entity
 @Table(name = "REGISTRO_DOCUMENTO", schema = "DBAMV")
-public class RegistroDocumento implements Serializable {
+public class RegistroDocumento extends BaseEntity {
 
   @Id
   @Column(name = "CD_REGISTRO_DOCUMENTO")
@@ -89,5 +91,10 @@ public class RegistroDocumento implements Serializable {
 
   public void setNomeUsuario(String nomeUsuario) {
     this.nomeUsuario = nomeUsuario;
+  }
+
+  @Override
+  public String getLabelForSelectItem() {
+    return null;
   }
 }

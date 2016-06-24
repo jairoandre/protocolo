@@ -11,7 +11,7 @@ import java.util.Date;
  */
 @Entity
 @Table(name = "TB_AVISO_CIRURGIA", schema = "DBAMV")
-public class AvisoCirurgia implements Serializable {
+public class AvisoCirurgia extends BaseEntity {
 
   @Id
   @Column(name = "CD_AVISO_CIRURGIA")
@@ -69,5 +69,10 @@ public class AvisoCirurgia implements Serializable {
 
   public void setSalaCirugia(SalaCirurgia salaCirugia) {
     this.salaCirugia = salaCirugia;
+  }
+
+  @Override
+  public String getLabelForSelectItem() {return null;
+
   }
 }

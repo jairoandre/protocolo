@@ -17,8 +17,13 @@
 
     <h:form id="form">
 
-      <p:panel header="Enviar documentos">
+      <p:panel header="#{protocoloController.editTitle}">
         <h:panelGroup id="protocoloPnlWrapper" layout="block" style="position: relative">
+
+          <h:panelGroup layout="block" rendered="#{protocoloController.item.estado == 'RASCUNHO'}"
+                        styleClass="rascunho-title">
+            <h:outputText value="RASCUNHO"/>
+          </h:panelGroup>
 
           <p:focus context="protocoloPnlWrapper"/>
 
@@ -30,7 +35,7 @@
                                 converter="#{atendimentoConverter}" itemLabel="labelForSelectItem"
                                 placeholder="Número/Nome paciente">
               <p:ajax event="itemSelect" listener="#{protocoloController.recuperarDadosRascunho()}"
-                      process="@this" update="dadosProtocoloPnl"
+                      process="@this" update="@all"
                       oncomplete="nextFocus('#{p:component('carregarDocsBtn')}')"/>
               <p:column>
                 #{item.id}
@@ -57,20 +62,23 @@
               </h:panelGrid>
               <p:commandButton id="carregarDocsBtn" value="Buscar" ajax="true"
                                process="@this grid02" update="tabPnl" validateClient="true"
-                               styleClass="margin-top" action="#{protocoloController.buscarDocumentos}"
+                               styleClass="margin-top" action="#{protocoloController.buscarDocumentosNaoSelecionados}"
                                rendered="#{protocoloController.editing}"/>
 
+              <!-- DOCUMENTOS NÃO SELECIONADOS -->
               <h:panelGroup id="tabPnl" layout="block">
-                <p:tabView id="tabView" value="#{protocoloController.documentos}" var="docEntry" styleClass="margin-top"
-                           widgetVar="tabView" rendered="#{not empty protocoloController.documentos}">
-                  <p:tab id="preMedTab" title="#{docEntry.key}">
-                    <p:dataTable value="#{docEntry.value}" var="doc"
-                                 selection="#{protocoloController.selectedDocumentos}"
-                                 rowKey="#{doc.codigo}"
+                <p:tabView id="tabView01" value="#{protocoloController.documentosNaoSelecionados.list}"
+                           var="docEntry" styleClass="margin-top"
+                           widgetVar="tabView01" rendered="#{not empty protocoloController.documentosNaoSelecionados}">
+                  <p:tab id="dayTab" title="#{docEntry.key.value}">
+                    <p:dataTable id="docTable" value="#{docEntry.value}"
+                                 var="doc"
                                  sortBy="#{doc.dataHoraCriacao}">
-
-                      <p:column selectionMode="multiple" width="15"/>
-
+                      <p:column width="15">
+                        <p:selectBooleanCheckbox value="#{doc.selected}">
+                          <p:ajax event="change" process="@this"/>
+                        </p:selectBooleanCheckbox>
+                      </p:column>
                       <p:column headerText="Código" width="50" styleClass="left-align">
                         <h:outputText value="#{doc.codigo}"/>
                       </p:column>
@@ -103,12 +111,15 @@
                   </p:tab>
                 </p:tabView>
               </h:panelGroup>
-
             </p:fieldset>
-            <p:fieldset legend="Documentos incluídos" rendered="#{not empty protocoloController.item.atendimento}" styleClass="margin-top">
-              <p:tabView id="docSelecionadosTabView" value="#{protocoloController.documentosSelecionados}" var="docEntry" styleClass="margin-top"
-                         widgetVar="tabView" rendered="#{not empty protocoloController.documentosSelecionados}">
-                <p:tab title="#{docEntry.key}">
+
+            <!-- DOCUMENTOS SELECIONADOS -->
+            <p:fieldset legend="Documentos incluídos" rendered="#{not empty protocoloController.documentosSelecionados}"
+                        styleClass="margin-top">
+              <p:tabView id="tabView02" value="#{protocoloController.documentosSelecionados.list}" var="docEntry"
+                         styleClass="margin-top"
+                         widgetVar="tabView02" rendered="#{not empty protocoloController.documentosSelecionados.list}">
+                <p:tab title="#{docEntry.key.value}">
                   <p:dataTable value="#{docEntry.value}" var="doc"
                                sortBy="#{doc.dataHoraCriacao}">
                     <p:column headerText="Código" width="50" styleClass="left-align">
@@ -148,15 +159,16 @@
 
         <h:panelGroup id="panelBtns" layout="block"
                       style="margin-top: 10px;">
-          <p:commandButton id="saveBtn" value="Salvar Parcial" icon="fa fa-floppy-o" ajax="true"
-                           process="@this form" update="form" validateClient="true"
-                           style="margin-right:10px" action="#{protocoloController.salvarParcial}"
-                           rendered="#{protocoloController.editing}"/>
+          <p:commandButton id="saveBtn" value="Salvar Rascunho" icon="fa fa-floppy-o" ajax="true"
+                           process="@form" update="@all" validateClient="true"
+                           action="#{protocoloController.salvarParcial}"
+                           rendered="#{protocoloController.editing and not empty protocoloController.item.atendimento}"/>
           <p:commandButton id="enviarBtn" value="Enviar" icon="fa fa-send" ajax="true"
                            process="@this form" update="form" validateClient="true"
-                           style="margin-right:10px" action="#{protocoloController.back}"
-                           rendered="#{protocoloController.editing}"/>
-          <p:commandButton id="backBtn" value="Voltar" ajax="false" immediate="true" icon="fa fa-undo"
+                           styleClass="margin-left" action="#{protocoloController.back}"
+                           rendered="#{protocoloController.editing and not empty protocoloController.item.atendimento}"/>
+          <p:commandButton id="backBtn" value="Voltar" ajax="false" immediate="true"
+                           icon="fa fa-undo" styleClass="margin-left"
                            onstart="PF('changePage').show()"
                            action="#{protocoloController.back}"/>
         </h:panelGroup>
