@@ -22,7 +22,7 @@ public class DocumentoDTO {
   private Boolean hasEvolucao;
   private Integer qtdDoc = 1;
   private String conselho;
-  private Boolean selected;
+  private Boolean selected = false;
 
   public DocumentoDTO(PrescricaoMedica prescricao, Boolean hasEvolucao) {
 
