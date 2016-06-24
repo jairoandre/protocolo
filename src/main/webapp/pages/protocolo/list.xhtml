@@ -84,75 +84,56 @@
             </div>
           </f:facet>
 
-          <!-- ################ -->
-          <!-- CABEÇALHO TABELA -->
-          <!-- ################ -->
-
-          <p:columnGroup type="header">
-            <p:row>
-              <p:column headerText="Protocolo" styleClass="left-align" sortBy="#{item.id}"/>
-              <p:column headerText="Atendimento" styleClass="left-align" sortBy="#{item.atendimento.id}"/>
-              <p:column headerText="Paciente" styleClass="left-align" sortBy="#{item.atendimento.paciente.name}"/>
-              <p:column headerText="Conta" styleClass="left-align"/>
-              <p:column headerText="Estado" styleClass="left-align" sortBy="#{item.estado.label}"/>
-              <p:column headerText="Origem" styleClass="left-align" sortBy="#{item.origem.title}"/>
-              <p:column headerText="Destino" styleClass="left-align" sortBy="#{item.destino.title}"/>
-              <p:column headerText="Envio" styleClass="left-align" sortBy="#{item.dataEnvio}"/>
-              <p:column headerText="Resposta" styleClass="left-align" sortBy="#{item.dataResposta}"/>
-              <p:column width="100"/>
-            </p:row>
-          </p:columnGroup>
-
           <!-- ############## -->
           <!-- VALORES TABELA -->
           <!-- ############## -->
 
 
-          <p:column sortBy="#{item.id}" styleClass="left-align ellipsis-text">
+          <p:column headerText="Nº." sortBy="#{item.id}" width="50" styleClass="left-align ellipsis-text">
             <h:outputText id="protocolo" value="#{item.id}"/>
           </p:column>
 
-          <p:column sortBy="#{item.atendimento.id}" styleClass="left-align">
+          <p:column headerText="Atendimento" width="70" styleClass="left-align">
             <h:outputText value="#{item.atendimento.id}"/>
           </p:column>
 
-          <p:column styleClass="left-align ellipsis-text">
+          <p:column headerText="Paciente" width="200" styleClass="left-align ellipsis-text">
             <h:outputText id="pacienteOutput" value="#{item.atendimento.paciente.name}"/>
             <vah:toolTip id="pacienteToolTip" value="#{item.atendimento.paciente.name}" index="#{indexVar}"
                          for="#{p:component('pacienteOutput')}"/>
           </p:column>
 
-          <p:column sortBy="#{item.conta.id}" styleClass="left-align">
+          <p:column headerText="Conta" width="70" styleClass="left-align">
             <h:outputText value="#{item.conta.id}" rendered="#{not empty item.conta}"/>
           </p:column>
 
-          <p:column id="estado" sortBy="#{item.estado}" styleClass="left-align">
+          <p:column id="estado" headerText="Estado" width="70" sortBy="#{item.estado}" styleClass="left-align">
             <h:outputText value="#{item.estado.label}"/>
           </p:column>
 
-          <p:column styleClass="left-align ellipsis-text">
+          <p:column headerText="Origem" width="100" styleClass="left-align ellipsis-text" >
             <h:outputText id="origemOutputText" value="#{item.origem.title}" rendered="#{not empty item.origem}"/>
             <vah:toolTip id="origemToolTip" value="#{item.origem.title}" index="#{indexVar}"
                          for="#{p:component('origemOutputText')}" rendered="#{not empty item.origem}"/>
           </p:column>
 
-          <p:column styleClass="left-align ellipsis-text">
+          <p:column headerText="Destino" width="100" styleClass="left-align ellipsis-text">
             <h:outputText id="destinoOutput" value="#{item.destino.title}" rendered="#{not empty item.destino}"/>
           </p:column>
 
-          <p:column sortBy="#{item.dataEnvio}" styleClass="left-align">
+          <p:column headerText="Envio" width="75" sortBy="#{item.dataEnvio}" styleClass="left-align">
             <h:outputText id="envioOutput" value="#{item.dataEnvio}">
               <f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="GMT-3"/>
             </h:outputText>
           </p:column>
 
-          <p:column sortBy="#{item.dataResposta}" styleClass="left-align">
+          <p:column headerText="Resposta" width="75" sortBy="#{item.dataResposta}" styleClass="left-align">
             <h:outputText id="respostaOutput" value="#{item.dataResposta}">
               <f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="GMT-3"/>
             </h:outputText>
           </p:column>
 
-          <p:column style="text-align: center">
+          <p:column width="75" style="text-align: center">
             <p:menuButton id="menuButton" value="Ações">
               <p:menuitem value="Receber" action="#{protocoloController.receber(item)}"
                           ajax="true" process="@this" update="estado, menuButton"

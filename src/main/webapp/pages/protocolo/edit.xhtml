@@ -70,33 +70,33 @@
                 <p:tabView id="tabView01" value="#{protocoloController.documentosNaoSelecionados.list}"
                            var="docEntry" styleClass="margin-top"
                            widgetVar="tabView01" rendered="#{not empty protocoloController.documentosNaoSelecionados}">
-                  <p:tab id="dayTab" title="#{docEntry.key.value}">
+                  <p:tab id="dayTab" title="#{docEntry.key}">
                     <p:dataTable id="docTable" value="#{docEntry.value}"
                                  var="doc"
                                  sortBy="#{doc.dataHoraCriacao}">
-                      <p:column width="15">
+                      <p:column width="20">
                         <p:selectBooleanCheckbox value="#{doc.selected}">
                           <p:ajax event="change" process="@this"/>
                         </p:selectBooleanCheckbox>
                       </p:column>
-                      <p:column headerText="Código" width="50" styleClass="left-align">
+                      <p:column headerText="Código" width="60" styleClass="left-align">
                         <h:outputText value="#{doc.codigo}"/>
                       </p:column>
-                      <p:column headerText="Descrição" styleClass="left-align ellipsis-text" width="150">
+                      <p:column headerText="Descrição" styleClass="left-align ellipsis-text" width="200">
                         <h:outputText value="#{doc.descricao}"/>
                       </p:column>
-                      <p:column headerText="Prestador" styleClass="left-align">
+                      <p:column headerText="Prestador" styleClass="left-align ellipsis-text" width="200">
                         <h:outputText value="#{doc.prestador}"/>
                       </p:column>
-                      <p:column headerText="Conselho" styleClass="left-align">
+                      <p:column headerText="Conselho" styleClass="left-align" width="100">
                         <h:outputText value="#{doc.conselho}"/>
                       </p:column>
-                      <p:column headerText="Data/Hora criação" styleClass="left-align">
+                      <p:column headerText="Data/Hora criação" styleClass="left-align" width="100">
                         <h:outputText value="#{doc.dataHoraCriacao}">
                           <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
                         </h:outputText>
                       </p:column>
-                      <p:column headerText="Data/Hora impressão" styleClass="left-align">
+                      <p:column headerText="Data/Hora impressão" styleClass="left-align" width="100">
                         <h:outputText value="#{doc.dataHoraImpressao}">
                           <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
                         </h:outputText>
@@ -104,7 +104,7 @@
                       <p:column headerText="Tipo" styleClass="left-align">
                         <h:outputText value="#{doc.tipo}"/>
                       </p:column>
-                      <p:column headerText="Quantidade Docs" styleClass="left-align">
+                      <p:column headerText="Qtd. docs" styleClass="left-align" width="75">
                         <h:outputText value="#{doc.qtdDoc}"/>
                       </p:column>
                     </p:dataTable>
@@ -119,10 +119,10 @@
               <p:tabView id="tabView02" value="#{protocoloController.documentosSelecionados.list}" var="docEntry"
                          styleClass="margin-top"
                          widgetVar="tabView02" rendered="#{not empty protocoloController.documentosSelecionados.list}">
-                <p:tab title="#{docEntry.key.value}">
+                <p:tab title="#{docEntry.key}">
                   <p:dataTable value="#{docEntry.value}" var="doc"
                                sortBy="#{doc.dataHoraCriacao}">
-                    <p:column headerText="Código" width="50" styleClass="left-align">
+                    <p:column headerText="Cód." width="50" styleClass="left-align">
                       <h:outputText value="#{doc.codigo}"/>
                     </p:column>
                     <p:column headerText="Descrição" styleClass="left-align ellipsis-text" width="150">

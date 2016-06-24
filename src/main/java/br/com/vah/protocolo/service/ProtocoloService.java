@@ -8,7 +8,6 @@ import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 import br.com.vah.protocolo.exceptions.ProtocoloPersistException;
 import br.com.vah.protocolo.reports.ReportLoader;
 import br.com.vah.protocolo.reports.ReportTotalPorSetor;
-import br.com.vah.protocolo.util.DtoKey;
 import br.com.vah.protocolo.util.DtoKeyMap;
 import br.com.vah.protocolo.util.PaginatedSearchParam;
 import org.hibernate.Criteria;
@@ -232,21 +231,21 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
     return documentos;
   }
 
-  private DtoKeyMap<DocumentoDTO> gerarDtoKeyMap(List<DocumentoDTO> documentos) {
-    DtoKeyMap<DocumentoDTO> dtoKeyMap = new DtoKeyMap<>();
+  private DtoKeyMap gerarDtoKeyMap(List<DocumentoDTO> documentos) {
+    DtoKeyMap dtoKeyMap = new DtoKeyMap();
 
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
     for (DocumentoDTO documento : documentos) {
 
-      String data = sdf.format(documento.getData());
-      DtoKey<DocumentoDTO> dtoKey = new DtoKey<>(data);
+      String key = sdf.format(documento.getData());
 
-      List<DocumentoDTO> listaDoc = dtoKeyMap.get(dtoKey);
+
+      List<DocumentoDTO> listaDoc = dtoKeyMap.get(key);
 
       if (listaDoc == null) {
         listaDoc = new ArrayList<>();
-        dtoKeyMap.put(dtoKey, listaDoc);
+        dtoKeyMap.put(key, listaDoc);
       }
 
       listaDoc.add(documento);
@@ -291,13 +290,13 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
 
   }
 
-  public DtoKeyMap<DocumentoDTO> buscarDocumentosNaoSelecionados(Atendimento atendimento, Date inicio, Date fim, Setor setor, Protocolo protocolo) {
+  public DtoKeyMap buscarDocumentosNaoSelecionados(Atendimento atendimento, Date inicio, Date fim, Setor setor, Protocolo protocolo) {
     List<DocumentoDTO> documentos = buscarDocumentos(atendimento, inicio, fim, setor, protocolo);
     return gerarDtoKeyMap(documentos);
 
   }
 
-  public DtoKeyMap<DocumentoDTO> gerarDocumentosSelecionados(Protocolo protocolo) {
+  public DtoKeyMap gerarDocumentosSelecionados(Protocolo protocolo) {
     return gerarDtoKeyMap(gerarListaDTO(protocolo.getPrescricoes(), protocolo.getAvisos(), protocolo.getRegistros()));
   }
 

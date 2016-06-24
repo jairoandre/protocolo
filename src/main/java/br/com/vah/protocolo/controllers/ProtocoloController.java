@@ -1,25 +1,20 @@
 package br.com.vah.protocolo.controllers;
 
-import java.util.*;
-import java.util.logging.Logger;
+import br.com.vah.protocolo.constants.EstadosProtocoloEnum;
+import br.com.vah.protocolo.entities.dbamv.Setor;
+import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
+import br.com.vah.protocolo.service.AtendimentoService;
+import br.com.vah.protocolo.service.DataAccessService;
+import br.com.vah.protocolo.service.ProtocoloService;
+import br.com.vah.protocolo.util.DtoKeyMap;
+import br.com.vah.protocolo.util.ViewUtils;
 
 import javax.annotation.PostConstruct;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
-
-import br.com.vah.protocolo.constants.EstadosProtocoloEnum;
-import br.com.vah.protocolo.dto.DocumentoDTO;
-import br.com.vah.protocolo.entities.dbamv.PrescricaoMedica;
-import br.com.vah.protocolo.entities.dbamv.Setor;
-import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
-import br.com.vah.protocolo.service.AtendimentoService;
-import br.com.vah.protocolo.service.DataAccessService;
-import br.com.vah.protocolo.service.PrescricaoMedicaService;
-import br.com.vah.protocolo.service.ProtocoloService;
-import br.com.vah.protocolo.util.DtoKey;
-import br.com.vah.protocolo.util.DtoKeyMap;
-import br.com.vah.protocolo.util.ViewUtils;
+import java.util.Date;
+import java.util.logging.Logger;
 
 /**
  * Created by jairoportela on 15/06/2016.
@@ -58,9 +53,9 @@ public class ProtocoloController extends AbstractController<Protocolo> {
 
   private String comentario;
 
-  private DtoKeyMap<DocumentoDTO> documentosNaoSelecionados;
+  private DtoKeyMap documentosNaoSelecionados;
 
-  private DtoKeyMap<DocumentoDTO> documentosSelecionados;
+  private DtoKeyMap documentosSelecionados;
 
   @PostConstruct
   public void init() {
@@ -149,9 +144,9 @@ public class ProtocoloController extends AbstractController<Protocolo> {
 
   public String getEditTitle() {
     if (getItem().getId() == null) {
-      return "Enviar documentos";
+      return "Enviar Documentos";
     } else {
-      return String.format("Protocolo %d", getItem().getId());
+      return String.format("Protocolo Nº. %d", getItem().getId());
     }
   }
 
@@ -240,23 +235,19 @@ public class ProtocoloController extends AbstractController<Protocolo> {
     recuperarDadosRascunho();
   }
 
-  public DtoKeyMap<DocumentoDTO> getDocumentosNaoSelecionados() {
+  public DtoKeyMap getDocumentosNaoSelecionados() {
     return documentosNaoSelecionados;
   }
 
-  public void setDocumentosNaoSelecionados(DtoKeyMap<DocumentoDTO> documentosNaoSelecionados) {
+  public void setDocumentosNaoSelecionados(DtoKeyMap documentosNaoSelecionados) {
     this.documentosNaoSelecionados = documentosNaoSelecionados;
   }
 
-  public DtoKeyMap<DocumentoDTO> getDocumentosSelecionados() {
+  public DtoKeyMap getDocumentosSelecionados() {
     return documentosSelecionados;
   }
 
-  public void setDocumentosSelecionados(DtoKeyMap<DocumentoDTO> documentosSelecionados) {
+  public void setDocumentosSelecionados(DtoKeyMap documentosSelecionados) {
     this.documentosSelecionados = documentosSelecionados;
-  }
-
-  public void onTabChange() {
-
   }
 }

@@ -8,43 +8,43 @@ import java.util.*;
 /**
  * Created by jairoportela on 24/06/2016.
  */
-public class DtoKeyMap<T extends DocumentoDTO> implements Serializable {
+public class DtoKeyMap implements Serializable {
 
-  private Map<DtoKey<T>, List<T>> map;
-  private List<Map.Entry<DtoKey<T>, List<T>>> list;
+  private Map<String, List<DocumentoDTO>> map;
+  private List<Map.Entry<String, List<DocumentoDTO>>> list;
 
   public DtoKeyMap() {
     map = new HashMap<>();
   }
 
-  public List<Map.Entry<DtoKey<T>, List<T>>> getList() {
+  public List<Map.Entry<String, List<DocumentoDTO>>> getList() {
     return list;
   }
 
-  public void put(DtoKey<T> key, List<T> value) {
+  public void put(String key, List<DocumentoDTO> value) {
     map.put(key, value);
     list = new ArrayList<>(map.entrySet());
-    Collections.sort(list, new Comparator<Map.Entry<DtoKey<T>, List<T>>>() {
+    Collections.sort(list, new Comparator<Map.Entry<String, List<DocumentoDTO>>>() {
       @Override
-      public int compare(Map.Entry<DtoKey<T>, List<T>> o1, Map.Entry<DtoKey<T>, List<T>> o2) {
-        return o1.getKey().getValue().compareTo(o2.getKey().getValue());
+      public int compare(Map.Entry<String, List<DocumentoDTO>> o1, Map.Entry<String, List<DocumentoDTO>> o2) {
+        return o1.getKey().compareTo(o2.getKey());
       }
     });
   }
 
-  public List<T> getSelecionados() {
-    List<T> selecionados = new ArrayList<>();
-    for (Map.Entry<DtoKey<T>, List<T>> docEntry : getList()) {
+  public List<DocumentoDTO> getSelecionados() {
+    List<DocumentoDTO> selecionados = new ArrayList<>();
+    for (Map.Entry<String, List<DocumentoDTO>> docEntry : getList()) {
       for (DocumentoDTO doc : docEntry.getValue()) {
         if (doc.getSelected()) {
-          selecionados.add((T) doc);
+          selecionados.add(doc);
         }
       }
     }
     return selecionados;
   }
 
-  public List<T> get(DtoKey<T> key) {
+  public List<DocumentoDTO> get(String key) {
     return map.get(key);
   }
 
