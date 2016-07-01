@@ -7,6 +7,7 @@ import br.com.vah.protocolo.util.GenericLazyDataModel;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import java.io.Serializable;
+import java.util.List;
 import java.util.logging.Logger;
 
 @SuppressWarnings("serial")
@@ -275,6 +276,12 @@ public abstract class AbstractController<T extends BaseEntity> implements Serial
     }
     this.deleteConfirmAnswer = "";
     return null;
+  }
+
+  public List<T> completeMethod(String query) {
+    setSearchTerm(query);
+    prepareSearch();
+    return getLazyModel().load(10);
   }
 
   public String add() {

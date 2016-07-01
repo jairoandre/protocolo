@@ -4,7 +4,8 @@
                 xmlns:h="http://java.sun.com/jsf/html"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
                 xmlns:p="http://primefaces.org/ui"
-                xmlns:uivah="http://vah.com.br/vah">
+                xmlns:uivah="http://vah.com.br/vah"
+                xmlns:vah="http://java.sun.com/jsf/composite/vah">
 
   <ui:define name="metadata">
     <f:metadata>
@@ -27,17 +28,17 @@
 
           <p:focus context="protocoloPnlWrapper"/>
 
-          <h:panelGrid id="grid01" columns="3">
+          <h:panelGrid id="grid01" columns="6">
 
             <uivah:autoComplete id="atendimento" value="#{protocoloController.item.atendimento}" label="Atendimento"
                                 controller="#{atendimentoController}" completeMethod="completeAtendimento"
                                 editing="#{protocoloController.editing and protocoloController.item.id == null}"
                                 converter="#{atendimentoConverter}" itemLabel="labelForSelectItem"
                                 placeholder="Número/Nome paciente">
-              <p:ajax event="itemSelect" listener="#{protocoloController.recuperarDadosRascunho()}"
-                      process="@this" update="@all"
+              <p:ajax event="itemSelect" listener="#{protocoloController.recuperarDadosRascunho}"
+                      process="@this" update="@form"
                       oncomplete="nextFocus('#{p:component('carregarDocsBtn')}')"/>
-              <p:column>
+              <p:column width="75">
                 #{item.id}
               </p:column>
               <p:column>
@@ -45,26 +46,55 @@
               </p:column>
             </uivah:autoComplete>
 
-          </h:panelGrid>
+            <h:panelGroup/>
+            <h:panelGroup/>
+            <h:panelGroup/>
 
+            <uivah:autoComplete id="setorOrigem" value="#{protocoloController.item.origem}" label="Origem"
+                                controller="#{setorController}" completeMethod="completeMethod"
+                                editing="#{protocoloController.editing}"
+                                rendered="#{not empty protocoloController.item.atendimento}"
+                                converter="#{setorConverter}" itemLabel="labelForSelectItem"
+                                placeholder="Origem...">
+              <p:column width="75">
+                #{item.id}
+              </p:column>
+              <p:column>
+                #{item.title}
+              </p:column>
+            </uivah:autoComplete>
+            <uivah:autoComplete id="setorDestino" value="#{protocoloController.item.destino}" label="Destino"
+                                controller="#{setorController}" completeMethod="completeMethod"
+                                editing="#{protocoloController.editing}"
+                                rendered="#{not empty protocoloController.item.atendimento}"
+                                converter="#{setorConverter}" itemLabel="labelForSelectItem"
+                                placeholder="Origem...">
+              <p:column width="75">
+                #{item.id}
+              </p:column>
+              <p:column>
+                #{item.title}
+              </p:column>
+            </uivah:autoComplete>
+          </h:panelGrid>
           <h:panelGroup id="dadosProtocoloPnl" layout="block" styleClass="margin-top">
             <p:fieldset legend="Incluir documentos" rendered="#{not empty protocoloController.item.atendimento}">
-              <h:panelGrid id="grid02" columns="3">
+              <h:panelGrid id="grid02" columns="6">
                 <uivah:inputDate id="inicioDate" label="Início"
                                  value="#{protocoloController.inicioDate}"
                                  editing="#{protocoloController.editing}"
                                  pattern="dd/MM/yyyy"/>
-
                 <uivah:inputDate id="terminoDate" label="Término"
                                  value="#{protocoloController.terminoDate}"
                                  editing="#{protocoloController.editing}"
                                  pattern="dd/MM/yyyy"/>
               </h:panelGrid>
-              <p:commandButton id="carregarDocsBtn" value="Buscar" ajax="true"
-                               process="@this grid02" update="tabPnl" validateClient="true"
-                               styleClass="margin-top" action="#{protocoloController.buscarDocumentosNaoSelecionados}"
-                               rendered="#{protocoloController.editing}"/>
-
+              <h:panelGroup layout="block" style="display: inline-block">
+                <p:commandButton id="carregarDocsBtn" value="Buscar" ajax="true"
+                                 process="@this grid02" update="tabPnl" validateClient="true"
+                                 styleClass="margin-top" action="#{protocoloController.buscarDocumentosNaoSelecionados}"
+                                 rendered="#{protocoloController.editing}"/>
+              </h:panelGroup>
               <!-- DOCUMENTOS NÃO SELECIONADOS -->
               <h:panelGroup id="tabPnl" layout="block">
                 <p:tabView id="tabView01" value="#{protocoloController.documentosNaoSelecionados.list}"
@@ -73,6 +103,7 @@
                   <p:tab id="dayTab" title="#{docEntry.key}">
                     <p:dataTable id="docTable" value="#{docEntry.value}"
                                  var="doc"
+                                 emptyMessage="Sem documentos no período"
                                  sortBy="#{doc.dataHoraCriacao}">
                       <p:column width="20">
                         <p:selectBooleanCheckbox value="#{doc.selected}">
@@ -114,32 +145,39 @@
             </p:fieldset>
 
             <!-- DOCUMENTOS SELECIONADOS -->
-            <p:fieldset legend="Documentos incluídos" rendered="#{not empty protocoloController.documentosSelecionados}"
+            <p:fieldset legend="Documentos incluídos"
+                        rendered="#{not empty protocoloController.documentosSelecionados and not empty protocoloController.item.atendimento}"
                         styleClass="margin-top">
+              <h:panelGroup rendered="#{empty protocoloController.documentosSelecionados.list}">
+                <h:outputText value="Sem documentos selecionados"/>
+              </h:panelGroup>
               <p:tabView id="tabView02" value="#{protocoloController.documentosSelecionados.list}" var="docEntry"
-                         styleClass="margin-top"
-                         widgetVar="tabView02" rendered="#{not empty protocoloController.documentosSelecionados.list}">
+                         styleClass="margin-top" widgetVar="tabView02"
+                         rendered="#{not empty protocoloController.documentosSelecionados.list}">
                 <p:tab title="#{docEntry.key}">
                   <p:dataTable value="#{docEntry.value}" var="doc"
-                               sortBy="#{doc.dataHoraCriacao}">
+                               emptyMessage="Sem documentos selecionados"
+                               sortBy="#{doc.dataHoraCriacao}" rowIndexVar="idx">
                     <p:column headerText="Cód." width="50" styleClass="left-align">
                       <h:outputText value="#{doc.codigo}"/>
                     </p:column>
                     <p:column headerText="Descrição" styleClass="left-align ellipsis-text" width="150">
                       <h:outputText value="#{doc.descricao}"/>
                     </p:column>
-                    <p:column headerText="Prestador" styleClass="left-align">
-                      <h:outputText value="#{doc.prestador}"/>
+                    <p:column headerText="Prestador" styleClass="left-align ellipsis-text" width="250">
+                      <h:outputText id="prest" value="#{doc.prestador}"/>
+                      <vah:toolTip id="prestTooltip" for="#{p:component('prest')}" value="#{doc.prestador}"
+                                   index="#{idx}"/>
                     </p:column>
-                    <p:column headerText="Conselho" styleClass="left-align">
+                    <p:column headerText="Conselho" styleClass="left-align" width="75">
                       <h:outputText value="#{doc.conselho}"/>
                     </p:column>
-                    <p:column headerText="Data/Hora criação" styleClass="left-align">
+                    <p:column headerText="Data/Hora Criação" styleClass="left-align">
                       <h:outputText value="#{doc.dataHoraCriacao}">
                         <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
                       </h:outputText>
                     </p:column>
-                    <p:column headerText="Data/Hora impressão" styleClass="left-align">
+                    <p:column headerText="Data/Hora Impressão" styleClass="left-align">
                       <h:outputText value="#{doc.dataHoraImpressao}">
                         <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
                       </h:outputText>
@@ -147,7 +185,7 @@
                     <p:column headerText="Tipo" styleClass="left-align">
                       <h:outputText value="#{doc.tipo}"/>
                     </p:column>
-                    <p:column headerText="Quantidade Docs" styleClass="left-align">
+                    <p:column headerText="Qtd." styleClass="left-align" width="50">
                       <h:outputText value="#{doc.qtdDoc}"/>
                     </p:column>
                   </p:dataTable>
@@ -159,13 +197,13 @@
 
         <h:panelGroup id="panelBtns" layout="block"
                       style="margin-top: 10px;">
+          <p:commandButton id="enviarBtn" value="Enviar Documentos" icon="fa fa-send" ajax="true"
+                           process="@this" disabled="#{empty protocoloController.documentosSelecionados.list}"
+                           rendered="#{protocoloController.editing and not empty protocoloController.item.atendimento}"/>
           <p:commandButton id="saveBtn" value="Salvar Rascunho" icon="fa fa-floppy-o" ajax="true"
                            process="@form" update="@all" validateClient="true"
+                           styleClass="margin-left"
                            action="#{protocoloController.salvarParcial}"
-                           rendered="#{protocoloController.editing and not empty protocoloController.item.atendimento}"/>
-          <p:commandButton id="enviarBtn" value="Enviar" icon="fa fa-send" ajax="true"
-                           process="@this form" update="form" validateClient="true"
-                           styleClass="margin-left" action="#{protocoloController.back}"
                            rendered="#{protocoloController.editing and not empty protocoloController.item.atendimento}"/>
           <p:commandButton id="backBtn" value="Voltar" ajax="false" immediate="true"
                            icon="fa fa-undo" styleClass="margin-left"

@@ -135,7 +135,11 @@ public class ProtocoloController extends AbstractController<Protocolo> {
 
   public void recuperarDadosRascunho() {
     Protocolo rascunho = service.buscarDadosRascunho(getItem().getAtendimento());
-    if (rascunho != null) {
+    if (rascunho == null) {
+      if (session.getSetor() != null) {
+        getItem().setOrigem(session.getSetor());
+      }
+    } else {
       setItem(rascunho);
     }
     documentosSelecionados = service.gerarDocumentosSelecionados(getItem());

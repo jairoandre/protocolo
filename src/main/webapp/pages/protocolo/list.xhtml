@@ -137,10 +137,12 @@
             <p:menuButton id="menuButton" value="Ações">
               <p:menuitem value="Receber" action="#{protocoloController.receber(item)}"
                           ajax="true" process="@this" update="estado, menuButton"
-                          icon="fa fa-thumbs-up" disabled="#{item.dataResposta != null}"/>
+                          disabled="#{item.dataResposta != null or !(item.estado == 'ENVIADO')}"
+                          icon="fa fa-thumbs-up"/>
               <p:menuitem value="Recusar" action="#{protocoloController.setItem(item)}"
                           process="@this" update="#{p:component('novoComentarioDlg')}"
                           oncomplete="PF('novoComentarioDlg').show()"
+                          disabled="#{item.dataResposta != null or !(item.estado == 'ENVIADO')}"
                           icon="fa fa-comment" rendered="#{protocoloController.showRefuseButton(item)}"/>
               <p:separator/>
               <p:menuitem value="Novo comentário" action="#{protocoloController.setItem(item)}"

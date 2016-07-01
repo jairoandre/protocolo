@@ -63,9 +63,4 @@ public class SetorController extends AbstractController<Setor> {
     setSearchParam("title", getSearchTerm());
   }
 
-  public List<Setor> completeSetor(String query) {
-    setSearchTerm(query);
-    prepareSearch();
-    return getLazyModel().load(10);
-  }
 }

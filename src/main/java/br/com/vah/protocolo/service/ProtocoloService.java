@@ -236,6 +236,10 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
 
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
+    if (documentos.isEmpty()) {
+      dtoKeyMap.put("Sem documentos", null);
+    }
+
     for (DocumentoDTO documento : documentos) {
 
       String key = sdf.format(documento.getData());

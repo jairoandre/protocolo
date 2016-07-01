@@ -4,7 +4,7 @@
       xmlns:f="http://java.sun.com/jsf/core"
       xmlns:composite="http://java.sun.com/jsf/composite"
       xmlns:p="http://primefaces.org/ui"
-      xmlns:lance="http://java.sun.com/jsf/composite/vah">
+      xmlns:vah="http://java.sun.com/jsf/composite/vah">
 
 <composite:interface>
   <composite:attribute name="id"/>
@@ -59,7 +59,7 @@
                        rendered="#{cc.attrs.renderDetailAction == null ? true : cc.attrs.renderDetailAction}">
           <span class="fa fa-search"/>
         </p:commandLink>
-        <lance:toolTip id="detailToolTip" for="#{p:component('detailAction')}"
+        <vah:toolTip id="detailToolTip" for="#{p:component('detailAction')}"
                        value="Detalhar #{cc.attrs.controller.entityName}" index="#{indexVar}"/>
         <span/>
         <p:commandLink id="editAction"
@@ -67,7 +67,7 @@
                        rendered="#{cc.attrs.renderEditAction == null ? true : cc.attrs.renderEditAction}">
           <span class="fa fa-pencil"/>
         </p:commandLink>
-        <lance:toolTip id="editToolTip" for="#{p:component('editAction')}"
+        <vah:toolTip id="editToolTip" for="#{p:component('editAction')}"
                        value="Editar #{cc.attrs.controller.entityName}" index="#{indexVar}"/>
         <span/>
         <p:commandLink id="deleteAction"
@@ -76,7 +76,7 @@
                        rendered="#{cc.attrs.renderDeleteAction == null ? true : cc.attrs.renderDeleteAction}">
           <span class="fa fa-trash"/>
         </p:commandLink>
-        <lance:toolTip id="deleteToolTip" for="#{p:component('deleteAction')}"
+        <vah:toolTip id="deleteToolTip" for="#{p:component('deleteAction')}"
                        value="Deletar #{cc.attrs.controller.entityName}" index="#{indexVar}"/>
 
       </p:column>

@@ -2,6 +2,7 @@
                 xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:h="http://java.sun.com/jsf/html"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:uivah="http://vah.com.br/vah"
                 xmlns:p="http://primefaces.org/ui">
   <ui:define name="content">
     <h:form>
@@ -22,27 +23,20 @@
           </div>
           <p:focus context="setorPnl"/>
           <h:panelGrid id="grid"
-                       columns="2"
+                       columns="3"
                        cellpadding="5" style="margin-top: 25px;">
-            <p:outputLabel value="Setor:" styleClass="lance-label"/>
-            <p:autoComplete id="setor" value="#{sessionController.setor}"
-                            var="setor"
-                            itemLabel="#{setor.title}"
-                            itemValue="#{setor}"
-                            converter="#{setorConverter}"
-                            inputStyleClass="lance-input"
-                            queryDelay="250"
-                            completeMethod="#{setorController.completeSetor}"
-                            placeholder="Digite o código ou o nome do setor.">
-              <p:ajax event="itemSelect" update="prosseguirBtn"
-                      oncomplete="nextFocus('#{p:component('prosseguirBtn')}')"/>
-              <p:column>
-                #{setor.id}
+            <uivah:autoComplete id="setor" value="#{sessionController.setor}" label="Setor"
+                                controller="#{setorController}" completeMethod="completeMethod"
+                                converter="#{setorConverter}" itemLabel="labelForSelectItem"
+                                placeholder="Cód./Nome">
+              <p:ajax event="itemSelect" process="@this" update="prosseguirBtn" oncomplete="nextFocus('#{p:component('prosseguirBtn')}')"/>
+              <p:column width="75">
+                #{item.id}
               </p:column>
               <p:column>
-                #{setor.title}
+                #{item.title}
               </p:column>
-            </p:autoComplete>
+            </uivah:autoComplete>
           </h:panelGrid>
         </h:panelGroup>
         <p:commandButton id="prosseguirBtn" value="Prosseguir" action="#{sessionController.prosseguir}"
