@@ -10,7 +10,7 @@ import java.util.*;
  */
 public class DtoKeyMap implements Serializable {
 
-  private Map<String, List<DocumentoDTO>> map;
+  private Map<String, List<DocumentoDTO>> map = new HashMap<>();
   private List<Map.Entry<String, List<DocumentoDTO>>> list;
 
   public DtoKeyMap() {
@@ -34,10 +34,14 @@ public class DtoKeyMap implements Serializable {
 
   public List<DocumentoDTO> getSelecionados() {
     List<DocumentoDTO> selecionados = new ArrayList<>();
-    for (Map.Entry<String, List<DocumentoDTO>> docEntry : getList()) {
-      for (DocumentoDTO doc : docEntry.getValue()) {
-        if (doc.getSelected()) {
-          selecionados.add(doc);
+    if (getList() != null) {
+      for (Map.Entry<String, List<DocumentoDTO>> docEntry : getList()) {
+        if (docEntry.getValue() != null) {
+          for (DocumentoDTO doc : docEntry.getValue()) {
+            if (doc.getSelected()) {
+              selecionados.add(doc);
+            }
+          }
         }
       }
     }

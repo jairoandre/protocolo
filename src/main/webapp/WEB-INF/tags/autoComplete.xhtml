@@ -12,7 +12,7 @@
                   onclick="this.setSelectionRange(0, this.value.length)"
                   converter="#{converter}"
                   required="#{required == null ? false : required}"
-                  inputStyleClass="lance-input"
+                  inputStyleClass="lance-input #{styleClass}"
                   completeMethod="#{controller[completeMethod]}"
                   placeholder="#{placeholder == null ? 'Digite o termo...' : placeholder}"
                   rendered="#{rendered == null ? true : rendered}">

@@ -2,9 +2,14 @@ package br.com.vah.protocolo.service;
 
 
 import br.com.vah.protocolo.constants.EstadosProtocoloEnum;
+import br.com.vah.protocolo.constants.TipoDocumentoEnum;
 import br.com.vah.protocolo.dto.DocumentoDTO;
 import br.com.vah.protocolo.entities.dbamv.*;
+import br.com.vah.protocolo.entities.usrdbvah.Historico;
+import br.com.vah.protocolo.entities.usrdbvah.ItemProtocolo;
 import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
+import br.com.vah.protocolo.entities.usrdbvah.User;
+import br.com.vah.protocolo.exceptions.ProtocoloBusinessException;
 import br.com.vah.protocolo.exceptions.ProtocoloPersistException;
 import br.com.vah.protocolo.reports.ReportLoader;
 import br.com.vah.protocolo.reports.ReportTotalPorSetor;
@@ -134,22 +139,28 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
 
   }
 
-  public Protocolo salvarParcial (Protocolo protocolo, List<DocumentoDTO> documentos) {
+  public Protocolo addHistorico(Protocolo protocolo, User user, EstadosProtocoloEnum acao) {
+    if (user != null) {
+      Historico historico = new Historico();
+      historico.setAutor(user);
+      historico.setEstado(EstadosProtocoloEnum.RASCUNHO);
+      historico.setProtocolo(protocolo);
+      if (protocolo.getHistorico() == null) {
+        protocolo.setHistorico(new ArrayList<Historico>());
+      }
+      protocolo.getHistorico().add(historico);
+    }
+    return protocolo;
+  }
+
+  public Protocolo salvarParcial(Protocolo protocolo, List<DocumentoDTO> documentos, User user) {
+
+    addHistorico(protocolo, user, EstadosProtocoloEnum.RASCUNHO);
 
     if (documentos != null) {
-      for (DocumentoDTO documento : documentos) {
-        PrescricaoMedica prescricao = documento.getPrescricao();
-        AvisoCirurgia aviso = documento.getAviso();
-        RegistroDocumento registro = documento.getRegistro();
-        if(prescricao != null) {
-          protocolo.getPrescricoes().add(prescricao);
-        }
-        if(aviso != null) {
-          protocolo.getAvisos().add(aviso);
-        }
-        if(registro != null) {
-          protocolo.getRegistros().add(registro);
-        }
+      for (DocumentoDTO docDTO : documentos) {
+        docDTO.setProtocolo(protocolo);
+        protocolo.getItens().add(docDTO.getItemProtocolo());
       }
     }
 
@@ -215,13 +226,18 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
     List<DocumentoDTO> documentos = new ArrayList<>();
     // Prescrições e evoluções médicas
     for (PrescricaoMedica prescricao : prescricoes) {
-      Boolean hasEvolucao = prescricaoMedicaService.hasEvolucao(prescricao);
-      documentos.add(new DocumentoDTO(prescricao, hasEvolucao));
+      if (!prescricao.getItems().isEmpty()) {
+        documentos.add(new DocumentoDTO(prescricao, TipoDocumentoEnum.PRESCRICAO));
+      }
+      if (prescricaoMedicaService.hasEvolucao(prescricao)) {
+        documentos.add(new DocumentoDTO(prescricao, TipoDocumentoEnum.EVOLUCAO));
+      }
     }
 
     // Avisos de cirurgia
     for (AvisoCirurgia aviso : avisos) {
-      documentos.add(new DocumentoDTO(aviso));
+      documentos.add(new DocumentoDTO(aviso, TipoDocumentoEnum.DESCRICAO_CIRURGICA));
+      documentos.add(new DocumentoDTO(aviso, TipoDocumentoEnum.FOLHA_ANESTESICA));
     }
 
     // Registro de Documentos
@@ -229,6 +245,14 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
       documentos.add(new DocumentoDTO(registro));
     }
     return documentos;
+  }
+
+  private List<DocumentoDTO> gerarListaDTO(Protocolo protocolo) {
+    List<DocumentoDTO> dtos = new ArrayList<>();
+    for (ItemProtocolo item : protocolo.getItens()) {
+      dtos.add(new DocumentoDTO(item));
+    }
+    return dtos;
   }
 
   private DtoKeyMap gerarDtoKeyMap(List<DocumentoDTO> documentos) {
@@ -258,38 +282,50 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
     return dtoKeyMap;
   }
 
+  public List<DocumentoDTO> removeIfExists(List<DocumentoDTO> dtos, ItemProtocolo itemProtocolo) {
+    DocumentoDTO toRemove = null;
+    for (DocumentoDTO dto : dtos) {
+      if (itemProtocolo.getTipo().equals(dto.getTipo())) {
+        if (dto.getPrescricao() != null) {
+          if (dto.getPrescricao().equals(itemProtocolo.getPrescricaoMedica())) {
+            toRemove = dto;
+            break;
+          }
+        } else if (dto.getAviso() != null) {
+          if (dto.getAviso().equals(itemProtocolo.getAvisoCirurgia())) {
+            toRemove = dto;
+            break;
+          }
+        } else if (dto.getRegistro() != null) {
+          if (dto.getRegistro().equals(itemProtocolo.getRegistroDocumento())) {
+            toRemove = dto;
+            break;
+          }
+        }
+      }
+    }
+
+    if (toRemove != null) {
+      dtos.remove(toRemove);
+    }
+
+    return dtos;
+
+  }
+
   private List<DocumentoDTO> buscarDocumentos(Atendimento atendimento, Date inicio, Date fim, Setor setor, Protocolo protocolo) {
 
     List<PrescricaoMedica> prescricoes = prescricaoMedicaService.consultarPrescricoes(atendimento, inicio, fim);
     List<AvisoCirurgia> avisos = avisoCirurgiaService.consultarAvisos(atendimento, inicio, fim, setor);
     List<RegistroDocumento> registros = registroDocumentoService.consultarRegistros(atendimento, inicio, fim);
 
-    if (protocolo.getId() != null) {
-      List<PrescricaoMedica> prescricoesToRemove = new ArrayList<>();
-      for (PrescricaoMedica prescricao : prescricoes) {
-        if (protocolo.getPrescricoes().contains(prescricao)) {
-          prescricoesToRemove.add(prescricao);
-        }
+    List<DocumentoDTO> dtos = gerarListaDTO(prescricoes, avisos, registros);
 
-      }
-      List<AvisoCirurgia> avisosToRemove = new ArrayList<>();
-      for (AvisoCirurgia aviso : avisos) {
-        if (protocolo.getAvisos().contains(aviso)) {
-          avisosToRemove.add(aviso);
-        }
-      }
-      List<RegistroDocumento> registrosToRemove = new ArrayList<>();
-      for (RegistroDocumento registro : registros) {
-        if (protocolo.getRegistros().contains(registro)) {
-          registrosToRemove.add(registro);
-        }
-      }
-      prescricoes.removeAll(prescricoesToRemove);
-      avisos.removeAll(avisosToRemove);
-      registros.removeAll(registrosToRemove);
+    for (ItemProtocolo itemProtocolo : protocolo.getItens()) {
+      dtos = removeIfExists(dtos, itemProtocolo);
     }
 
-    return gerarListaDTO(prescricoes, avisos, registros);
+    return dtos;
 
 
   }
@@ -297,11 +333,68 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
   public DtoKeyMap buscarDocumentosNaoSelecionados(Atendimento atendimento, Date inicio, Date fim, Setor setor, Protocolo protocolo) {
     List<DocumentoDTO> documentos = buscarDocumentos(atendimento, inicio, fim, setor, protocolo);
     return gerarDtoKeyMap(documentos);
-
   }
 
   public DtoKeyMap gerarDocumentosSelecionados(Protocolo protocolo) {
-    return gerarDtoKeyMap(gerarListaDTO(protocolo.getPrescricoes(), protocolo.getAvisos(), protocolo.getRegistros()));
+    return gerarDtoKeyMap(gerarListaDTO(protocolo));
+  }
+
+  public Protocolo enviarProtocolo(Protocolo protocolo) throws ProtocoloBusinessException {
+
+    if (protocolo.getDestino() == null) {
+      throw new ProtocoloBusinessException("Protocolo sem origem definido.");
+    }
+
+    if (protocolo.getDestino() == null) {
+      throw new ProtocoloBusinessException("Protocolo sem destino definido.");
+    }
+
+    if (EstadosProtocoloEnum.RASCUNHO.equals(protocolo.getEstado())) {
+      protocolo.setEstado(EstadosProtocoloEnum.ENVIADO);
+      protocolo.setDataEnvio(new Date());
+      protocolo = update(protocolo);
+    } else {
+      throw new ProtocoloBusinessException("Apenas rascunhos ou novos protocolos podem ser enviados.");
+    }
+
+    return protocolo;
+  }
+
+  public Integer[] contarDocumentos(Protocolo protocolo) {
+    Integer totalDocumentos = 0;
+    Integer totalPrescricoes = 0;
+    Integer totalEvolucoes = 0;
+    Integer totalDescricoes = 0;
+    Integer totalFolha = 0;
+    Integer totalRegistros = 0;
+    Integer totalDocumentosManuais = 0;
+
+    for (ItemProtocolo item : protocolo.getItens()) {
+      totalDocumentos++;
+      switch (item.getTipo()) {
+        case EVOLUCAO:
+          totalEvolucoes++;
+          break;
+        case DESCRICAO_CIRURGICA:
+          totalDescricoes++;
+          break;
+        case FOLHA_ANESTESICA:
+          totalFolha++;
+          break;
+        case PRESCRICAO:
+          totalPrescricoes++;
+          break;
+        case REGISTRO_DOCUMENTO:
+          totalRegistros++;
+          break;
+        case DOCUMENTO_MANUAL:
+          totalDocumentosManuais++;
+          break;
+        default:
+          break;
+      }
+    }
+    return new Integer[] {totalDocumentos, totalPrescricoes, totalEvolucoes, totalFolha, totalDescricoes, totalRegistros, totalDocumentosManuais};
   }
 
   public Protocolo buscarDadosRascunho(Atendimento atendimento) {
@@ -309,12 +402,9 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
     Criteria criteria = session.createCriteria(Protocolo.class);
     criteria.add(Restrictions.eq("atendimento", atendimento));
     criteria.add(Restrictions.eq("estado", EstadosProtocoloEnum.RASCUNHO));
-    criteria.setFetchMode("prescricoes", FetchMode.SELECT);
-    criteria.setFetchMode("avisos", FetchMode.SELECT);
-    criteria.setFetchMode("registros", FetchMode.SELECT);
+    criteria.setFetchMode("itens", FetchMode.SELECT);
     criteria.setFetchMode("historico", FetchMode.SELECT);
     criteria.setFetchMode("comentarios", FetchMode.SELECT);
-    criteria.setFetchMode("documentosManuais", FetchMode.SELECT);
     List<Protocolo> protocolos = criteria.list();
     return protocolos.isEmpty() ? null : protocolos.get(0);
   }

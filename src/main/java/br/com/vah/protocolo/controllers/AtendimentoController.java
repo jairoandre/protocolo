@@ -69,6 +69,6 @@ public class AtendimentoController extends AbstractController<Atendimento> {
     setSearchTerm(query);
     resetSearchParams();
     searchById();
-    return getLazyModel().load(10);
+    return getLazyModel().load(15);
   }
 }

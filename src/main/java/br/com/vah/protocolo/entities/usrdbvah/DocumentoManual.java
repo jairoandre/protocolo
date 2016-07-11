@@ -24,10 +24,6 @@ public class DocumentoManual extends BaseEntity {
   @Column(name = "ID")
   private Long id;
 
-  @ManyToOne
-  @JoinColumn(name = "ID_PROTOCOLO")
-  private Protocolo protocolo;
-
   @Column(name = "CD_CODIGO")
   private Long codigo;
 
@@ -37,10 +33,6 @@ public class DocumentoManual extends BaseEntity {
 
   @Column(name = "NM_OBSERVACAO")
   private String observacao;
-
-  @Column(name = "CD_CONSELHO")
-  @Enumerated(EnumType.STRING)
-  private ConselhoEnum conselho;
 
   @ManyToOne
   @JoinColumn(name = "CD_PRESTADOR")
@@ -60,14 +52,6 @@ public class DocumentoManual extends BaseEntity {
   @Override
   public void setId(Long id) {
     this.id = id;
-  }
-
-  public Protocolo getProtocolo() {
-    return protocolo;
-  }
-
-  public void setProtocolo(Protocolo protocolo) {
-    this.protocolo = protocolo;
   }
 
   public Long getCodigo() {
@@ -92,14 +76,6 @@ public class DocumentoManual extends BaseEntity {
 
   public void setObservacao(String observacao) {
     this.observacao = observacao;
-  }
-
-  public ConselhoEnum getConselho() {
-    return conselho;
-  }
-
-  public void setConselho(ConselhoEnum conselho) {
-    this.conselho = conselho;
   }
 
   public Prestador getPrestador() {

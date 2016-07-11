@@ -178,6 +178,10 @@ a.action-link:HOVER, td.action-link a:HOVER {
   min-width: 300px;
 }
 
+.client-input {
+  min-width: 400px;
+}
+
 .lance-label {
   font-weight: bold;
   font-size: 18px !important;
@@ -343,11 +347,18 @@ input.ui-state-disabled {
   vertical-align: middle !important;
 }
 
-.rascunho-title {
+.protocolo-title {
   position: absolute;
   font-size: 50px;
   right: 0;
   top: 15px;
   font-weight: bold;
+}
+
+.protocolo-title--rascunho {
   color: #cdcdcd;
+}
+
+.protocolo-title--enviado {
+  color: #77c2cd;
 }

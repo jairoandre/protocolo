@@ -1,8 +1,11 @@
 package br.com.vah.protocolo.controllers;
 
 import br.com.vah.protocolo.constants.EstadosProtocoloEnum;
+import br.com.vah.protocolo.dto.DocumentoDTO;
 import br.com.vah.protocolo.entities.dbamv.Setor;
 import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
+import br.com.vah.protocolo.exceptions.ProtocoloBusinessException;
+import br.com.vah.protocolo.exceptions.ProtocoloPersistException;
 import br.com.vah.protocolo.service.AtendimentoService;
 import br.com.vah.protocolo.service.DataAccessService;
 import br.com.vah.protocolo.service.ProtocoloService;
@@ -10,10 +13,13 @@ import br.com.vah.protocolo.util.DtoKeyMap;
 import br.com.vah.protocolo.util.ViewUtils;
 
 import javax.annotation.PostConstruct;
+import javax.faces.application.FacesMessage;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -39,7 +45,7 @@ public class ProtocoloController extends AbstractController<Protocolo> {
   @Inject
   AtendimentoService atendimentoService;
 
-  public static final String[] RELATIONS = {"prescricoes", "avisos", "registros", "historico", "comentarios"};
+  public static final String[] RELATIONS = {"itens", "historico", "comentarios"};
 
   private Setor setor;
 
@@ -56,6 +62,22 @@ public class ProtocoloController extends AbstractController<Protocolo> {
   private DtoKeyMap documentosNaoSelecionados;
 
   private DtoKeyMap documentosSelecionados;
+
+  private Boolean showSumario;
+
+  private Integer totalDocumentos;
+
+  private Integer totalPrescricoes;
+
+  private Integer totalEvolucoes;
+
+  private Integer totalDescricoes;
+
+  private Integer totalFolha;
+
+  private Integer totalRegistros;
+
+  private Integer totalDocumentosManuais;
 
   @PostConstruct
   public void init() {
@@ -142,6 +164,15 @@ public class ProtocoloController extends AbstractController<Protocolo> {
     } else {
       setItem(rascunho);
     }
+    Integer[] totais = service.contarDocumentos(getItem());
+    showSumario = true;
+    totalDocumentos = totais[0];
+    totalPrescricoes = totais[1];
+    totalEvolucoes = totais[2];
+    totalFolha = totais[3];
+    totalDescricoes = totais[4];
+    totalRegistros = totais[5];
+    totalDocumentosManuais = totais[6];
     documentosSelecionados = service.gerarDocumentosSelecionados(getItem());
     documentosNaoSelecionados = null;
   }
@@ -151,6 +182,14 @@ public class ProtocoloController extends AbstractController<Protocolo> {
       return "Enviar Documentos";
     } else {
       return String.format("Protocolo Nº. %d", getItem().getId());
+    }
+  }
+
+  public void enviarProtocolo() {
+    try{
+      service.enviarProtocolo(getItem());
+    } catch (ProtocoloBusinessException pbe) {
+      addMsg(new FacesMessage(FacesMessage.SEVERITY_WARN, "Atenção", pbe.getMessage()), false);
     }
   }
 
@@ -227,10 +266,52 @@ public class ProtocoloController extends AbstractController<Protocolo> {
     this.comentario = comentario;
   }
 
+  public Boolean getShowSumario() {
+    return showSumario;
+  }
+
+  public Integer getTotalDocumentos() {
+    return totalDocumentos;
+  }
+
+  public Integer getTotalPrescricoes() {
+    return totalPrescricoes;
+  }
+
+  public Integer getTotalEvolucoes() {
+    return totalEvolucoes;
+  }
+
+  public Integer getTotalDescricoes() {
+    return totalDescricoes;
+  }
+
+  public Integer getTotalFolha() {
+    return totalFolha;
+  }
+
+  public Integer getTotalRegistros() {
+    return totalRegistros;
+  }
+
+  public Integer getTotalDocumentosManuais() {
+    return totalDocumentosManuais;
+  }
+
   public void salvarParcial() {
-    setItem(service.salvarParcial(getItem(), documentosNaoSelecionados.getSelecionados()));
-    recuperarDadosRascunho();
-    buscarDocumentosNaoSelecionados();
+    List<DocumentoDTO> docs = new ArrayList<>();
+    if (documentosNaoSelecionados != null) {
+      docs = documentosNaoSelecionados.getSelecionados();
+    }
+    try {
+      setItem(service.salvarParcial(getItem(), docs, session.getUser()));
+      recuperarDadosRascunho();
+      buscarDocumentosNaoSelecionados();
+      addMsg(new FacesMessage(FacesMessage.SEVERITY_INFO, "Sucesso", String.format("Rascunho salvo protocolo nº <b>%s</b>.", getItem().getId())), true);
+    }catch (ProtocoloPersistException ppe) {
+      addMsg(new FacesMessage(FacesMessage.SEVERITY_WARN, "Atenção", String.format("Erro durante a persistência de dados.")), true);
+    }
+
   }
 
   @Override

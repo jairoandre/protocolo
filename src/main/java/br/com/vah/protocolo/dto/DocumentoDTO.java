@@ -6,9 +6,12 @@ import br.com.vah.protocolo.constants.TipoDocumentoEnum;
 import br.com.vah.protocolo.entities.dbamv.AvisoCirurgia;
 import br.com.vah.protocolo.entities.dbamv.PrescricaoMedica;
 import br.com.vah.protocolo.entities.dbamv.RegistroDocumento;
+import br.com.vah.protocolo.entities.usrdbvah.ItemProtocolo;
+import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 
 public class DocumentoDTO {
 
+  private Protocolo protocolo;
   private TipoDocumentoEnum tipo;
   private PrescricaoMedica prescricao;
   private AvisoCirurgia aviso;
@@ -19,50 +22,83 @@ public class DocumentoDTO {
   private String prestador;
   private Date dataHoraCriacao;
   private Date dataHoraImpressao;
-  private Boolean hasEvolucao;
-  private Integer qtdDoc = 1;
   private String conselho;
   private Boolean selected = false;
 
-  public DocumentoDTO(PrescricaoMedica prescricao, Boolean hasEvolucao) {
+  public DocumentoDTO(PrescricaoMedica prescricao, TipoDocumentoEnum tipo) {
+    setFieldsForPrescricao(prescricao, tipo);
+  }
 
+  private void setFieldsForPrescricao(PrescricaoMedica prescricao, TipoDocumentoEnum tipo) {
     this.prescricao = prescricao;
     this.data = prescricao.getDatePreMed();
     this.codigo = String.valueOf(prescricao.getId());
     this.prestador = prescricao.getPrestador().getNome();
     this.dataHoraCriacao = prescricao.getDataHoraCriacao();
     this.dataHoraImpressao = prescricao.getDataHoraImpressao();
-    this.hasEvolucao = hasEvolucao;
-
+    this.tipo = tipo;
     // Atributos inferidos
     resolverConselho();
-    resolverTipoDoc();
   }
 
-  public DocumentoDTO(AvisoCirurgia aviso) {
+  public DocumentoDTO(AvisoCirurgia aviso, TipoDocumentoEnum tipo) {
+    setFieldsForAvisoCirurgia(aviso, tipo);
+  }
 
+  private void setFieldsForAvisoCirurgia(AvisoCirurgia aviso, TipoDocumentoEnum tipo) {
     this.aviso = aviso;
     this.data = aviso.getInicioCirurgia();
     this.codigo = String.valueOf(aviso.getId());
-    this.qtdDoc = 2;
-    this.tipo =TipoDocumentoEnum.AVISO_CIRURGIA;
-
+    this.tipo = tipo;
   }
 
   public DocumentoDTO(RegistroDocumento registro) {
+    setFieldsForRegistroDocumento(registro);
+  }
 
+  private void setFieldsForRegistroDocumento(RegistroDocumento registro) {
     this.registro = registro;
     this.data = registro.getDataRegistro();
     this.codigo = String.valueOf(registro.getId());
     this.descricao = registro.getDocumento().getDescricao();
-    this.qtdDoc = 1;
     this.tipo = TipoDocumentoEnum.REGISTRO_DOCUMENTO;
     this.prestador = registro.getNomeUsuario();
+  }
 
+  public DocumentoDTO(ItemProtocolo itemProtocolo) {
+    switch (itemProtocolo.getTipo()) {
+      case PRESCRICAO:
+      case EVOLUCAO:
+        setFieldsForPrescricao(itemProtocolo.getPrescricaoMedica(), itemProtocolo.getTipo());
+        break;
+      case DESCRICAO_CIRURGICA:
+      case FOLHA_ANESTESICA:
+        setFieldsForAvisoCirurgia(itemProtocolo.getAvisoCirurgia(), itemProtocolo.getTipo());
+        break;
+      case REGISTRO_DOCUMENTO:
+        setFieldsForRegistroDocumento(registro);
+        break;
+      default:
+        break;
+    }
   }
 
   public DocumentoDTO() {
     // Documentos de prontuário
+  }
+
+  public ItemProtocolo getItemProtocolo() {
+    ItemProtocolo itemProtocolo = new ItemProtocolo();
+    itemProtocolo.setProtocolo(protocolo);
+    itemProtocolo.setTipo(tipo);
+    if (prescricao != null) {
+      itemProtocolo.setPrescricaoMedica(prescricao);
+    } else if (aviso != null) {
+      itemProtocolo.setAvisoCirurgia(aviso);
+    } else if (registro != null) {
+      itemProtocolo.setRegistroDocumento(registro);
+    }
+    return itemProtocolo;
   }
 
   private void resolverConselho () {
@@ -73,32 +109,12 @@ public class DocumentoDTO {
     }
   }
 
-  private void resolverTipoDoc () {
-    // LISTA DE ITENS PRESCRITOS NAO E VAZIO
-    if(prescricao != null) {
-      if (!prescricao.getItems().isEmpty() && hasEvolucao) {
-        qtdDoc = 2;
-      }
-      if (qtdDoc > 1) {
-        tipo = TipoDocumentoEnum.PRESCRICAO_EVOLUCAO;
-      } else {
-        if (qtdDoc < 2 && !hasEvolucao) {
-          tipo = TipoDocumentoEnum.PRESCRICAO;
-        } else {
-          tipo = TipoDocumentoEnum.EVOLUCAO;
-        }
-      }
-    } if (aviso != null) {
-      tipo = TipoDocumentoEnum.AVISO_CIRURGIA;
-    }
+  public Protocolo getProtocolo() {
+    return protocolo;
   }
 
-  public Integer getQtdDoc() {
-    return qtdDoc;
-  }
-
-  public void setQtdDoc(Integer qtdDoc) {
-    this.qtdDoc = qtdDoc;
+  public void setProtocolo(Protocolo protocolo) {
+    this.protocolo = protocolo;
   }
 
   public Date getData() {
@@ -171,14 +187,6 @@ public class DocumentoDTO {
 
   public void setAviso(AvisoCirurgia aviso) {
     this.aviso = aviso;
-  }
-
-  public Boolean getHasEvolucao() {
-    return hasEvolucao;
-  }
-
-  public void setHasEvolucao(Boolean hasEvolucao) {
-    this.hasEvolucao = hasEvolucao;
   }
 
   public String getConselho() {

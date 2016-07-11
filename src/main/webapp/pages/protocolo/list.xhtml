@@ -156,6 +156,7 @@
                           process="@this" update="#{p:component('comentarioDlg')}"
                           oncomplete="PF('comentarioDlg').show()"
                           icon="fa fa-comments"/>
+              <p:separator/>
               <p:menuitem value="Editar" action="#{protocoloController.edit(item)}"
                           process="@this" onstart="PF('changePage').show()"
                           disabled="#{item.dataResposta != null}"
@@ -242,7 +243,7 @@
               <h:outputText value="#{hist.autor.login}"/>
             </p:column>
             <p:column headerText="Ação" width="100" styleClass="left-align">
-              <h:outputText value="#{hist.acao.name()}"/>
+              <h:outputText value="#{hist.estado.label}"/>
             </p:column>
             <p:column headerText="Data" width="100" styleClass="left-align">
               <h:outputText value="#{hist.data}">

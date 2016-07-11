@@ -3,7 +3,6 @@ package br.com.vah.protocolo.entities.dbamv;
 import br.com.vah.protocolo.entities.BaseEntity;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -29,7 +28,7 @@ public class AvisoCirurgia extends BaseEntity {
 
   @ManyToOne
   @JoinColumn(name = "CD_SAL_CIR")
-  private SalaCirurgia salaCirugia;
+  private SalaCirurgia salaCirurgia;
 
   public Long getId() {
     return id;
@@ -63,12 +62,12 @@ public class AvisoCirurgia extends BaseEntity {
     this.inicioCirurgia = inicioCirurgia;
   }
 
-  public SalaCirurgia getSalaCirugia() {
-    return salaCirugia;
+  public SalaCirurgia getSalaCirurgia() {
+    return salaCirurgia;
   }
 
-  public void setSalaCirugia(SalaCirurgia salaCirugia) {
-    this.salaCirugia = salaCirugia;
+  public void setSalaCirurgia(SalaCirurgia salaCirugia) {
+    this.salaCirurgia = salaCirugia;
   }
 
   @Override

@@ -38,6 +38,9 @@
   <h:panelGroup layout="block" style="padding: 5px 5px">
     <ui:include src="../templates/tiles/top-menu.xhtml"/>
   </h:panelGroup>
+  <h:panelGroup layout="block" style="padding: 5px">
+    <p:messages autoUpdate="true" showDetail="true" showSummary="true" globalOnly="true" escape="false"/>
+  </h:panelGroup>
   <h:panelGroup layout="block" style="padding: 5px 5px;">
     <ui:insert name="content"/>
   </h:panelGroup>
