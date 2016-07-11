@@ -3,6 +3,7 @@ package br.com.vah.protocolo.controllers;
 import br.com.vah.protocolo.constants.EstadosProtocoloEnum;
 import br.com.vah.protocolo.dto.DocumentoDTO;
 import br.com.vah.protocolo.entities.dbamv.Setor;
+import br.com.vah.protocolo.entities.usrdbvah.ItemProtocolo;
 import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 import br.com.vah.protocolo.exceptions.ProtocoloBusinessException;
 import br.com.vah.protocolo.exceptions.ProtocoloPersistException;
@@ -78,6 +79,8 @@ public class ProtocoloController extends AbstractController<Protocolo> {
   private Integer totalRegistros;
 
   private Integer totalDocumentosManuais;
+
+  private List<ItemProtocolo> itensToRemove = new ArrayList<>();
 
   @PostConstruct
   public void init() {
@@ -164,6 +167,12 @@ public class ProtocoloController extends AbstractController<Protocolo> {
     } else {
       setItem(rascunho);
     }
+    contarDocumentos();
+    documentosSelecionados = service.gerarDocumentosSelecionados(getItem());
+    documentosNaoSelecionados = null;
+  }
+
+  private void contarDocumentos() {
     Integer[] totais = service.contarDocumentos(getItem());
     showSumario = true;
     totalDocumentos = totais[0];
@@ -173,8 +182,6 @@ public class ProtocoloController extends AbstractController<Protocolo> {
     totalDescricoes = totais[4];
     totalRegistros = totais[5];
     totalDocumentosManuais = totais[6];
-    documentosSelecionados = service.gerarDocumentosSelecionados(getItem());
-    documentosNaoSelecionados = null;
   }
 
   public String getEditTitle() {
@@ -191,6 +198,13 @@ public class ProtocoloController extends AbstractController<Protocolo> {
     } catch (ProtocoloBusinessException pbe) {
       addMsg(new FacesMessage(FacesMessage.SEVERITY_WARN, "Atenção", pbe.getMessage()), false);
     }
+  }
+
+  public void removeDoc(DocumentoDTO doc) {
+    itensToRemove.add(doc.getItemProtocolo());
+    getItem().getItens().remove(doc.getItemProtocolo());
+    documentosSelecionados = service.gerarDocumentosSelecionados(getItem());
+    contarDocumentos();
   }
 
   @Override
@@ -299,12 +313,12 @@ public class ProtocoloController extends AbstractController<Protocolo> {
   }
 
   public void salvarParcial() {
-    List<DocumentoDTO> docs = new ArrayList<>();
+    List<DocumentoDTO> docsSelecionados = new ArrayList<>();
     if (documentosNaoSelecionados != null) {
-      docs = documentosNaoSelecionados.getSelecionados();
+      docsSelecionados = documentosNaoSelecionados.getSelecionados();
     }
     try {
-      setItem(service.salvarParcial(getItem(), docs, session.getUser()));
+      setItem(service.salvarParcial(getItem(), docsSelecionados, itensToRemove, session.getUser()));
       recuperarDadosRascunho();
       buscarDocumentosNaoSelecionados();
       addMsg(new FacesMessage(FacesMessage.SEVERITY_INFO, "Sucesso", String.format("Rascunho salvo protocolo nº <b>%s</b>.", getItem().getId())), true);

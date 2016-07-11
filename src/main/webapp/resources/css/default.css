@@ -362,3 +362,7 @@ input.ui-state-disabled {
 .protocolo-title--enviado {
   color: #77c2cd;
 }
+
+.selected-bg {
+  background: #a7f57f;
+}

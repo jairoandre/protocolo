@@ -49,6 +49,10 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
   @Inject
   RegistroDocumentoService registroDocumentoService;
 
+  private
+  @Inject
+  ItemProtocoloService itemProtocoloService;
+
   public ProtocoloService() {
     super(Protocolo.class);
   }
@@ -153,14 +157,20 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
     return protocolo;
   }
 
-  public Protocolo salvarParcial(Protocolo protocolo, List<DocumentoDTO> documentos, User user) {
+  public Protocolo salvarParcial(Protocolo protocolo, List<DocumentoDTO> documentos, List<ItemProtocolo> itensToRemove, User user) {
 
     addHistorico(protocolo, user, EstadosProtocoloEnum.RASCUNHO);
+
+    if (itensToRemove != null && !itensToRemove.isEmpty()) {
+      for (ItemProtocolo item : itensToRemove) {
+        itemProtocoloService.delete(item.getId());
+      }
+    }
 
     if (documentos != null) {
       for (DocumentoDTO docDTO : documentos) {
         docDTO.setProtocolo(protocolo);
-        protocolo.getItens().add(docDTO.getItemProtocolo());
+        protocolo.getItens().add(docDTO.criarItemProtocolo());
       }
     }
 

@@ -23,6 +23,7 @@ public class DocumentoDTO {
   private Date dataHoraCriacao;
   private Date dataHoraImpressao;
   private String conselho;
+  private ItemProtocolo itemProtocolo;
   private Boolean selected = false;
 
   public DocumentoDTO(PrescricaoMedica prescricao, TipoDocumentoEnum tipo) {
@@ -66,6 +67,7 @@ public class DocumentoDTO {
   }
 
   public DocumentoDTO(ItemProtocolo itemProtocolo) {
+    this.itemProtocolo = itemProtocolo;
     switch (itemProtocolo.getTipo()) {
       case PRESCRICAO:
       case EVOLUCAO:
@@ -76,7 +78,7 @@ public class DocumentoDTO {
         setFieldsForAvisoCirurgia(itemProtocolo.getAvisoCirurgia(), itemProtocolo.getTipo());
         break;
       case REGISTRO_DOCUMENTO:
-        setFieldsForRegistroDocumento(registro);
+        setFieldsForRegistroDocumento(itemProtocolo.getRegistroDocumento());
         break;
       default:
         break;
@@ -88,6 +90,10 @@ public class DocumentoDTO {
   }
 
   public ItemProtocolo getItemProtocolo() {
+    return this.itemProtocolo;
+  }
+
+  public ItemProtocolo criarItemProtocolo() {
     ItemProtocolo itemProtocolo = new ItemProtocolo();
     itemProtocolo.setProtocolo(protocolo);
     itemProtocolo.setTipo(tipo);

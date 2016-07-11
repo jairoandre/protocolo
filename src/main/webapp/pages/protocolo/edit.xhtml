@@ -110,10 +110,11 @@
                     <p:dataTable id="docTable" value="#{docEntry.value}"
                                  var="doc"
                                  emptyMessage="Sem documentos no período"
+                                 rowStyleClass="#{doc.selected ? 'selected-bg' : ''}"
                                  sortBy="#{doc.dataHoraCriacao}">
                       <p:column width="20">
                         <p:selectBooleanCheckbox value="#{doc.selected}">
-                          <p:ajax event="change" process="@this"/>
+                          <p:ajax event="change" process="docTable" update="docTable"/>
                         </p:selectBooleanCheckbox>
                       </p:column>
                       <p:column headerText="Cód." width="50" styleClass="left-align">
@@ -125,21 +126,21 @@
                       <p:column headerText="Prestador" styleClass="left-align ellipsis-text" width="200">
                         <h:outputText value="#{doc.prestador}"/>
                       </p:column>
-                      <p:column headerText="Conselho" styleClass="left-align" width="100">
+                      <p:column headerText="Conselho" styleClass="left-align" width="75">
                         <h:outputText value="#{doc.conselho}"/>
                       </p:column>
-                      <p:column headerText="Data/Hora criação" styleClass="left-align" width="100">
+                      <p:column headerText="Data/Hora criação" styleClass="left-align" width="150">
                         <h:outputText value="#{doc.dataHoraCriacao}">
                           <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
                         </h:outputText>
                       </p:column>
-                      <p:column headerText="Data/Hora impressão" styleClass="left-align" width="100">
+                      <p:column headerText="Data/Hora impressão" styleClass="left-align" width="150">
                         <h:outputText value="#{doc.dataHoraImpressao}">
                           <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
                         </h:outputText>
                       </p:column>
                       <p:column headerText="Tipo" styleClass="left-align">
-                        <h:outputText value="#{doc.tipo}"/>
+                        <h:outputText value="#{doc.tipo.label}"/>
                       </p:column>
                     </p:dataTable>
                   </p:tab>
@@ -154,67 +155,74 @@
               <h:panelGroup rendered="#{empty protocoloController.documentosSelecionados.list}">
                 <h:outputText value="Sem documentos selecionados"/>
               </h:panelGroup>
-              <p:tabView id="tabView02" value="#{protocoloController.documentosSelecionados.list}" var="docEntry"
-                         styleClass="margin-top" widgetVar="tabView02"
-                         rendered="#{not empty protocoloController.documentosSelecionados.list}">
-                <p:tab title="#{docEntry.key}">
-                  <p:dataTable value="#{docEntry.value}" var="doc"
-                               emptyMessage="Sem documentos selecionados"
-                               sortBy="#{doc.dataHoraCriacao}" rowIndexVar="idx">
-                    <p:column headerText="Cód." width="50" styleClass="left-align">
-                      <h:outputText value="#{doc.codigo}"/>
-                    </p:column>
-                    <p:column headerText="Descrição" styleClass="left-align ellipsis-text" width="150">
-                      <h:outputText value="#{doc.descricao}"/>
-                    </p:column>
-                    <p:column headerText="Prestador" styleClass="left-align ellipsis-text" width="250">
-                      <h:outputText id="prest" value="#{doc.prestador}"/>
-                      <vah:toolTip id="prestTooltip" for="#{p:component('prest')}" value="#{doc.prestador}"
-                                   index="#{idx}"/>
-                    </p:column>
-                    <p:column headerText="Conselho" styleClass="left-align" width="75">
-                      <h:outputText value="#{doc.conselho}"/>
-                    </p:column>
-                    <p:column headerText="Data/Hora Criação" styleClass="left-align" width="150">
-                      <h:outputText value="#{doc.dataHoraCriacao}">
-                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
-                      </h:outputText>
-                    </p:column>
-                    <p:column headerText="Data/Hora Impressão" styleClass="left-align" width="150">
-                      <h:outputText value="#{doc.dataHoraImpressao}">
-                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
-                      </h:outputText>
-                    </p:column>
-                    <p:column headerText="Documentos" styleClass="left-align" width="200">
-                      <h:outputText value="#{doc.tipo.label}"/>
-                    </p:column>
-                    <p:column width="30" style="text-align: center;" rendered="#{protocoloController.item.estado == 'RASCUNHO'}">
-                      <p:commandButton icon="fa fa-trash" action="#{protocoloController.removeDoc(doc)}" process="@this"
-                                       update="@form"/>
-                    </p:column>
-                  </p:dataTable>
-                </p:tab>
-              </p:tabView>
+              <h:panelGroup id="docSelecionadosPnl">
+                <p:tabView id="tabView02" value="#{protocoloController.documentosSelecionados.list}" var="docEntry"
+                           styleClass="margin-top" widgetVar="tabView02"
+                           rendered="#{not empty protocoloController.documentosSelecionados.list}">
+                  <p:tab title="#{docEntry.key}">
+                    <p:dataTable id="docSelecionadosTable" value="#{docEntry.value}" var="doc"
+                                 emptyMessage="Sem documentos selecionados"
+                                 sortBy="#{doc.dataHoraCriacao}" rowIndexVar="idx">
+                      <p:column headerText="Cód." width="50" styleClass="left-align">
+                        <h:outputText value="#{doc.codigo}"/>
+                      </p:column>
+                      <p:column headerText="Descrição" styleClass="left-align ellipsis-text" width="150">
+                        <h:outputText value="#{doc.descricao}"/>
+                      </p:column>
+                      <p:column headerText="Prestador" styleClass="left-align ellipsis-text" width="250">
+                        <h:outputText id="prest" value="#{doc.prestador}"/>
+                        <vah:toolTip id="prestTooltip" for="#{p:component('prest')}" value="#{doc.prestador}"
+                                     index="#{idx}"/>
+                      </p:column>
+                      <p:column headerText="Conselho" styleClass="left-align" width="75">
+                        <h:outputText value="#{doc.conselho}"/>
+                      </p:column>
+                      <p:column headerText="Data/Hora Criação" styleClass="left-align" width="150">
+                        <h:outputText value="#{doc.dataHoraCriacao}">
+                          <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
+                        </h:outputText>
+                      </p:column>
+                      <p:column headerText="Data/Hora Impressão" styleClass="left-align" width="150">
+                        <h:outputText value="#{doc.dataHoraImpressao}">
+                          <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
+                        </h:outputText>
+                      </p:column>
+                      <p:column headerText="Tipo" styleClass="left-align" width="200">
+                        <h:outputText value="#{doc.tipo.label}"/>
+                      </p:column>
+                      <p:column width="30" style="text-align: center;" rendered="#{protocoloController.item.estado == 'RASCUNHO'}">
+                        <p:commandButton icon="fa fa-trash" action="#{protocoloController.removeDoc(doc)}" process="@this"
+                                         update="#{p:component('docSelecionadosPnl')} #{p:component('sumarioPnl')}"/>
+                      </p:column>
+                    </p:dataTable>
+                  </p:tab>
+                </p:tabView>
+              </h:panelGroup>
             </p:fieldset>
 
-            <p:fieldset legend="Sumário" styleClass="margin-top" rendered="#{protocoloController.showSumario}">
-              <h:panelGrid columns="4">
-                <h:outputLabel value="Total documentos:"/>
-                <h:outputText value="#{protocoloController.totalDocumentos}"/>
-                <h:outputLabel value="Prescrições:"/>
-                <h:outputText value="#{protocoloController.totalPrescricoes}"/>
-                <h:outputLabel value="Evoluções:"/>
-                <h:outputText value="#{protocoloController.totalEvolucoes}"/>
-                <h:outputLabel value="Folhas Anestésicas:"/>
-                <h:outputText value="#{protocoloController.totalFolha}"/>
-                <h:outputLabel value="Descrições Cirúrgicas:"/>
-                <h:outputText value="#{protocoloController.totalDescricoes}"/>
-                <h:outputLabel value="Registros:"/>
-                <h:outputText value="#{protocoloController.totalRegistros}"/>
-                <h:outputLabel value="Documentos manuais:"/>
-                <h:outputText value="#{protocoloController.totalDocumentosManuais}"/>
-              </h:panelGrid>
-            </p:fieldset>
+            <h:panelGroup id="sumarioPnl" rendered="#{not empty protocoloController.item.atendimento}">
+              <p:fieldset legend="Sumário" styleClass="margin-top" rendered="#{protocoloController.showSumario}">
+                <h:panelGrid columns="4" style="padding: 5px;">
+                  <h:outputLabel value="Total documentos:" styleClass="lance-label"/>
+                  <h:outputText value="#{protocoloController.totalDocumentos}" style="font-size: 18px; padding: 0 20px;"/>
+                  <h:panelGroup/>
+                  <h:panelGroup/>
+                  <h:outputLabel value="Prescrições:" styleClass="lance-label"/>
+                  <h:outputText value="#{protocoloController.totalPrescricoes}" style="font-size: 18px; padding: 0 20px;"/>
+                  <h:outputLabel value="Evoluções:" styleClass="lance-label"/>
+                  <h:outputText value="#{protocoloController.totalEvolucoes}" style="font-size: 18px; padding: 0 20px;"/>
+                  <h:outputLabel value="Folhas Anestésicas:" styleClass="lance-label"/>
+                  <h:outputText value="#{protocoloController.totalFolha}" style="font-size: 18px; padding: 0 20px;"/>
+                  <h:outputLabel value="Descrições Cirúrgicas:" styleClass="lance-label"/>
+                  <h:outputText value="#{protocoloController.totalDescricoes}" style="font-size: 18px; padding: 0 20px;"/>
+                  <h:outputLabel value="Registros:" styleClass="lance-label"/>
+                  <h:outputText value="#{protocoloController.totalRegistros}" style="font-size: 18px; padding: 0 20px;"/>
+                  <h:outputLabel value="Documentos manuais:" styleClass="lance-label"/>
+                  <h:outputText value="#{protocoloController.totalDocumentosManuais}" style="font-size: 18px; padding: 0 20px;"/>
+                </h:panelGrid>
+              </p:fieldset>
+            </h:panelGroup>
+
           </h:panelGroup>
         </h:panelGroup>
 
