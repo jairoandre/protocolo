@@ -40,11 +40,11 @@ public class Protocolo extends BaseEntity {
 
   @ManyToOne
   @JoinColumn(name = "CD_SETOR_ORIGEM")
-  private Setor origem;
+  private SetorProtocolo origem;
 
   @ManyToOne
   @JoinColumn(name = "CD_SETOR_DESTINO")
-  private Setor destino;
+  private SetorProtocolo destino;
 
   @OneToMany(mappedBy = "protocolo", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
   private Set<ItemProtocolo> itens = new LinkedHashSet<>();
@@ -101,19 +101,19 @@ public class Protocolo extends BaseEntity {
     this.estado = estado;
   }
 
-  public Setor getOrigem() {
+  public SetorProtocolo getOrigem() {
     return origem;
   }
 
-  public void setOrigem(Setor origem) {
+  public void setOrigem(SetorProtocolo origem) {
     this.origem = origem;
   }
 
-  public Setor getDestino() {
+  public SetorProtocolo getDestino() {
     return destino;
   }
 
-  public void setDestino(Setor destino) {
+  public void setDestino(SetorProtocolo destino) {
     this.destino = destino;
   }
 

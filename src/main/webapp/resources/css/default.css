@@ -1,3 +1,6 @@
+html {
+  overflow-y: scroll;
+}
 
 body {
   background: rgb(174, 229, 232) url("#{resource['img/bg.png']}");
@@ -316,8 +319,9 @@ a.action-link:HOVER, td.action-link a:HOVER {
   overflow: hidden;
 }
 
-.guia-tooltip {
+.vah-tooltip {
   white-space: normal;
+  cursor: help;
 }
 
 /* PRIMEFACES */
@@ -365,4 +369,20 @@ input.ui-state-disabled {
 
 .selected-bg {
   background: #a7f57f;
+}
+
+.protocolo-estado {
+  border-radius: 5px;
+  color: #fff;
+  text-shadow: #222 1px 1px 3px;
+  padding: 2px 5px;
+  text-transform: uppercase;
+}
+
+.protocolo-estado--RASCUNHO {
+  background-color: #90a4ae;
+}
+
+.protocolo-estado--ENVIADO {
+  background-color: #277116;
 }

@@ -16,6 +16,7 @@
   <composite:attribute name="renderActionColumn"/>
   <composite:attribute name="renderDefaultFilter" default="true"/>
   <composite:attribute name="placeholder"/>
+  <composite:attribute name="addLabel"/>
 </composite:interface>
 
 <composite:implementation>
@@ -36,7 +37,7 @@
                          style="margin-left: 10px;"/>
       </h:panelGroup>
       <composite:renderFacet name="customFilters"/>
-      <p:commandButton value="Enviar Documentos"
+      <p:commandButton value="#{empty cc.attrs.addLabel ? 'Adicionar' : cc.attrs.addLabel}"
                        action="#{cc.attrs.controller.add}"
                        title="Criar novo #{cc.attrs.controller.entityName}"
                        onstart="PF('changePage').show();"

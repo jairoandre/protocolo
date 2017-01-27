@@ -26,13 +26,10 @@
                        columns="3"
                        cellpadding="5" style="margin-top: 25px;">
             <uivah:autoComplete id="setor" value="#{sessionController.setor}" label="Setor"
-                                controller="#{setorController}" completeMethod="completeMethod"
-                                converter="#{setorConverter}" itemLabel="labelForSelectItem"
+                                controller="#{setorProtocoloCtrl}" completeMethod="completeMethod"
+                                converter="#{setorProtocoloConverter}" itemLabel="labelForSelectItem"
                                 placeholder="Cód./Nome">
               <p:ajax event="itemSelect" process="@this" update="prosseguirBtn" oncomplete="nextFocus('#{p:component('prosseguirBtn')}')"/>
-              <p:column width="75">
-                #{item.id}
-              </p:column>
               <p:column>
                 #{item.title}
               </p:column>

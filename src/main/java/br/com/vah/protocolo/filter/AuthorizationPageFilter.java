@@ -5,6 +5,7 @@ import br.com.vah.protocolo.constants.RolesEnum;
 import br.com.vah.protocolo.controllers.SessionController;
 import br.com.vah.protocolo.constants.RestrictViewsEnum;
 import br.com.vah.protocolo.entities.dbamv.Setor;
+import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
 import br.com.vah.protocolo.entities.usrdbvah.User;
 
 
@@ -39,7 +40,7 @@ public class AuthorizationPageFilter implements Filter {
     if (request.getUserPrincipal() != null) {
 
       User user = sessionController.getUser();
-      Setor setor = sessionController.getSetor();
+      SetorProtocolo setor = sessionController.getSetor();
 
       String[] splitPath = request.getRequestURI().split(request.getContextPath());
 

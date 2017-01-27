@@ -5,6 +5,7 @@ import br.com.vah.protocolo.dto.DocumentoDTO;
 import br.com.vah.protocolo.entities.dbamv.Setor;
 import br.com.vah.protocolo.entities.usrdbvah.ItemProtocolo;
 import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
+import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
 import br.com.vah.protocolo.exceptions.ProtocoloBusinessException;
 import br.com.vah.protocolo.exceptions.ProtocoloPersistException;
 import br.com.vah.protocolo.service.AtendimentoService;
@@ -28,7 +29,7 @@ import java.util.logging.Logger;
  */
 @Named
 @ViewScoped
-public class ProtocoloController extends AbstractController<Protocolo> {
+public class ProtocoloCtrl extends AbstractController<Protocolo> {
 
   private
   @Inject
@@ -150,12 +151,19 @@ public class ProtocoloController extends AbstractController<Protocolo> {
     return true;
   }
 
+  public Boolean disableResponderItem(Protocolo item) {
+    return item.getDataResposta() != null ||
+        !EstadosProtocoloEnum.ENVIADO.equals(item.getEstado()) ||
+        session.isUserInRoles("ADMINISTRATOR") ? false :
+        session.getSetor() == null ? true : !session.getSetor().equals(item.getDestino());
+  }
+
   public void salvarNovoComentario() {
 
   }
 
   public void buscarDocumentosNaoSelecionados() {
-    documentosNaoSelecionados = service.buscarDocumentosNaoSelecionados(getItem().getAtendimento(), inicioDate, terminoDate, session.getSetor(), getItem());
+    documentosNaoSelecionados = service.buscarDocumentosNaoSelecionados(getItem().getAtendimento(), inicioDate, terminoDate, null, getItem());
   }
 
   public void recuperarDadosRascunho() {
@@ -193,7 +201,7 @@ public class ProtocoloController extends AbstractController<Protocolo> {
   }
 
   public void enviarProtocolo() {
-    try{
+    try {
       service.enviarProtocolo(getItem());
     } catch (ProtocoloBusinessException pbe) {
       addMsg(new FacesMessage(FacesMessage.SEVERITY_WARN, "Atenção", pbe.getMessage()), false);
@@ -219,7 +227,12 @@ public class ProtocoloController extends AbstractController<Protocolo> {
 
   @Override
   public Protocolo createNewItem() {
-    return new Protocolo();
+    Protocolo protocolo = new Protocolo();
+    SetorProtocolo setor = session.getSetor();
+    if (setor != null) {
+      protocolo.setOrigem(setor);
+    }
+    return protocolo;
   }
 
   @Override
@@ -322,7 +335,7 @@ public class ProtocoloController extends AbstractController<Protocolo> {
       recuperarDadosRascunho();
       buscarDocumentosNaoSelecionados();
       addMsg(new FacesMessage(FacesMessage.SEVERITY_INFO, "Sucesso", String.format("Rascunho salvo protocolo nº <b>%s</b>.", getItem().getId())), true);
-    }catch (ProtocoloPersistException ppe) {
+    } catch (ProtocoloPersistException ppe) {
       addMsg(new FacesMessage(FacesMessage.SEVERITY_WARN, "Atenção", String.format("Erro durante a persistência de dados.")), true);
     }
 

@@ -1,10 +1,12 @@
 package br.com.vah.protocolo.controllers;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.security.Principal;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import br.com.vah.protocolo.constants.RolesEnum;
+import br.com.vah.protocolo.entities.dbamv.Setor;
+import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
+import br.com.vah.protocolo.entities.usrdbvah.User;
+import br.com.vah.protocolo.service.UserService;
+import br.com.vah.protocolo.util.DateUtility;
+import org.primefaces.event.SelectEvent;
 
 import javax.enterprise.context.SessionScoped;
 import javax.faces.application.FacesMessage;
@@ -15,13 +17,11 @@ import javax.inject.Named;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-
-import br.com.vah.protocolo.constants.RolesEnum;
-import br.com.vah.protocolo.entities.dbamv.Setor;
-import br.com.vah.protocolo.entities.usrdbvah.User;
-import br.com.vah.protocolo.service.UserService;
-import br.com.vah.protocolo.util.DateUtility;
-import org.primefaces.event.SelectEvent;
+import java.io.IOException;
+import java.io.Serializable;
+import java.security.Principal;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Login Controller class allows only authenticated users to log in to the web
@@ -45,7 +45,7 @@ public class SessionController implements Serializable {
   private String username;
   private String password;
   private User user;
-  private Setor setor;
+  private SetorProtocolo setor;
 
 
   /**
@@ -183,15 +183,15 @@ public class SessionController implements Serializable {
     return "/pages/protocolo/list.xhtml?faces-redirect=true";
   }
 
-  public Setor getSetor() {
+  public SetorProtocolo getSetor() {
     return setor;
   }
 
-  public void setSetor(Setor setor) {
+  public void setSetor(SetorProtocolo setor) {
     this.setor = setor;
   }
 
   public void onSetorSelect(SelectEvent event) {
-    this.setor = (Setor) event.getObject();
+    this.setor = (SetorProtocolo) event.getObject();
   }
 }
