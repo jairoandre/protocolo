@@ -3,6 +3,7 @@ package br.com.vah.protocolo.controllers;
 import br.com.vah.protocolo.constants.EstadosProtocoloEnum;
 import br.com.vah.protocolo.dto.DocumentoDTO;
 import br.com.vah.protocolo.entities.dbamv.Setor;
+import br.com.vah.protocolo.entities.usrdbvah.Comentario;
 import br.com.vah.protocolo.entities.usrdbvah.ItemProtocolo;
 import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
@@ -10,7 +11,7 @@ import br.com.vah.protocolo.exceptions.ProtocoloBusinessException;
 import br.com.vah.protocolo.exceptions.ProtocoloPersistException;
 import br.com.vah.protocolo.service.AtendimentoService;
 import br.com.vah.protocolo.service.DataAccessService;
-import br.com.vah.protocolo.service.ProtocoloService;
+import br.com.vah.protocolo.service.ProtocoloSrv;
 import br.com.vah.protocolo.util.DtoKeyMap;
 import br.com.vah.protocolo.util.ViewUtils;
 
@@ -22,6 +23,7 @@ import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -37,7 +39,7 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
 
   private
   @Inject
-  ProtocoloService service;
+  ProtocoloSrv service;
 
   private
   @Inject
@@ -81,7 +83,15 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
 
   private Integer totalDocumentosManuais;
 
+  private EstadosProtocoloEnum acaoComentario;
+
   private List<ItemProtocolo> itensToRemove = new ArrayList<>();
+
+  private Boolean renderComentarioDlg = false;
+
+  private Boolean renderHistoricoDlg = false;
+
+  private Boolean renderReceberDlg = false;
 
   @PostConstruct
   public void init() {
@@ -134,32 +144,67 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
     prepareSearch();
   }
 
-  public void receber(Protocolo protocolo) {
-
+  public void saveAddingHistory(EstadosProtocoloEnum acao) {
+    getItem().setEstado(acao);
+    getItem().setDataResposta(new Date());
+    service.addHistorico(getItem(), session.getUser(), acao);
+    doSave();
   }
 
-  public Boolean showRefuseButton(Protocolo protocolo) {
-    // TODO: Implementar verificação de exibição
-    return true;
+  public void receber() {
+    renderReceberDlg = false;
+    saveAddingHistory(EstadosProtocoloEnum.RECEBIDO);
+    addMsg(new FacesMessage(FacesMessage.SEVERITY_INFO, "Informação", "Protocolo recebido com sucesso."), false);
   }
 
-  public Boolean showEditButton(Protocolo protocolo) {
-    return true;
+  public void preReceber(Protocolo protocolo) {
+    Protocolo att = service.initializeLists(protocolo);
+    documentosSelecionados = service.gerarDocumentosSelecionados(att);
+    setItem(att);
+    renderReceberDlg = true;
   }
 
-  public Boolean showDeleteButton(Protocolo protocolo) {
-    return true;
+  public void closeReceberDlg() {
+    renderReceberDlg = false;
   }
 
-  public Boolean disableResponderItem(Protocolo item) {
-    return item.getDataResposta() != null ||
-        !EstadosProtocoloEnum.ENVIADO.equals(item.getEstado()) ||
-        session.isUserInRoles("ADMINISTRATOR") ? false :
-        session.getSetor() == null ? true : !session.getSetor().equals(item.getDestino());
+  public void preRecusar(Protocolo protocolo) {
+    acaoComentario = EstadosProtocoloEnum.RECUSADO;
+    renderComentarioDlg = true;
+    setItem(service.find(protocolo.getId()));
+  }
+
+  public void preComentario(Protocolo protocolo) {
+    acaoComentario = EstadosProtocoloEnum.COMENTARIO;
+    renderComentarioDlg = true;
+    setItem(service.find(protocolo.getId()));
+  }
+
+  public void closeComentario() {
+    renderComentarioDlg = false;
+  }
+
+  public void preHistorico(Protocolo protocolo) {
+    renderHistoricoDlg = true;
+    setItem(service.initializeLists(protocolo));
+  }
+
+  public void closeHistorico() {
+    renderHistoricoDlg = false;
   }
 
   public void salvarNovoComentario() {
-
+    Comentario newComment = new Comentario();
+    newComment.setProtocolo(getItem());
+    newComment.setAutor(session.getUser());
+    newComment.setComentario(comentario);
+    newComment.setData(new Date());
+    getItem().getComentarios().add(newComment);
+    if (EstadosProtocoloEnum.RECUSADO.equals(acaoComentario)) {
+      saveAddingHistory(EstadosProtocoloEnum.RECUSADO);
+    } else {
+      saveAddingHistory(EstadosProtocoloEnum.COMENTARIO);
+    }
   }
 
   public void buscarDocumentosNaoSelecionados() {
@@ -173,6 +218,7 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
         getItem().setOrigem(session.getSetor());
       }
     } else {
+      rascunho = service.initializeLists(rascunho);
       setItem(rascunho);
     }
     contarDocumentos();
@@ -202,7 +248,9 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
 
   public void enviarProtocolo() {
     try {
+      service.addHistorico(getItem(), session.getUser(), EstadosProtocoloEnum.ENVIADO);
       service.enviarProtocolo(getItem());
+      addMsg(new FacesMessage(FacesMessage.SEVERITY_INFO, "Informação", "Protocolo enviado com sucesso."), false);
     } catch (ProtocoloBusinessException pbe) {
       addMsg(new FacesMessage(FacesMessage.SEVERITY_WARN, "Atenção", pbe.getMessage()), false);
     }
@@ -235,6 +283,28 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
     return protocolo;
   }
 
+  public void salvarParcial() {
+    List<DocumentoDTO> docsSelecionados = new ArrayList<>();
+    if (documentosNaoSelecionados != null) {
+      docsSelecionados = documentosNaoSelecionados.getSelecionados();
+    }
+    try {
+      setItem(service.salvarParcial(getItem(), docsSelecionados, itensToRemove, session.getUser()));
+      recuperarDadosRascunho();
+      buscarDocumentosNaoSelecionados();
+      addMsg(new FacesMessage(FacesMessage.SEVERITY_INFO, "Sucesso", String.format("Rascunho salvo protocolo nº <b>%s</b>.", getItem().getId())), true);
+    } catch (ProtocoloPersistException ppe) {
+      addMsg(new FacesMessage(FacesMessage.SEVERITY_WARN, "Atenção", String.format("Erro durante a persistência de dados.")), true);
+    }
+
+  }
+
+  @Override
+  public void onLoad() {
+    super.onLoad();
+    recuperarDadosRascunho();
+  }
+
   @Override
   public String path() {
     return "protocolo";
@@ -243,6 +313,22 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
   @Override
   public String getEntityName() {
     return "Protocolo";
+  }
+
+  public Boolean showRefuseButton(Protocolo protocolo) {
+    return true;
+  }
+
+  public Boolean showEditButton(Protocolo protocolo) {
+    return true;
+  }
+
+  public Boolean showDeleteButton(Protocolo protocolo) {
+    return true;
+  }
+
+  public Boolean disableResponderItem(Protocolo item) {
+    return !EstadosProtocoloEnum.ENVIADO.equals(item.getEstado());
   }
 
   public Setor getSetor() {
@@ -325,28 +411,6 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
     return totalDocumentosManuais;
   }
 
-  public void salvarParcial() {
-    List<DocumentoDTO> docsSelecionados = new ArrayList<>();
-    if (documentosNaoSelecionados != null) {
-      docsSelecionados = documentosNaoSelecionados.getSelecionados();
-    }
-    try {
-      setItem(service.salvarParcial(getItem(), docsSelecionados, itensToRemove, session.getUser()));
-      recuperarDadosRascunho();
-      buscarDocumentosNaoSelecionados();
-      addMsg(new FacesMessage(FacesMessage.SEVERITY_INFO, "Sucesso", String.format("Rascunho salvo protocolo nº <b>%s</b>.", getItem().getId())), true);
-    } catch (ProtocoloPersistException ppe) {
-      addMsg(new FacesMessage(FacesMessage.SEVERITY_WARN, "Atenção", String.format("Erro durante a persistência de dados.")), true);
-    }
-
-  }
-
-  @Override
-  public void onLoad() {
-    super.onLoad();
-    recuperarDadosRascunho();
-  }
-
   public DtoKeyMap getDocumentosNaoSelecionados() {
     return documentosNaoSelecionados;
   }
@@ -361,5 +425,33 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
 
   public void setDocumentosSelecionados(DtoKeyMap documentosSelecionados) {
     this.documentosSelecionados = documentosSelecionados;
+  }
+
+  public Boolean getRenderComentarioDlg() {
+    return renderComentarioDlg;
+  }
+
+  public Boolean getRenderHistoricoDlg() {
+    return renderHistoricoDlg;
+  }
+
+  public Boolean getRenderReceberDlg() {
+    return renderReceberDlg;
+  }
+
+  public Boolean getRegistrarRecebBtnDisabled() {
+    if (documentosSelecionados != null ) {
+      for (Map.Entry<String, List<DocumentoDTO>> docEntry : documentosSelecionados.getList()) {
+        if (docEntry.getValue() != null) {
+          for (DocumentoDTO doc : docEntry.getValue()) {
+            if (!doc.getSelected()) {
+              return true;
+            }
+          }
+          return false;
+        }
+      }
+    }
+    return true;
   }
 }

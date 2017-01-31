@@ -46,13 +46,13 @@ public class Protocolo extends BaseEntity {
   @JoinColumn(name = "CD_SETOR_DESTINO")
   private SetorProtocolo destino;
 
-  @OneToMany(mappedBy = "protocolo", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "protocolo", cascade = CascadeType.ALL)
   private Set<ItemProtocolo> itens = new LinkedHashSet<>();
 
-  @OneToMany(mappedBy = "protocolo", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "protocolo", cascade = CascadeType.ALL)
   private List<Historico> historico;
 
-  @OneToMany(mappedBy = "protocolo", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "protocolo", cascade = CascadeType.ALL)
   private List<Comentario> comentarios;
 
   @Column(name = "DT_ENVIO")

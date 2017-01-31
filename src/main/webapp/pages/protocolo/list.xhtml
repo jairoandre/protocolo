@@ -89,8 +89,11 @@
           <!-- VALORES TABELA -->
           <!-- ############## -->
 
-          <p:column headerText="" width="20" style="text-align: center;" styleClass="left-align ellipsis-text">
-            <span class="fa fa-car"/>
+          <p:column headerText="" width="20" style="text-align: center;">
+            <h:panelGroup style="font-size: 20px; color: #555550;" styleClass="fa fa-file-text" rendered="#{item.estado eq 'RASCUNHO'}"/>
+            <h:panelGroup style="font-size: 20px; color: #202b93;" styleClass="fa fa-arrow-circle-right" rendered="#{item.estado eq 'ENVIADO'}"/>
+            <h:panelGroup style="font-size: 20px; color: #008d0e;" styleClass="fa fa-thumbs-up" rendered="#{item.estado eq 'RECEBIDO'}"/>
+            <h:panelGroup style="font-size: 20px; color: #8d272e;" styleClass="fa fa-thumbs-down" rendered="#{item.estado eq 'RECUSADO'}"/>
           </p:column>
 
 
@@ -112,7 +115,7 @@
             <h:outputText value="#{item.conta.id}" rendered="#{not empty item.conta}"/>
           </p:column>
 
-          <p:column id="estado" headerText="Estado" width="75" sortBy="#{item.estado}" styleClass="left-align">
+          <p:column id="estado" headerText="Estado" width="75" sortBy="#{item.estado}" style="text-align: center;">
             <h:panelGroup styleClass="protocolo-estado protocolo-estado--#{item.estado}" layout="block">
               <h:outputText value="#{item.estado.label}"/>
             </h:panelGroup>
@@ -138,22 +141,24 @@
 
           <p:column width="75" style="text-align: center">
             <p:menuButton id="menuButton" value="Ações">
-              <p:menuitem value="Receber" action="#{protocoloCtrl.receber(item)}"
-                          ajax="true" process="@this" update="estado, menuButton"
+              <p:menuitem value="Receber" action="#{protocoloCtrl.preReceber(item)}"
+                          ajax="true" process="@this" update="#{p:component('receberDlgPnl')}"
+                          oncomplete="PF('receberDlg').show();"
                           disabled="#{protocoloCtrl.disableResponderItem(item)}"
                           icon="fa fa-thumbs-up"/>
-              <p:menuitem value="Recusar" action="#{protocoloCtrl.setItem(item)}"
+              <p:menuitem value="Recusar" action="#{protocoloCtrl.preRecusar(item)}"
                           process="@this" update="#{p:component('novoComentarioDlg')}"
                           oncomplete="PF('novoComentarioDlg').show()"
                           disabled="#{protocoloCtrl.disableResponderItem(item)}"
                           icon="fa fa-comment" rendered="#{protocoloCtrl.showRefuseButton(item)}"/>
               <p:separator/>
-              <p:menuitem value="Novo comentário" action="#{protocoloCtrl.setItem(item)}"
+              <p:menuitem value="Novo comentário" action="#{protocoloCtrl.preComentario(item)}"
                           process="@this" update="#{p:component('novoComentarioDlg')}"
                           oncomplete="PF('novoComentarioDlg').show()"
                           icon="fa fa-comment"/>
-              <p:menuitem value="Histórico" action="#{protocoloCtrl.setItem(item)}"
-                          process="@this" update="#{p:component('historicoDlg')}" oncomplete="PF('historicoDlg').show()"
+              <p:menuitem value="Histórico" action="#{protocoloCtrl.preHistorico(item)}"
+                          process="@this" update="#{p:component('historicoDlgPnl')}"
+                          oncomplete="PF('historicoDlg').show()"
                           icon="fa fa-tags"/>
               <p:menuitem value="Comentários" action="#{protocoloCtrl.setItem(item)}"
                           process="@this" update="#{p:component('comentarioDlg')}"
@@ -234,64 +239,171 @@
         </p:dialog>
 
         <!-- DIÁLOGO HISTÓRICO -->
-        <p:dialog id="historicoDlg"
-                  widgetVar="historicoDlg" modal="true" width="500">
-          <f:facet name="header">
-            <h:outputText value="Histórico - Protocolo nº #{protocoloCtrl.item.id}"/>
-          </f:facet>
+        <h:panelGroup id="historicoDlgPnl">
+          <p:dialog id="historicoDlg"
+                    widgetVar="historicoDlg"
+                    rendered="#{protocoloCtrl.renderHistoricoDlg}"
+                    modal="true"
+                    width="500">
+            <f:facet name="header">
+              <h:outputText value="Histórico - Protocolo nº #{protocoloCtrl.item.id}"/>
+            </f:facet>
 
-          <p:dataTable id="historicoTable" value="#{protocoloCtrl.item.historico}" var="hist" sortBy="#{hist.data}"
-                       scrollRows="5" emptyMessage="Sem histórico">
-            <p:column headerText="Usuário" width="100" styleClass="left-align">
-              <h:outputText value="#{hist.autor.login}"/>
-            </p:column>
-            <p:column headerText="Ação" width="100" styleClass="left-align">
-              <h:outputText value="#{hist.estado.label}"/>
-            </p:column>
-            <p:column headerText="Data" width="100" styleClass="left-align">
-              <h:outputText value="#{hist.data}">
-                <f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="GMT-3"/>
-              </h:outputText>
-            </p:column>
-          </p:dataTable>
+            <p:dataTable id="historicoTable" value="#{protocoloCtrl.item.historico}" var="hist" sortBy="#{hist.data}"
+                         scrollRows="5" emptyMessage="Sem histórico">
+              <p:column headerText="Usuário" width="100" styleClass="left-align">
+                <h:outputText value="#{hist.autor.login}"/>
+              </p:column>
+              <p:column headerText="Ação" width="100" styleClass="left-align">
+                <h:outputText value="#{hist.estado.label}"/>
+              </p:column>
+              <p:column headerText="Data" width="100" styleClass="left-align">
+                <h:outputText value="#{hist.data}">
+                  <f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="GMT-3"/>
+                </h:outputText>
+              </p:column>
+            </p:dataTable>
 
-          <f:facet name="footer">
-            <p:commandButton id="closeHistorico" value="Fechar"
-                             ajax="true"
-                             process="@this"
-                             oncomplete="PF('historicoDlg').hide()"/>
-          </f:facet>
-        </p:dialog>
+            <f:facet name="footer">
+              <p:commandButton id="closeHistorico" value="Fechar"
+                               ajax="true"
+                               process="@this"
+                               action="#{protocoloCtrl.closeHistorico}"
+                               oncomplete="PF('historicoDlg').hide()"/>
+            </f:facet>
+          </p:dialog>
+        </h:panelGroup>
 
         <!-- DIÁLOGO COMENTÁRIOS -->
-        <p:dialog id="comentarioDlg"
-                  widgetVar="comentarioDlg" modal="true" width="500">
-          <f:facet name="header">
-            <h:outputText value="Comentários - Protocolo nº #{protocoloCtrl.item.id}"/>
-          </f:facet>
+        <h:panelGroup id="comentarioDlgPnl">
+          <p:dialog id="comentarioDlg"
+                    widgetVar="comentarioDlg"
+                    rendered="#{protocoloCtrl.renderComentarioDlg}"
+                    modal="true" width="500">
+            <f:facet name="header">
+              <h:outputText value="Comentários - Protocolo nº #{protocoloCtrl.item.id}"/>
+            </f:facet>
 
-          <p:dataTable id="comentarioTable" value="#{protocoloCtrl.item.comentarios}" var="coment"
-                       sortBy="#{coment.data}" scrollRows="5" emptyMessage="Sem comentários">
-            <p:column headerText="Usuário" width="100" styleClass="left-align">
-              <h:outputText value="#{coment.autor.login}"/>
-            </p:column>
-            <p:column headerText="Comentário" width="100" styleClass="left-align">
-              <h:outputText value="#{coment.comentario}"/>
-            </p:column>
-            <p:column headerText="Data" width="100" styleClass="left-align">
-              <h:outputText value="#{coment.data}">
-                <f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="GMT-3"/>
-              </h:outputText>
-            </p:column>
-          </p:dataTable>
+            <p:dataTable id="comentarioTable" value="#{protocoloCtrl.item.comentarios}" var="coment"
+                         sortBy="#{coment.data}" scrollRows="5" emptyMessage="Sem comentários">
+              <p:column headerText="Usuário" width="100" styleClass="left-align">
+                <h:outputText value="#{coment.autor.login}"/>
+              </p:column>
+              <p:column headerText="Comentário" width="100" styleClass="left-align">
+                <h:outputText value="#{coment.comentario}"/>
+              </p:column>
+              <p:column headerText="Data" width="100" styleClass="left-align">
+                <h:outputText value="#{coment.data}">
+                  <f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="GMT-3"/>
+                </h:outputText>
+              </p:column>
+            </p:dataTable>
 
-          <f:facet name="footer">
-            <p:commandButton id="closeComent" value="Fechar"
-                             ajax="true"
-                             process="@this"
-                             oncomplete="PF('comentarioDlg').hide()"/>
-          </f:facet>
-        </p:dialog>
+            <f:facet name="footer">
+              <p:commandButton id="closeComent" value="Fechar"
+                               ajax="true"
+                               process="@this"
+                               oncomplete="PF('comentarioDlg').hide()"/>
+            </f:facet>
+          </p:dialog>
+        </h:panelGroup>
+
+        <!-- DIÁLOGO RECEBER DOCUMENTO -->
+        <h:panelGroup id="receberDlgPnl">
+          <p:dialog id="receberDlg"
+                    widgetVar="receberDlg"
+                    modal="true"
+                    width="1200"
+                    rendered="#{protocoloCtrl.renderReceberDlg}">
+
+            <f:facet name="header">
+              <h:outputText value="Receber Movimentação - Protocolo nº #{protocoloCtrl.item.id}"/>
+            </f:facet>
+
+            <div class="ui-messages ui-widget" aria-live="polite">
+              <div class="ui-messages-info ui-corner-all">
+                <span class="ui-messages-info-icon"></span>
+                <ul>
+                  <li>
+                    <h:panelGroup styleClass="ui-messages-info-detail">
+                      Marque todos os documentos presentes na movimentação.
+                    </h:panelGroup>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <h:panelGroup id="docSelecionadosPnl">
+              <p:tabView id="docsTab"
+                         widgetVar="docsTab"
+                         value="#{protocoloCtrl.documentosSelecionados.list}"
+                         var="docEntry"
+                         rendered="#{not empty protocoloCtrl.documentosSelecionados.list}">
+                <p:tab title="#{docEntry.key}">
+                  <p:dataTable id="docTable" value="#{docEntry.value}" var="doc"
+                               emptyMessage="Sem documentos selecionados"
+                               sortBy="#{doc.dataHoraCriacao}" rowIndexVar="idx">
+                    <p:column width="20" style="text-align: center;">
+                      <p:selectBooleanCheckbox value="#{doc.selected}" style="cursor: pointer;">
+                        <p:ajax event="change"
+                                process="docTable"
+                                update="#{p:component('registrarRecebBtn')}"/>
+                      </p:selectBooleanCheckbox>
+                    </p:column>
+                    <p:column headerText="Cód." width="50" styleClass="left-align">
+                      <h:outputText value="#{doc.codigo}"/>
+                    </p:column>
+                    <p:column headerText="Descrição" styleClass="left-align ellipsis-text" width="150">
+                      <h:outputText value="#{doc.descricao}"/>
+                    </p:column>
+                    <p:column headerText="Prestador" styleClass="left-align ellipsis-text" width="150">
+                      <h:outputText id="prest" value="#{doc.prestador}"/>
+                      <vah:toolTip id="prestTooltip" for="#{p:component('prest')}" value="#{doc.prestador}"
+                                   index="#{idx}"/>
+                    </p:column>
+                    <p:column headerText="Conselho" styleClass="left-align" width="75">
+                      <h:outputText value="#{doc.conselho}"/>
+                    </p:column>
+                    <p:column headerText="Data/Hora Criação" styleClass="left-align" width="100">
+                      <h:outputText value="#{doc.dataHoraCriacao}">
+                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
+                      </h:outputText>
+                    </p:column>
+                    <p:column headerText="Data/Hora Impressão" styleClass="left-align" width="100">
+                      <h:outputText value="#{doc.dataHoraImpressao}">
+                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
+                      </h:outputText>
+                    </p:column>
+                    <p:column headerText="Tipo" width="50" styleClass="left-align">
+                      <h:outputText value="#{doc.tipo.label}"/>
+                    </p:column>
+                  </p:dataTable>
+                </p:tab>
+              </p:tabView>
+            </h:panelGroup>
+
+            <f:facet name="footer">
+              <p:commandButton id="registrarRecebBtn"
+                               value="Registrar Recebimento"
+                               ajax="true"
+                               onclick="PF('receberDlg').hide();"
+                               icon="fa fa-thumbs-up"
+                               process="@this"
+                               disabled="#{protocoloCtrl.registrarRecebBtnDisabled}"
+                               update="#{p:component('dataTable')} receberDlgPnl"
+                               action="#{protocoloCtrl.receber}"/>
+              <p:commandButton id="closeReceberDlg"
+                               value="Fechar"
+                               ajax="true"
+                               onclick="PF('receberDlg').hide();"
+                               process="@this"
+                               update="receberDlgPnl"
+                               style="margin-left: 5px;"
+                               action="#{protocoloCtrl.closeReceberDlg}"/>
+            </f:facet>
+
+          </p:dialog>
+        </h:panelGroup>
 
       </p:panel>
     </h:form>

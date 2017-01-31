@@ -28,7 +28,7 @@
         <p:inputText id="searchInput"
                      value="#{cc.attrs.controller.searchTerm}"
                      placeholder="#{cc.attrs.placeholder == null ? 'Digite o termo...' : cc.attrs.placeholder}"
-                     style="width: 50%;"/>
+                     style="min-width: 250px;"/>
         <p:commandButton id="searchBtn" value="Buscar"
                          action="#{cc.attrs.controller.prepareSearch}" icon="fa fa-search"
                          ajax="true" process="@form"

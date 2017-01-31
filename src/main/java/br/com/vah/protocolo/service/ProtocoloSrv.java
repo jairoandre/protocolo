@@ -28,7 +28,7 @@ import java.util.*;
  * Created by Jairoportela on 06/04/2016.
  */
 @Stateless
-public class ProtocoloService extends DataAccessService<Protocolo> {
+public class ProtocoloSrv extends DataAccessService<Protocolo> {
 
   private
   @Inject
@@ -50,7 +50,7 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
   @Inject
   ItemProtocoloService itemProtocoloService;
 
-  public ProtocoloService() {
+  public ProtocoloSrv() {
     super(Protocolo.class);
   }
 
@@ -144,7 +144,7 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
     if (user != null) {
       Historico historico = new Historico();
       historico.setAutor(user);
-      historico.setEstado(EstadosProtocoloEnum.RASCUNHO);
+      historico.setEstado(acao);
       historico.setProtocolo(protocolo);
       if (protocolo.getHistorico() == null) {
         protocolo.setHistorico(new ArrayList<Historico>());
@@ -414,6 +414,14 @@ public class ProtocoloService extends DataAccessService<Protocolo> {
     criteria.setFetchMode("comentarios", FetchMode.SELECT);
     List<Protocolo> protocolos = criteria.list();
     return protocolos.isEmpty() ? null : protocolos.get(0);
+  }
+
+  public Protocolo initializeLists(Protocolo protocolo) {
+    Protocolo att = find(protocolo.getId());
+    new LinkedHashSet<>(att.getItens());
+    new LinkedHashSet<>(att.getHistorico());
+    new LinkedHashSet<>(att.getComentarios());
+    return att;
   }
 
 }

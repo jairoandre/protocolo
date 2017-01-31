@@ -1,7 +1,7 @@
 package br.com.vah.protocolo.controllers;
 
 import br.com.vah.protocolo.entities.dbamv.Setor;
-import br.com.vah.protocolo.service.ProtocoloService;
+import br.com.vah.protocolo.service.ProtocoloSrv;
 import org.primefaces.model.StreamedContent;
 
 import javax.annotation.PostConstruct;
@@ -29,7 +29,7 @@ public class RelatorioMediasController implements Serializable {
 
   private
   @Inject
-  ProtocoloService service;
+  ProtocoloSrv service;
 
   private Date inicioDate;
 

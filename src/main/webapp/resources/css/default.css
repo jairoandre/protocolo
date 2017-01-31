@@ -367,8 +367,13 @@ input.ui-state-disabled {
   color: #77c2cd;
 }
 
+.protocolo-title--recebido {
+  color: #77c2cd;
+}
+
 .selected-bg {
-  background: #a7f57f;
+  font-style: italic;
+  text-decoration: underline;
 }
 
 .protocolo-estado {
@@ -380,9 +385,13 @@ input.ui-state-disabled {
 }
 
 .protocolo-estado--RASCUNHO {
-  background-color: #90a4ae;
+  background-color: #555550;
 }
 
 .protocolo-estado--ENVIADO {
-  background-color: #277116;
+  background-color: #202b93;
+}
+
+.protocolo-estado--RECEBIDO {
+  background-color: #008d0e;
 }
