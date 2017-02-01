@@ -226,7 +226,7 @@
                            action="#{protocoloCtrl.enviarProtocolo}" process="@this" update="@form"
                            disabled="#{empty protocoloCtrl.documentosSelecionados.list or empty protocoloCtrl.item.origem or empty protocoloCtrl.item.destino}"
                            rendered="#{protocoloCtrl.editing and not empty protocoloCtrl.item.atendimento and protocoloCtrl.item.estado == 'RASCUNHO'}"/>
-          <p:commandButton id="saveBtn" value="Salvar Rascunho" icon="fa fa-floppy-o" ajax="true"
+          <p:commandButton id="saveBtn" value="Salvar" icon="fa fa-floppy-o" ajax="true"
                            process="@form" update="@form" validateClient="true"
                            styleClass="margin-left"
                            action="#{protocoloCtrl.salvarParcial}"

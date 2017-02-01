@@ -156,7 +156,7 @@ public class ProtocoloSrv extends DataAccessService<Protocolo> {
 
   public Protocolo salvarParcial(Protocolo protocolo, List<DocumentoDTO> documentos, List<ItemProtocolo> itensToRemove, User user) {
 
-    addHistorico(protocolo, user, EstadosProtocoloEnum.RASCUNHO);
+    addHistorico(protocolo, user, protocolo.getEstado());
 
     if (itensToRemove != null && !itensToRemove.isEmpty()) {
       for (ItemProtocolo item : itensToRemove) {
@@ -333,7 +333,6 @@ public class ProtocoloSrv extends DataAccessService<Protocolo> {
     }
 
     return dtos;
-
 
   }
 

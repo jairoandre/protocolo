@@ -9,195 +9,238 @@
     <h:form id="form">
       <p:panel header="Protocolos">
 
-        <vah:dataTable id="dataTable" controller="#{protocoloCtrl}"
-                          renderActionColumn="false"
-                          addLabel="Criar/Editar Movimentação"
-                          placeholder="Nº atendimento ou nome do paciente"
-                          renderAddBtn="true">
+        <h:panelGroup id="tablePnl">
+          <vah:dataTable id="dataTable" controller="#{protocoloCtrl}"
+                         renderActionColumn="false"
+                         addLabel="Criar/Editar Movimentação"
+                         placeholder="Nº atendimento ou nome do paciente"
+                         renderAddBtn="true">
 
-          <!-- ################### -->
-          <!-- FILTROS DE CONSULTA -->
-          <!-- ################### -->
+            <!-- ################### -->
+            <!-- FILTROS DE CONSULTA -->
+            <!-- ################### -->
 
-          <f:facet name="customFilters">
-            <div class="margin-top">
+            <f:facet name="customFilters">
+              <div class="margin-top">
 
-              <!-- FILTRO PERÍODO -->
-              <p:commandButton id="dataFilterBtn" value="Filtar por Data" type="button" styleClass="margin-left"/>
-              <p:overlayPanel id="dataFilterPnl" widgetVar="dataFilterPnl" for="dataFilterBtn" hideEffect="fade"
-                              dismissable="false">
-                <p:commandButton id="currentMonthBtn" value="Mês corrente"
-                                 actionListener="#{protocoloCtrl.filterCurrentMonth}" ajax="true"
-                                 process="@this" update="table, dateFilterInputs"/>
-                <p:commandButton id="dataFilterConvOverlay" value="Fechar" onclick="PF('dataFilterPnl').hide()"
-                                 ajax="true" styleClass="margin-left"/>
-                <h:panelGrid id="dateFilterInputs" columns="2">
-                  <p:outputLabel value="Início" for="inicioDate"/>
-                  <p:outputLabel value="Término" for="terminoDate"/>
-                  <p:calendar id="inicioDate" value="#{protocoloCtrl.inicioDate}" pattern="dd/MM/yyyy"/>
-                  <p:calendar id="terminoDate" value="#{protocoloCtrl.terminoDate}" pattern="dd/MM/yyyy"/>
-                </h:panelGrid>
+                <!-- FILTRO PERÍODO -->
+                <p:commandButton id="dataFilterBtn" value="Filtar por Data" type="button" styleClass="margin-left"/>
+                <p:overlayPanel id="dataFilterPnl" widgetVar="dataFilterPnl" for="dataFilterBtn" hideEffect="fade"
+                                dismissable="false">
+                  <p:commandButton id="currentMonthBtn" value="Mês corrente"
+                                   actionListener="#{protocoloCtrl.filterCurrentMonth}" ajax="true"
+                                   process="@this" update="table, dateFilterInputs"/>
+                  <p:commandButton id="dataFilterConvOverlay" value="Fechar" onclick="PF('dataFilterPnl').hide()"
+                                   ajax="true" styleClass="margin-left"/>
+                  <h:panelGrid id="dateFilterInputs" columns="2">
+                    <p:outputLabel value="Início" for="inicioDate"/>
+                    <p:outputLabel value="Término" for="terminoDate"/>
+                    <p:calendar id="inicioDate" value="#{protocoloCtrl.inicioDate}" pattern="dd/MM/yyyy"/>
+                    <p:calendar id="terminoDate" value="#{protocoloCtrl.terminoDate}" pattern="dd/MM/yyyy"/>
+                  </h:panelGrid>
+                  <p:separator/>
+                  <p:commandButton id="filterByDate" value="Filtrar"
+                                   actionListener="#{protocoloCtrl.prepareSearch}" ajax="true"
+                                   process="@this, dateFilterInputs" update="table"/>
+                </p:overlayPanel>
+
+                <!-- FILTRO ESTADO -->
+                <p:commandButton id="estadoFilterBtn" value="Filtrar por Estado" type="button"
+                                 styleClass="margin-left"/>
+                <p:overlayPanel id="estadoFilterOverlay" widgetVar="estadoFilterOverlay" for="estadoFilterBtn"
+                                hideEffect="fade">
+                  <p:commandButton id="estadoClearBtn" value="Limpar Filtro"
+                                   actionListener="#{protocoloCtrl.clearSelectedEstados}" ajax="true"
+                                   process="@this" update="table, estadoMany"/>
+                  <p:selectManyMenu id="estadoMany" value="#{protocoloCtrl.selectedEstados}" showCheckbox="true"
+                                    styleClass="margin-top">
+                    <p:ajax event="change" process="@this" listener="#{protocoloCtrl.prepareSearch}" update="table"/>
+                    <f:selectItems value="#{protocoloCtrl.estados}" var="estado" itemLabel="#{estado.label}"
+                                   itemValue="#{estado}"/>
+                  </p:selectManyMenu>
+                </p:overlayPanel>
+
+                <!-- FILTRO SETOR -->
+                <p:commandButton id="setorFilterBtn" value="Filtrar por Setor" type="button" styleClass="margin-left"/>
+                <p:overlayPanel id="setorFilterPnl" widgetVar="setorFilterPnl" for="setorFilterBtn" hideEffect="fade">
+                  <p:commandButton id="setorClearFilterBtn" value="Limpar Filtro"
+                                   actionListener="#{protocoloCtrl.clearSetor}" ajax="true"
+                                   process="@this" update="table, setorFilter"
+                                   rendered="#{sessionController.isUserInRoles('ADMINISTRATOR')}"/>
+                  <p:autoComplete id="setorFilter" value="#{protocoloCtrl.setor}"
+                                  var="setor"
+                                  itemLabel="#{setor.title}"
+                                  itemValue="#{setor}"
+                                  converter="#{setorConverter}"
+                                  inputStyleClass="lance-input"
+                                  queryDelay="250"
+                                  completeMethod="#{setorController.completeSetor}"
+                                  placeholder="Digite o código ou o nome do setor.">
+                    <p:ajax event="itemSelect" listener="#{protocoloCtrl.prepareSearch}" update="table"/>
+                    <p:column>
+                      #{setor.id}
+                    </p:column>
+                    <p:column>
+                      #{setor.title}
+                    </p:column>
+                  </p:autoComplete>
+                </p:overlayPanel>
+
+              </div>
+            </f:facet>
+
+            <!-- ############## -->
+            <!-- VALORES TABELA -->
+            <!-- ############## -->
+
+            <p:column headerText="" width="20" style="text-align: center;">
+              <h:panelGroup style="font-size: 20px; color: #555550;" styleClass="fa fa-file-text"
+                            rendered="#{item.estado eq 'RASCUNHO'}"/>
+              <h:panelGroup style="font-size: 20px; color: #202b93;" styleClass="fa fa-arrow-circle-right"
+                            rendered="#{item.estado eq 'ENVIADO'}"/>
+              <h:panelGroup style="font-size: 20px; color: #008d0e;" styleClass="fa fa-thumbs-up"
+                            rendered="#{item.estado eq 'RECEBIDO'}"/>
+              <h:panelGroup style="font-size: 20px; color: #8d272e;" styleClass="fa fa-thumbs-down"
+                            rendered="#{item.estado eq 'RECUSADO'}"/>
+            </p:column>
+
+
+            <p:column headerText="Nº." sortBy="#{item.id}" width="30" styleClass="left-align ellipsis-text">
+              <h:outputText id="protocolo" value="#{item.id}"/>
+            </p:column>
+
+            <p:column headerText="Atend." width="45" styleClass="left-align">
+              <h:outputText value="#{item.atendimento.id}"/>
+            </p:column>
+
+            <p:column headerText="Paciente" width="170" styleClass="left-align ellipsis-text">
+              <h:outputText id="pacienteOutput" value="#{item.atendimento.paciente.name}"/>
+              <vah:toolTip id="pacienteToolTip" value="#{item.atendimento.paciente.name}" index="#{indexVar}"
+                           for="#{p:component('pacienteOutput')}"/>
+            </p:column>
+
+            <p:column headerText="Conta" width="45" styleClass="left-align">
+              <h:outputText value="#{item.conta.id}" rendered="#{not empty item.conta}"/>
+            </p:column>
+
+            <p:column id="estado" headerText="Estado" width="75" sortBy="#{item.estado}" style="text-align: center;">
+              <h:panelGroup styleClass="protocolo-estado protocolo-estado--#{item.estado}" layout="block">
+                <h:outputText value="#{item.estado.label}"/>
+              </h:panelGroup>
+            </p:column>
+
+            <p:column headerText="Origem" width="115" styleClass="left-align ellipsis-text">
+              <h:outputText id="origemOutputText" value="#{item.origem.title}" rendered="#{not empty item.origem}"/>
+              <vah:toolTip id="origemToolTip" value="#{item.origem.title}" index="#{indexVar}"
+                           for="#{p:component('origemOutputText')}" rendered="#{not empty item.origem}"/>
+            </p:column>
+
+            <p:column headerText="Destino" width="115" styleClass="left-align ellipsis-text">
+              <h:outputText id="destinoOutput" value="#{item.destino.title}" rendered="#{not empty item.destino}"/>
+              <vah:toolTip id="destinoToolTip" value="#{item.destino.title}" index="#{indexVar}"
+                           for="#{p:component('destinoOutput')}"/>
+            </p:column>
+
+            <p:column headerText="Envio" width="75" sortBy="#{item.dataEnvio}" styleClass="left-align">
+              <h:outputText id="envioOutput" value="#{item.dataEnvio}">
+                <f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="GMT-3"/>
+              </h:outputText>
+            </p:column>
+
+            <p:column width="50" style="text-align: center">
+              <p:menuButton id="menuButton" value="Ações">
+                <p:menuitem value="Receber" action="#{protocoloCtrl.preReceber(item)}"
+                            ajax="true" process="@this" update="#{p:component('receberDlgPnl')}"
+                            oncomplete="PF('receberDlg').show();"
+                            disabled="#{protocoloCtrl.disableResponderItem(item)}"
+                            icon="fa fa-thumbs-up"/>
+                <p:menuitem value="Recusar" action="#{protocoloCtrl.preRecusar(item)}"
+                            process="@this" update="#{p:component('novoComentarioDlg')}"
+                            oncomplete="PF('novoComentarioDlg').show()"
+                            disabled="#{protocoloCtrl.disableResponderItem(item)}"
+                            icon="fa fa-thumbs-down" rendered="#{protocoloCtrl.showRefuseButton(item)}"/>
                 <p:separator/>
-                <p:commandButton id="filterByDate" value="Filtrar"
-                                 actionListener="#{protocoloCtrl.prepareSearch}" ajax="true"
-                                 process="@this, dateFilterInputs" update="table"/>
-              </p:overlayPanel>
+                <p:menuitem value="Novo comentário" action="#{protocoloCtrl.preComentario(item)}"
+                            process="@this" update="#{p:component('novoComentarioDlg')}"
+                            oncomplete="PF('novoComentarioDlg').show()"
+                            icon="fa fa-comment"/>
+                <p:menuitem value="Histórico" action="#{protocoloCtrl.preHistorico(item)}"
+                            process="@this" update="#{p:component('historicoDlgPnl')}"
+                            oncomplete="PF('historicoDlg').show()"
+                            icon="fa fa-tags"/>
+                <p:menuitem value="Comentários" action="#{protocoloCtrl.preOpenComentariosDlg(item)}"
+                            process="@this" update="#{p:component('comentariosDlgPnl')}"
+                            oncomplete="PF('comentariosDlg').show()"
+                            icon="fa fa-comments"/>
+                <p:menuitem value="Documentos" action="#{protocoloCtrl.preOpenDocumentosDlg(item)}"
+                            process="@this" update="#{p:component('documentosDlgPnl')}"
+                            oncomplete="PF('documentosDlg').show()"
+                            icon="fa fa-file-text"/>
+                <p:separator/>
+                <p:menuitem value="Editar" action="#{protocoloCtrl.edit(item)}"
+                            process="@this" onstart="PF('changePage').show()"
+                            disabled="#{item.dataResposta != null or item.estado eq 'RECUSADO'}"
+                            icon="fa fa-pencil" rendered="#{protocoloCtrl.showEditButton(item)}"/>
+                <p:menuitem value="Excluir" actionListener="#{protocoloCtrl.preDelete(item.id, index)}"
+                            process="@this" update="#{p:component('deleteDlg')}" oncomplete="PF('deleteDlg').show()"
+                            disabled="#{!sessionController.isUserInRoles('ADMINISTRATOR')}"
+                            icon="fa fa-trash" rendered="#{protocoloCtrl.showDeleteButton(item)}"/>
+              </p:menuButton>
+            </p:column>
 
-              <!-- FILTRO ESTADO -->
-              <p:commandButton id="estadoFilterBtn" value="Filtrar por Estado" type="button" styleClass="margin-left"/>
-              <p:overlayPanel id="estadoFilterOverlay" widgetVar="estadoFilterOverlay" for="estadoFilterBtn"
-                              hideEffect="fade">
-                <p:commandButton id="estadoClearBtn" value="Limpar Filtro"
-                                 actionListener="#{protocoloCtrl.clearSelectedEstados}" ajax="true"
-                                 process="@this" update="table, estadoMany"/>
-                <p:selectManyMenu id="estadoMany" value="#{protocoloCtrl.selectedEstados}" showCheckbox="true"
-                                  styleClass="margin-top">
-                  <p:ajax event="change" process="@this" listener="#{protocoloCtrl.prepareSearch}" update="table"/>
-                  <f:selectItems value="#{protocoloCtrl.estados}" var="estado" itemLabel="#{estado.label}"
-                                 itemValue="#{estado}"/>
-                </p:selectManyMenu>
-              </p:overlayPanel>
-
-              <!-- FILTRO SETOR -->
-              <p:commandButton id="setorFilterBtn" value="Filtrar por Setor" type="button" styleClass="margin-left"/>
-              <p:overlayPanel id="setorFilterPnl" widgetVar="setorFilterPnl" for="setorFilterBtn" hideEffect="fade">
-                <p:commandButton id="setorClearFilterBtn" value="Limpar Filtro"
-                                 actionListener="#{protocoloCtrl.clearSetor}" ajax="true"
-                                 process="@this" update="table, setorFilter" rendered="#{sessionController.isUserInRoles('ADMINISTRATOR')}"/>
-                <p:autoComplete id="setorFilter" value="#{protocoloCtrl.setor}"
-                                var="setor"
-                                itemLabel="#{setor.title}"
-                                itemValue="#{setor}"
-                                converter="#{setorConverter}"
-                                inputStyleClass="lance-input"
-                                queryDelay="250"
-                                completeMethod="#{setorController.completeSetor}" placeholder="Digite o código ou o nome do setor.">
-                  <p:ajax event="itemSelect" listener="#{protocoloCtrl.prepareSearch}" update="table"/>
-                  <p:column>
-                    #{setor.id}
-                  </p:column>
-                  <p:column>
-                    #{setor.title}
-                  </p:column>
-                </p:autoComplete>
-              </p:overlayPanel>
-
-            </div>
-          </f:facet>
-
-          <!-- ############## -->
-          <!-- VALORES TABELA -->
-          <!-- ############## -->
-
-          <p:column headerText="" width="20" style="text-align: center;">
-            <h:panelGroup style="font-size: 20px; color: #555550;" styleClass="fa fa-file-text" rendered="#{item.estado eq 'RASCUNHO'}"/>
-            <h:panelGroup style="font-size: 20px; color: #202b93;" styleClass="fa fa-arrow-circle-right" rendered="#{item.estado eq 'ENVIADO'}"/>
-            <h:panelGroup style="font-size: 20px; color: #008d0e;" styleClass="fa fa-thumbs-up" rendered="#{item.estado eq 'RECEBIDO'}"/>
-            <h:panelGroup style="font-size: 20px; color: #8d272e;" styleClass="fa fa-thumbs-down" rendered="#{item.estado eq 'RECUSADO'}"/>
-          </p:column>
-
-
-          <p:column headerText="Nº." sortBy="#{item.id}" width="30" styleClass="center-align ellipsis-text">
-            <h:outputText id="protocolo" value="#{item.id}"/>
-          </p:column>
-
-          <p:column headerText="Atend." width="45" styleClass="left-align">
-            <h:outputText value="#{item.atendimento.id}"/>
-          </p:column>
-
-          <p:column headerText="Paciente" width="200" styleClass="left-align ellipsis-text">
-            <h:outputText id="pacienteOutput" value="#{item.atendimento.paciente.name}"/>
-            <vah:toolTip id="pacienteToolTip" value="#{item.atendimento.paciente.name}" index="#{indexVar}"
-                         for="#{p:component('pacienteOutput')}"/>
-          </p:column>
-
-          <p:column headerText="Conta" width="45" styleClass="left-align">
-            <h:outputText value="#{item.conta.id}" rendered="#{not empty item.conta}"/>
-          </p:column>
-
-          <p:column id="estado" headerText="Estado" width="75" sortBy="#{item.estado}" style="text-align: center;">
-            <h:panelGroup styleClass="protocolo-estado protocolo-estado--#{item.estado}" layout="block">
-              <h:outputText value="#{item.estado.label}"/>
-            </h:panelGroup>
-          </p:column>
-
-          <p:column headerText="Origem" width="100" styleClass="left-align ellipsis-text" >
-            <h:outputText id="origemOutputText" value="#{item.origem.title}" rendered="#{not empty item.origem}"/>
-            <vah:toolTip id="origemToolTip" value="#{item.origem.title}" index="#{indexVar}"
-                         for="#{p:component('origemOutputText')}" rendered="#{not empty item.origem}"/>
-          </p:column>
-
-          <p:column headerText="Destino" width="100" styleClass="left-align ellipsis-text">
-            <h:outputText id="destinoOutput" value="#{item.destino.title}" rendered="#{not empty item.destino}"/>
-            <vah:toolTip id="destinoToolTip" value="#{item.destino.title}" index="#{indexVar}"
-                         for="#{p:component('destinoOutput')}"/>
-          </p:column>
-
-          <p:column headerText="Envio" width="75" sortBy="#{item.dataEnvio}" styleClass="left-align">
-            <h:outputText id="envioOutput" value="#{item.dataEnvio}">
-              <f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="GMT-3"/>
-            </h:outputText>
-          </p:column>
-
-          <p:column width="75" style="text-align: center">
-            <p:menuButton id="menuButton" value="Ações">
-              <p:menuitem value="Receber" action="#{protocoloCtrl.preReceber(item)}"
-                          ajax="true" process="@this" update="#{p:component('receberDlgPnl')}"
-                          oncomplete="PF('receberDlg').show();"
-                          disabled="#{protocoloCtrl.disableResponderItem(item)}"
-                          icon="fa fa-thumbs-up"/>
-              <p:menuitem value="Recusar" action="#{protocoloCtrl.preRecusar(item)}"
-                          process="@this" update="#{p:component('novoComentarioDlg')}"
-                          oncomplete="PF('novoComentarioDlg').show()"
-                          disabled="#{protocoloCtrl.disableResponderItem(item)}"
-                          icon="fa fa-comment" rendered="#{protocoloCtrl.showRefuseButton(item)}"/>
-              <p:separator/>
-              <p:menuitem value="Novo comentário" action="#{protocoloCtrl.preComentario(item)}"
-                          process="@this" update="#{p:component('novoComentarioDlg')}"
-                          oncomplete="PF('novoComentarioDlg').show()"
-                          icon="fa fa-comment"/>
-              <p:menuitem value="Histórico" action="#{protocoloCtrl.preHistorico(item)}"
-                          process="@this" update="#{p:component('historicoDlgPnl')}"
-                          oncomplete="PF('historicoDlg').show()"
-                          icon="fa fa-tags"/>
-              <p:menuitem value="Comentários" action="#{protocoloCtrl.setItem(item)}"
-                          process="@this" update="#{p:component('comentarioDlg')}"
-                          oncomplete="PF('comentarioDlg').show()"
-                          icon="fa fa-comments"/>
-              <p:separator/>
-              <p:menuitem value="Editar" action="#{protocoloCtrl.edit(item)}"
-                          process="@this" onstart="PF('changePage').show()"
-                          disabled="#{item.dataResposta != null}"
-                          icon="fa fa-pencil" rendered="#{protocoloCtrl.showEditButton(item)}"/>
-              <p:menuitem value="Excluir" actionListener="#{protocoloCtrl.preDelete(item.id, index)}"
-                          process="@this" update="#{p:component('deleteDlg')}" oncomplete="PF('deleteDlg').show()"
-                          disabled="#{!sessionController.isUserInRoles('ADMINISTRATOR')}"
-                          icon="fa fa-trash" rendered="#{protocoloCtrl.showDeleteButton(item)}"/>
-            </p:menuButton>
-          </p:column>
-
-        </vah:dataTable>
+          </vah:dataTable>
+        </h:panelGroup>
 
         <!-- DIALOGO NOVO COMENTARIO -->
         <p:dialog id="novoComentarioDlg" widgetVar="novoComentarioDlg" modal="true">
           <f:facet name="header">
-            <h:outputText value="Inserir Comentário - Protocolo nº #{protocoloCtrl.item.id}"/>
+            <h:outputText
+              value="Inserir Comentário - Protocolo nº #{protocoloCtrl.item.id}"
+              rendered="#{protocoloCtrl.acaoComentario ne 'RECUSADO'}"/>
+            <h:outputText
+              value="Recusar Movimentação - Protocolo nº #{protocoloCtrl.item.id}"
+              rendered="#{protocoloCtrl.acaoComentario eq 'RECUSADO'}"/>
           </f:facet>
+          <h:panelGroup layout="block"
+                        styleClass="ui-messages ui-widget"
+                        aria-live="polite" rendered="#{protocoloCtrl.acaoComentario eq 'RECUSADO'}">
+            <div class="ui-messages-warn ui-corner-all">
+              <span class="ui-messages-warn-icon"></span>
+              <ul>
+                <li>
+                  <h:panelGroup styleClass="ui-messages-warn-detail">
+                    Justifique abaixo o motivo da recusa deste protocolo.
+                  </h:panelGroup>
+                </li>
+              </ul>
+            </div>
+          </h:panelGroup>
           <h:panelGrid id="novoComentarioGrid" columns="1">
-            <p:outputLabel value="Comentário" for="novoComentarioTextArea" styleClass="lance-label"/>
-            <p:inputTextarea id="novoComentarioTextArea" value="#{protocoloCtrl.comentario}" rows="5" cols="75"/>
+            <p:outputLabel value="Comentário" for="novoComentarioTextArea" styleClass="lance-label"
+                           rendered="#{protocoloCtrl.acaoComentario ne 'RECUSADO'}"/>
+            <p:outputLabel value="Justificativa" for="novoComentarioTextArea" styleClass="lance-label"
+                           rendered="#{protocoloCtrl.acaoComentario eq 'RECUSADO'}"/>
+            <p:inputTextarea id="novoComentarioTextArea"
+                             value="#{protocoloCtrl.comentario}"
+                             requiredMessage="Campo obrigatório."
+                             required="true"
+                             rows="5" cols="75"/>
             <p:message for="novoComentarioTextArea"/>
           </h:panelGrid>
           <f:facet name="footer">
-            <p:commandButton id="saveComentario" value="Salvar"
+            <p:commandButton id="saveComentario"
+                             value="#{protocoloCtrl.acaoComentario eq 'RECUSADO' ? 'Recusar' : 'Salvar'}"
                              action="#{protocoloCtrl.salvarNovoComentario}"
+                             icon="#{protocoloCtrl.acaoComentario eq 'RECUSADO' ? 'fa fa-thumbs-down' : ''}"
                              ajax="true"
-                             process="@this, novoComentarioGrid"
-                             update="#{p:component('table')}"
-                             onsuccess="PF('novoComentarioDlg').hide()"/>
-            <p:commandButton id="cancelarNovoComentario" value="Cancelar"
+                             process="@this novoComentarioGrid"
+                             update="#{p:component('tablePnl')} novoComentarioGrid"
+                             oncomplete="if (args &amp;&amp; !args.validationFailed) PF('novoComentarioDlg').hide(); window.scrollTo(0, 0); stop();"/>
+            <p:commandButton id="cancelarNovoComentario"
+                             value="Cancelar"
                              ajax="true"
                              process="@this"
+                             style="margin-left: 5px;"
                              oncomplete="PF('novoComentarioDlg').hide()"/>
           </f:facet>
         </p:dialog>
@@ -275,25 +318,25 @@
         </h:panelGroup>
 
         <!-- DIÁLOGO COMENTÁRIOS -->
-        <h:panelGroup id="comentarioDlgPnl">
-          <p:dialog id="comentarioDlg"
-                    widgetVar="comentarioDlg"
-                    rendered="#{protocoloCtrl.renderComentarioDlg}"
-                    modal="true" width="500">
+        <h:panelGroup id="comentariosDlgPnl">
+          <p:dialog id="comentariosDlg"
+                    widgetVar="comentariosDlg"
+                    rendered="#{protocoloCtrl.renderComentariosDlg}"
+                    modal="true" width="700">
             <f:facet name="header">
               <h:outputText value="Comentários - Protocolo nº #{protocoloCtrl.item.id}"/>
             </f:facet>
 
-            <p:dataTable id="comentarioTable" value="#{protocoloCtrl.item.comentarios}" var="coment"
-                         sortBy="#{coment.data}" scrollRows="5" emptyMessage="Sem comentários">
+            <p:dataTable id="comentarioTable" value="#{protocoloCtrl.item.comentarios}" var="comment"
+                         sortBy="#{comment.data}" scrollRows="5" emptyMessage="Sem comentários">
               <p:column headerText="Usuário" width="100" styleClass="left-align">
-                <h:outputText value="#{coment.autor.login}"/>
+                <h:outputText value="#{comment.autor.login}"/>
               </p:column>
-              <p:column headerText="Comentário" width="100" styleClass="left-align">
-                <h:outputText value="#{coment.comentario}"/>
+              <p:column headerText="Comentário" width="350" styleClass="left-align">
+                <h:outputText value="#{comment.comentario}"/>
               </p:column>
               <p:column headerText="Data" width="100" styleClass="left-align">
-                <h:outputText value="#{coment.data}">
+                <h:outputText value="#{comment.data}">
                   <f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="GMT-3"/>
                 </h:outputText>
               </p:column>
@@ -303,7 +346,9 @@
               <p:commandButton id="closeComent" value="Fechar"
                                ajax="true"
                                process="@this"
-                               oncomplete="PF('comentarioDlg').hide()"/>
+                               update="comentariosDlgPnl"
+                               onclick="PF('comentariosDlg').hide()"
+                               action="#{protocoloCtrl.closeComentariosDlg}"/>
             </f:facet>
           </p:dialog>
         </h:panelGroup>
@@ -390,7 +435,7 @@
                                icon="fa fa-thumbs-up"
                                process="@this"
                                disabled="#{protocoloCtrl.registrarRecebBtnDisabled}"
-                               update="#{p:component('dataTable')} receberDlgPnl"
+                               update="tablePnl receberDlgPnl"
                                action="#{protocoloCtrl.receber}"/>
               <p:commandButton id="closeReceberDlg"
                                value="Fechar"
@@ -400,6 +445,70 @@
                                update="receberDlgPnl"
                                style="margin-left: 5px;"
                                action="#{protocoloCtrl.closeReceberDlg}"/>
+            </f:facet>
+
+          </p:dialog>
+        </h:panelGroup>
+
+        <!-- VISUALIZAR DOCUMENTOS -->
+        <h:panelGroup id="documentosDlgPnl">
+          <p:dialog id="documentosDlg"
+                    widgetVar="documentosDlg"
+                    modal="true"
+                    width="1200"
+                    rendered="#{protocoloCtrl.renderDocumentosDlg}">
+
+            <f:facet name="header">
+              <h:outputText value="Visualizar Documentos - Protocolo nº #{protocoloCtrl.item.id}"/>
+            </f:facet>
+
+            <p:tabView value="#{protocoloCtrl.documentosSelecionados.list}"
+                       var="docEntry"
+                       rendered="#{not empty protocoloCtrl.documentosSelecionados.list}">
+              <p:tab title="#{docEntry.key}">
+                <p:dataTable value="#{docEntry.value}" var="doc"
+                             emptyMessage="Sem documentos"
+                             sortBy="#{doc.dataHoraCriacao}" rowIndexVar="idx">
+
+                  <p:column headerText="Cód." width="50" styleClass="left-align">
+                    <h:outputText value="#{doc.codigo}"/>
+                  </p:column>
+                  <p:column headerText="Descrição" styleClass="left-align ellipsis-text" width="150">
+                    <h:outputText value="#{doc.descricao}"/>
+                  </p:column>
+                  <p:column headerText="Prestador" styleClass="left-align ellipsis-text" width="150">
+                    <h:outputText id="prestVis" value="#{doc.prestador}"/>
+                    <vah:toolTip id="prestVisTooltip" for="#{p:component('prestVis')}" value="#{doc.prestador}"
+                                 index="#{idx}"/>
+                  </p:column>
+                  <p:column headerText="Conselho" styleClass="left-align" width="75">
+                    <h:outputText value="#{doc.conselho}"/>
+                  </p:column>
+                  <p:column headerText="Data/Hora Criação" styleClass="left-align" width="100">
+                    <h:outputText value="#{doc.dataHoraCriacao}">
+                      <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
+                    </h:outputText>
+                  </p:column>
+                  <p:column headerText="Data/Hora Impressão" styleClass="left-align" width="100">
+                    <h:outputText value="#{doc.dataHoraImpressao}">
+                      <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
+                    </h:outputText>
+                  </p:column>
+                  <p:column headerText="Tipo" width="50" styleClass="left-align">
+                    <h:outputText value="#{doc.tipo.label}"/>
+                  </p:column>
+                </p:dataTable>
+              </p:tab>
+            </p:tabView>
+
+            <f:facet name="footer">
+              <p:commandButton id="closeDocumentosDlg"
+                               value="Fechar"
+                               ajax="true"
+                               onclick="PF('documentosDlg').hide();"
+                               process="@this"
+                               update="documentosDlgPnl"
+                               action="#{protocoloCtrl.closeDocumentosDlg}"/>
             </f:facet>
 
           </p:dialog>

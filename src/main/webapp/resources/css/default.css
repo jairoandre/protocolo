@@ -395,3 +395,11 @@ input.ui-state-disabled {
 .protocolo-estado--RECEBIDO {
   background-color: #008d0e;
 }
+
+.protocolo-estado--RECEBIDO {
+  background-color: #008d0e;
+}
+
+.protocolo-estado--RECUSADO {
+  background-color: #8D272E;
+}

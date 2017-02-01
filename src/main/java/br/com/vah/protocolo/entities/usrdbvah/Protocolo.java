@@ -67,6 +67,11 @@ public class Protocolo extends BaseEntity {
   @Column(name = "SN_ARQUIVADO")
   private Boolean arquivado = false;
 
+  //@ManyToOne
+  //@JoinColumn(name = "ID_PAI")
+  @Transient
+  private Protocolo pai;
+
   @Override
   public Long getId() {
     return id;
@@ -171,6 +176,14 @@ public class Protocolo extends BaseEntity {
 
   public void setComentarios(List<Comentario> comentarios) {
     this.comentarios = comentarios;
+  }
+
+  public Protocolo getPai() {
+    return pai;
+  }
+
+  public void setPai(Protocolo pai) {
+    this.pai = pai;
   }
 
   @Override

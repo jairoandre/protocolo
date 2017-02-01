@@ -87,11 +87,13 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
 
   private List<ItemProtocolo> itensToRemove = new ArrayList<>();
 
-  private Boolean renderComentarioDlg = false;
+  private Boolean renderComentariosDlg = false;
 
   private Boolean renderHistoricoDlg = false;
 
   private Boolean renderReceberDlg = false;
+
+  private Boolean renderDocumentosDlg = false;
 
   @PostConstruct
   public void init() {
@@ -154,7 +156,7 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
   public void receber() {
     renderReceberDlg = false;
     saveAddingHistory(EstadosProtocoloEnum.RECEBIDO);
-    addMsg(new FacesMessage(FacesMessage.SEVERITY_INFO, "Informação", "Protocolo recebido com sucesso."), false);
+    setItem(createNewItem());
   }
 
   public void preReceber(Protocolo protocolo) {
@@ -170,19 +172,38 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
 
   public void preRecusar(Protocolo protocolo) {
     acaoComentario = EstadosProtocoloEnum.RECUSADO;
-    renderComentarioDlg = true;
-    setItem(service.find(protocolo.getId()));
+    setItem(service.initializeLists(protocolo));
   }
 
   public void preComentario(Protocolo protocolo) {
     acaoComentario = EstadosProtocoloEnum.COMENTARIO;
-    renderComentarioDlg = true;
-    setItem(service.find(protocolo.getId()));
+    setItem(service.initializeLists(protocolo));
   }
 
-  public void closeComentario() {
-    renderComentarioDlg = false;
+  public void preOpenDocumentosDlg(Protocolo protocolo) {
+    Protocolo att = service.initializeLists(protocolo);
+    documentosSelecionados = service.gerarDocumentosSelecionados(att);
+    renderDocumentosDlg = true;
+    setItem(att);
   }
+
+  public void preOpenComentariosDlg(Protocolo protocolo) {
+    Protocolo att = service.initializeLists(protocolo);
+    renderComentariosDlg = true;
+    setItem(att);
+  }
+
+
+  public void closeDocumentosDlg() {
+    renderDocumentosDlg = false;
+    setItem(createNewItem());
+  }
+
+  public void closeComentariosDlg() {
+    renderComentariosDlg = false;
+    setItem(createNewItem());
+  }
+
 
   public void preHistorico(Protocolo protocolo) {
     renderHistoricoDlg = true;
@@ -205,6 +226,7 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
     } else {
       saveAddingHistory(EstadosProtocoloEnum.COMENTARIO);
     }
+    setItem(createNewItem());
   }
 
   public void buscarDocumentosNaoSelecionados() {
@@ -427,8 +449,8 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
     this.documentosSelecionados = documentosSelecionados;
   }
 
-  public Boolean getRenderComentarioDlg() {
-    return renderComentarioDlg;
+  public Boolean getRenderComentariosDlg() {
+    return renderComentariosDlg;
   }
 
   public Boolean getRenderHistoricoDlg() {
@@ -437,6 +459,14 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
 
   public Boolean getRenderReceberDlg() {
     return renderReceberDlg;
+  }
+
+  public Boolean getRenderDocumentosDlg() {
+    return renderDocumentosDlg;
+  }
+
+  public EstadosProtocoloEnum getAcaoComentario() {
+    return acaoComentario;
   }
 
   public Boolean getRegistrarRecebBtnDisabled() {
