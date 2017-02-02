@@ -107,7 +107,7 @@
                                  rowStyleClass="#{doc.selected ? 'selected-bg' : ''}"
                                  sortBy="#{doc.dataHoraCriacao}">
                       <p:column width="20">
-                        <p:selectBooleanCheckbox value="#{doc.selected}">
+                        <p:selectBooleanCheckbox value="#{doc.selected}" style="cursor: pointer;">
                           <p:ajax event="change" process="docTable" update="docTable"/>
                         </p:selectBooleanCheckbox>
                       </p:column>
@@ -137,6 +137,12 @@
                         <h:outputText value="#{doc.tipo.label}"/>
                       </p:column>
                     </p:dataTable>
+                    <p:commandButton id="incluirBtn" value="Incluir Selecionados" icon="fa fa-bullseye" ajax="true"
+                                     process="@form" update="@form" validateClient="true"
+                                     style="margin-top: 5px;"
+                                     action="#{protocoloCtrl.salvarParcial}"
+                                     rendered="#{protocoloCtrl.editing and not empty protocoloCtrl.item.atendimento and protocoloCtrl.item.estado == 'RASCUNHO'}"/>
+
                   </p:tab>
                 </p:tabView>
               </h:panelGroup>

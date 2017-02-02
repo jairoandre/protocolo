@@ -38,6 +38,7 @@
       </h:panelGroup>
       <composite:renderFacet name="customFilters"/>
       <p:commandButton value="#{empty cc.attrs.addLabel ? 'Adicionar' : cc.attrs.addLabel}"
+                       process="@this"
                        action="#{cc.attrs.controller.add}"
                        title="Criar novo #{cc.attrs.controller.entityName}"
                        onstart="PF('changePage').show();"

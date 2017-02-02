@@ -28,9 +28,11 @@
                            icon="fa fa-hospital-o" rendered="#{sessionController.setor != null}" onstart="PF('changePage').show()"/>
           <p:commandButton value="#{sessionController.username}"
                            action="/selecionarSetor.xhtml?faces-redirect=true" ajax="false"
+                           style="margin-left: 5px;"
                            icon="fa fa-user" rendered="#{request.getUserPrincipal() != null}"/>
           <p:commandButton value="Logout" action="#{sessionController.logout}"
                            icon="fa fa-sign-out"
+                           style="margin-left: 5px;"
                            rendered="#{request.getUserPrincipal() != null}" onstart="PF('changePage').show()"/>
         </h:panelGroup>
       </f:facet>

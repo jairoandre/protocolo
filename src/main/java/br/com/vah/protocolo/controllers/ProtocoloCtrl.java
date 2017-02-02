@@ -1,6 +1,7 @@
 package br.com.vah.protocolo.controllers;
 
 import br.com.vah.protocolo.constants.EstadosProtocoloEnum;
+import br.com.vah.protocolo.constants.RolesEnum;
 import br.com.vah.protocolo.dto.DocumentoDTO;
 import br.com.vah.protocolo.entities.dbamv.Setor;
 import br.com.vah.protocolo.entities.usrdbvah.Comentario;
@@ -84,8 +85,6 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
   private Integer totalDocumentosManuais;
 
   private EstadosProtocoloEnum acaoComentario;
-
-  private List<ItemProtocolo> itensToRemove = new ArrayList<>();
 
   private Boolean renderComentariosDlg = false;
 
@@ -214,6 +213,23 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
     renderHistoricoDlg = false;
   }
 
+  public void recuperarDadosRascunho() {
+    Protocolo rascunho = service.buscarDadosRascunho(getItem().getAtendimento());
+    if (rascunho == null) {
+      if (session.getSetor() != null) {
+        getItem().setOrigem(session.getSetor());
+      }
+    } else {
+      setItem(service.initializeLists(rascunho));
+    }
+    prepareDocumentos();
+  }
+
+  public void prepareDocumentos() {
+    contarDocumentos();
+    documentosSelecionados = service.gerarDocumentosSelecionados(getItem());
+  }
+
   public void salvarNovoComentario() {
     Comentario newComment = new Comentario();
     newComment.setProtocolo(getItem());
@@ -230,22 +246,8 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
   }
 
   public void buscarDocumentosNaoSelecionados() {
-    documentosNaoSelecionados = service.buscarDocumentosNaoSelecionados(getItem().getAtendimento(), inicioDate, terminoDate, null, getItem());
-  }
-
-  public void recuperarDadosRascunho() {
-    Protocolo rascunho = service.buscarDadosRascunho(getItem().getAtendimento());
-    if (rascunho == null) {
-      if (session.getSetor() != null) {
-        getItem().setOrigem(session.getSetor());
-      }
-    } else {
-      rascunho = service.initializeLists(rascunho);
-      setItem(rascunho);
-    }
-    contarDocumentos();
-    documentosSelecionados = service.gerarDocumentosSelecionados(getItem());
-    documentosNaoSelecionados = null;
+    documentosNaoSelecionados =
+        service.buscarDocumentosNaoSelecionados(getItem().getAtendimento(), inicioDate, terminoDate, null, getItem());
   }
 
   private void contarDocumentos() {
@@ -279,10 +281,8 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
   }
 
   public void removeDoc(DocumentoDTO doc) {
-    itensToRemove.add(doc.getItemProtocolo());
     getItem().getItens().remove(doc.getItemProtocolo());
-    documentosSelecionados = service.gerarDocumentosSelecionados(getItem());
-    contarDocumentos();
+    prepareDocumentos();
   }
 
   @Override
@@ -311,8 +311,9 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
       docsSelecionados = documentosNaoSelecionados.getSelecionados();
     }
     try {
-      setItem(service.salvarParcial(getItem(), docsSelecionados, itensToRemove, session.getUser()));
-      recuperarDadosRascunho();
+      setItem(service.initializeLists(getItem()));
+      setItem(service.salvarParcial(getItem(), docsSelecionados, session.getUser()));
+      prepareDocumentos();
       buscarDocumentosNaoSelecionados();
       addMsg(new FacesMessage(FacesMessage.SEVERITY_INFO, "Sucesso", String.format("Rascunho salvo protocolo nº <b>%s</b>.", getItem().getId())), true);
     } catch (ProtocoloPersistException ppe) {
@@ -324,7 +325,10 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
   @Override
   public void onLoad() {
     super.onLoad();
-    recuperarDadosRascunho();
+    if(getItem().getId() != null) {
+      setItem(service.initializeLists(getItem()));
+      prepareDocumentos();
+    }
   }
 
   @Override
@@ -342,11 +346,13 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
   }
 
   public Boolean showEditButton(Protocolo protocolo) {
-    return true;
-  }
-
-  public Boolean showDeleteButton(Protocolo protocolo) {
-    return true;
+    if (RolesEnum.ADMINISTRATOR.equals(session.getUser().getRole())) {
+      return true;
+    }
+    if (session.getSetor() == null) {
+      return EstadosProtocoloEnum.RASCUNHO.equals(protocolo.getEstado()) && session.getSetor().equals(protocolo.getOrigem());
+    }
+    return false;
   }
 
   public Boolean disableResponderItem(Protocolo item) {

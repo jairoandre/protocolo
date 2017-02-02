@@ -24,7 +24,7 @@
               <div class="margin-top">
 
                 <!-- FILTRO PERÍODO -->
-                <p:commandButton id="dataFilterBtn" value="Filtar por Data" type="button" styleClass="margin-left"/>
+                <p:commandButton id="dataFilterBtn" value="Filtar por Data" type="button"/>
                 <p:overlayPanel id="dataFilterPnl" widgetVar="dataFilterPnl" for="dataFilterBtn" hideEffect="fade"
                                 dismissable="false">
                   <p:commandButton id="currentMonthBtn" value="Mês corrente"
@@ -149,6 +149,10 @@
 
             <p:column width="50" style="text-align: center">
               <p:menuButton id="menuButton" value="Ações">
+                <p:menuitem value="Editar" action="#{protocoloCtrl.edit(item)}"
+                            process="@this" onstart="PF('changePage').show()"
+                            disabled="#{item.dataResposta != null or item.estado eq 'RECUSADO'}"
+                            icon="fa fa-pencil" rendered="#{protocoloCtrl.showEditButton(item)}"/>
                 <p:menuitem value="Receber" action="#{protocoloCtrl.preReceber(item)}"
                             ajax="true" process="@this" update="#{p:component('receberDlgPnl')}"
                             oncomplete="PF('receberDlg').show();"
@@ -177,14 +181,9 @@
                             oncomplete="PF('documentosDlg').show()"
                             icon="fa fa-file-text"/>
                 <p:separator/>
-                <p:menuitem value="Editar" action="#{protocoloCtrl.edit(item)}"
-                            process="@this" onstart="PF('changePage').show()"
-                            disabled="#{item.dataResposta != null or item.estado eq 'RECUSADO'}"
-                            icon="fa fa-pencil" rendered="#{protocoloCtrl.showEditButton(item)}"/>
                 <p:menuitem value="Excluir" actionListener="#{protocoloCtrl.preDelete(item.id, index)}"
                             process="@this" update="#{p:component('deleteDlg')}" oncomplete="PF('deleteDlg').show()"
-                            disabled="#{!sessionController.isUserInRoles('ADMINISTRATOR')}"
-                            icon="fa fa-trash" rendered="#{protocoloCtrl.showDeleteButton(item)}"/>
+                            icon="fa fa-trash" rendered="#{sessionController.isUserInRoles('ADMINISTRATOR')}"/>
               </p:menuButton>
             </p:column>
 
@@ -387,12 +386,13 @@
                 <p:tab title="#{docEntry.key}">
                   <p:dataTable id="docTable" value="#{docEntry.value}" var="doc"
                                emptyMessage="Sem documentos selecionados"
+                               rowStyleClass="#{doc.selected ? 'selected-bg' : ''}"
                                sortBy="#{doc.dataHoraCriacao}" rowIndexVar="idx">
                     <p:column width="20" style="text-align: center;">
                       <p:selectBooleanCheckbox value="#{doc.selected}" style="cursor: pointer;">
                         <p:ajax event="change"
                                 process="docTable"
-                                update="#{p:component('registrarRecebBtn')}"/>
+                                update="docTable #{p:component('registrarRecebBtn')}"/>
                       </p:selectBooleanCheckbox>
                     </p:column>
                     <p:column headerText="Cód." width="50" styleClass="left-align">

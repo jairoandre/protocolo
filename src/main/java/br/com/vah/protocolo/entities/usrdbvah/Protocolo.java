@@ -46,7 +46,7 @@ public class Protocolo extends BaseEntity {
   @JoinColumn(name = "CD_SETOR_DESTINO")
   private SetorProtocolo destino;
 
-  @OneToMany(mappedBy = "protocolo", cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "protocolo", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<ItemProtocolo> itens = new LinkedHashSet<>();
 
   @OneToMany(mappedBy = "protocolo", cascade = CascadeType.ALL)
@@ -54,6 +54,11 @@ public class Protocolo extends BaseEntity {
 
   @OneToMany(mappedBy = "protocolo", cascade = CascadeType.ALL)
   private List<Comentario> comentarios;
+
+  @ManyToMany(cascade = CascadeType.DETACH)
+  @JoinTable(name = "TB_NPTC_PROTOCOLO_FILHO", joinColumns = {
+      @JoinColumn(name = "ID_PAI")}, inverseJoinColumns = {@JoinColumn(name = "ID_FILHO")}, schema = "USRDBVAH")
+  private List<Protocolo> protocolos;
 
   @Column(name = "DT_ENVIO")
   private Date dataEnvio;
@@ -66,11 +71,6 @@ public class Protocolo extends BaseEntity {
 
   @Column(name = "SN_ARQUIVADO")
   private Boolean arquivado = false;
-
-  //@ManyToOne
-  //@JoinColumn(name = "ID_PAI")
-  @Transient
-  private Protocolo pai;
 
   @Override
   public Long getId() {
@@ -178,12 +178,12 @@ public class Protocolo extends BaseEntity {
     this.comentarios = comentarios;
   }
 
-  public Protocolo getPai() {
-    return pai;
+  public List<Protocolo> getProtocolos() {
+    return protocolos;
   }
 
-  public void setPai(Protocolo pai) {
-    this.pai = pai;
+  public void setProtocolos(List<Protocolo> protocolos) {
+    this.protocolos = protocolos;
   }
 
   @Override

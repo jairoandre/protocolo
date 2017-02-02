@@ -154,24 +154,16 @@ public class ProtocoloSrv extends DataAccessService<Protocolo> {
     return protocolo;
   }
 
-  public Protocolo salvarParcial(Protocolo protocolo, List<DocumentoDTO> documentos, List<ItemProtocolo> itensToRemove, User user) {
+  public Protocolo salvarParcial(Protocolo protocolo, List<DocumentoDTO> documentos, User user) {
 
     addHistorico(protocolo, user, protocolo.getEstado());
 
-    if (itensToRemove != null && !itensToRemove.isEmpty()) {
-      for (ItemProtocolo item : itensToRemove) {
-        itemProtocoloService.delete(item.getId());
-      }
-    }
-
-    if (documentos != null) {
+    if (documentos != null && !documentos.isEmpty()) {
       for (DocumentoDTO docDTO : documentos) {
         docDTO.setProtocolo(protocolo);
         protocolo.getItens().add(docDTO.criarItemProtocolo());
       }
     }
-
-    // TODO: Verificar numero conta do protocolo
 
     return this.update(protocolo);
   }
@@ -420,6 +412,7 @@ public class ProtocoloSrv extends DataAccessService<Protocolo> {
     new LinkedHashSet<>(att.getItens());
     new LinkedHashSet<>(att.getHistorico());
     new LinkedHashSet<>(att.getComentarios());
+    new LinkedHashSet<>(att.getProtocolos());
     return att;
   }
 
