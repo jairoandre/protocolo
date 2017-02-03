@@ -395,6 +395,16 @@ public class ProtocoloSrv extends DataAccessService<Protocolo> {
     return new Integer[] {totalDocumentos, totalPrescricoes, totalEvolucoes, totalFolha, totalDescricoes, totalRegistros, totalDocumentosManuais};
   }
 
+  public List<Protocolo> buscarProtocolos(Protocolo protocolo) {
+    Session session = getEm().unwrap(Session.class);
+    Criteria criteria = session.createCriteria(Protocolo.class);
+    criteria.add(Restrictions.eq("atendimento", protocolo.getAtendimento()));
+    criteria.add(Restrictions.eq("estado", EstadosProtocoloEnum.RECEBIDO));
+    criteria.add(Restrictions.eq("destino", protocolo.getOrigem()));
+    List<Protocolo> result = criteria.list();
+    return result;
+  }
+
   public Protocolo buscarDadosRascunho(Atendimento atendimento) {
     Session session = getEm().unwrap(Session.class);
     Criteria criteria = session.createCriteria(Protocolo.class);

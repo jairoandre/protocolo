@@ -5,7 +5,6 @@ import br.com.vah.protocolo.constants.RolesEnum;
 import br.com.vah.protocolo.dto.DocumentoDTO;
 import br.com.vah.protocolo.entities.dbamv.Setor;
 import br.com.vah.protocolo.entities.usrdbvah.Comentario;
-import br.com.vah.protocolo.entities.usrdbvah.ItemProtocolo;
 import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
 import br.com.vah.protocolo.exceptions.ProtocoloBusinessException;
@@ -93,6 +92,8 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
   private Boolean renderReceberDlg = false;
 
   private Boolean renderDocumentosDlg = false;
+
+  private List<Protocolo> protocolos;
 
   @PostConstruct
   public void init() {
@@ -245,9 +246,17 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
     setItem(createNewItem());
   }
 
-  public void buscarDocumentosNaoSelecionados() {
-    documentosNaoSelecionados =
-        service.buscarDocumentosNaoSelecionados(getItem().getAtendimento(), inicioDate, terminoDate, null, getItem());
+  public void searchDocumentos() {
+    if (getItem().getOrigem() != null) {
+      if(getItem().getOrigem().getNivel() == 0) {
+        documentosNaoSelecionados =
+            service.buscarDocumentosNaoSelecionados(getItem().getAtendimento(), inicioDate, terminoDate, null, getItem());
+      } else {
+        protocolos =
+            service.buscarProtocolos(getItem());
+      }
+    }
+
   }
 
   private void contarDocumentos() {
@@ -311,10 +320,10 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
       docsSelecionados = documentosNaoSelecionados.getSelecionados();
     }
     try {
-      setItem(service.initializeLists(getItem()));
       setItem(service.salvarParcial(getItem(), docsSelecionados, session.getUser()));
+      setItem(service.initializeLists(getItem()));
       prepareDocumentos();
-      buscarDocumentosNaoSelecionados();
+      searchDocumentos();
       addMsg(new FacesMessage(FacesMessage.SEVERITY_INFO, "Sucesso", String.format("Rascunho salvo protocolo nº <b>%s</b>.", getItem().getId())), true);
     } catch (ProtocoloPersistException ppe) {
       addMsg(new FacesMessage(FacesMessage.SEVERITY_WARN, "Atenção", String.format("Erro durante a persistência de dados.")), true);
@@ -325,7 +334,7 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
   @Override
   public void onLoad() {
     super.onLoad();
-    if(getItem().getId() != null) {
+    if (getItem().getId() != null) {
       setItem(service.initializeLists(getItem()));
       prepareDocumentos();
     }
@@ -471,12 +480,20 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
     return renderDocumentosDlg;
   }
 
+  public List<Protocolo> getProtocolos() {
+    return protocolos;
+  }
+
+  public void setProtocolos(List<Protocolo> protocolos) {
+    this.protocolos = protocolos;
+  }
+
   public EstadosProtocoloEnum getAcaoComentario() {
     return acaoComentario;
   }
 
   public Boolean getRegistrarRecebBtnDisabled() {
-    if (documentosSelecionados != null ) {
+    if (documentosSelecionados != null) {
       for (Map.Entry<String, List<DocumentoDTO>> docEntry : documentosSelecionados.getList()) {
         if (docEntry.getValue() != null) {
           for (DocumentoDTO doc : docEntry.getValue()) {
