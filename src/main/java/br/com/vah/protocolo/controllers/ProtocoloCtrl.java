@@ -95,6 +95,8 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
 
   private List<Protocolo> protocolos;
 
+  private Protocolo protocoloToVisualize;
+
   @PostConstruct
   public void init() {
     logger.info(this.getClass().getSimpleName() + " created");
@@ -141,6 +143,12 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
     prepareSearch();
   }
 
+  public void changeOrigem() {
+    getItem().getItens().clear();
+    getItem().getProtocolos().clear();
+    contarDocumentos();
+  }
+
   public void clearSetor() {
     setor = null;
     prepareSearch();
@@ -180,6 +188,13 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
     setItem(service.initializeLists(protocolo));
   }
 
+  public void preOpenDocumentosItemDlg(Protocolo protocolo) {
+    Protocolo att = service.initializeLists(protocolo);
+    documentosSelecionados = service.gerarDocumentosSelecionados(att);
+    renderDocumentosDlg = true;
+    protocoloToVisualize = att;
+  }
+
   public void preOpenDocumentosDlg(Protocolo protocolo) {
     Protocolo att = service.initializeLists(protocolo);
     documentosSelecionados = service.gerarDocumentosSelecionados(att);
@@ -191,6 +206,10 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
     Protocolo att = service.initializeLists(protocolo);
     renderComentariosDlg = true;
     setItem(att);
+  }
+
+  public void closeDocumentosItemDlg() {
+    renderDocumentosDlg = false;
   }
 
 
@@ -260,7 +279,12 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
   }
 
   private void contarDocumentos() {
-    Integer[] totais = service.contarDocumentos(getItem());
+    Integer[] totais;
+    if (getItem().getProtocolos() != null && !getItem().getProtocolos().isEmpty()) {
+      totais = service.contarDocumentosFilhos(getItem());
+    } else {
+      totais = service.contarDocumentos(getItem());
+    }
     showSumario = true;
     totalDocumentos = totais[0];
     totalPrescricoes = totais[1];
@@ -312,6 +336,19 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
       protocolo.setOrigem(setor);
     }
     return protocolo;
+  }
+
+  public void associarProtocolos() {
+    List<Protocolo> naoAssociados = new ArrayList<>();
+    for (Protocolo protocolo : this.protocolos) {
+      if (protocolo.getSelected()) {
+        getItem().getProtocolos().add(protocolo);
+      } else {
+        naoAssociados.add(protocolo);
+      }
+    }
+    this.protocolos = naoAssociados;
+    contarDocumentos();
   }
 
   public void salvarParcial() {
@@ -490,6 +527,14 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
 
   public EstadosProtocoloEnum getAcaoComentario() {
     return acaoComentario;
+  }
+
+  public Protocolo getProtocoloToVisualize() {
+    return protocoloToVisualize;
+  }
+
+  public void setProtocoloToVisualize(Protocolo protocoloToVisualize) {
+    this.protocoloToVisualize = protocoloToVisualize;
   }
 
   public Boolean getRegistrarRecebBtnDisabled() {

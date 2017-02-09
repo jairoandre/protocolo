@@ -358,6 +358,22 @@ public class ProtocoloSrv extends DataAccessService<Protocolo> {
     return protocolo;
   }
 
+  public Integer[] contarDocumentosFilhos(Protocolo protocolo) {
+    Integer[] result = new Integer[] {0, 0, 0, 0, 0, 0, 0};
+    for (Protocolo filho : protocolo.getProtocolos()) {
+      filho = initializeLists(filho);
+      Integer[] resultFilho = contarDocumentos(filho);
+      result[0] += resultFilho[0];
+      result[1] += resultFilho[1];
+      result[2] += resultFilho[2];
+      result[3] += resultFilho[3];
+      result[4] += resultFilho[4];
+      result[5] += resultFilho[5];
+      result[6] += resultFilho[6];
+    }
+    return result;
+  }
+
   public Integer[] contarDocumentos(Protocolo protocolo) {
     Integer totalDocumentos = 0;
     Integer totalPrescricoes = 0;
@@ -402,7 +418,13 @@ public class ProtocoloSrv extends DataAccessService<Protocolo> {
     criteria.add(Restrictions.eq("estado", EstadosProtocoloEnum.RECEBIDO));
     criteria.add(Restrictions.eq("destino", protocolo.getOrigem()));
     List<Protocolo> result = criteria.list();
-    return result;
+    List<Protocolo> naoAssociados = new ArrayList<>();
+    for (Protocolo item : result) {
+      if (!protocolo.getProtocolos().contains(item)) {
+       naoAssociados.add(item);
+      }
+    }
+    return naoAssociados;
   }
 
   public Protocolo buscarDadosRascunho(Atendimento atendimento) {
@@ -413,6 +435,7 @@ public class ProtocoloSrv extends DataAccessService<Protocolo> {
     criteria.setFetchMode("itens", FetchMode.SELECT);
     criteria.setFetchMode("historico", FetchMode.SELECT);
     criteria.setFetchMode("comentarios", FetchMode.SELECT);
+    criteria.setFetchMode("protocolos", FetchMode.SELECT);
     List<Protocolo> protocolos = criteria.list();
     return protocolos.isEmpty() ? null : protocolos.get(0);
   }

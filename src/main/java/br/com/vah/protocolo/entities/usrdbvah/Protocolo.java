@@ -58,7 +58,7 @@ public class Protocolo extends BaseEntity {
   @ManyToMany(cascade = CascadeType.DETACH)
   @JoinTable(name = "TB_NPTC_PROTOCOLO_FILHO", joinColumns = {
       @JoinColumn(name = "ID_PAI")}, inverseJoinColumns = {@JoinColumn(name = "ID_FILHO")}, schema = "USRDBVAH")
-  private List<Protocolo> protocolos;
+  private Set<Protocolo> protocolos = new LinkedHashSet<>();
 
   @Column(name = "DT_ENVIO")
   private Date dataEnvio;
@@ -71,6 +71,9 @@ public class Protocolo extends BaseEntity {
 
   @Column(name = "SN_ARQUIVADO")
   private Boolean arquivado = false;
+
+  @Transient
+  private Boolean selected;
 
   @Override
   public Long getId() {
@@ -178,12 +181,20 @@ public class Protocolo extends BaseEntity {
     this.comentarios = comentarios;
   }
 
-  public List<Protocolo> getProtocolos() {
+  public Set<Protocolo> getProtocolos() {
     return protocolos;
   }
 
-  public void setProtocolos(List<Protocolo> protocolos) {
+  public void setProtocolos(Set<Protocolo> protocolos) {
     this.protocolos = protocolos;
+  }
+
+  public Boolean getSelected() {
+    return selected;
+  }
+
+  public void setSelected(Boolean selected) {
+    this.selected = selected;
   }
 
   @Override
