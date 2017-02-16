@@ -15,9 +15,9 @@ import java.util.Date;
  * Created by Jairoportela on 06/04/2016.
  */
 @Stateless
-public class AtendimentoService extends DataAccessService<Atendimento> {
+public class AtendimentoSrv extends AbstractSrv<Atendimento> {
 
-  public AtendimentoService() {
+  public AtendimentoSrv() {
     super(Atendimento.class);
   }
 

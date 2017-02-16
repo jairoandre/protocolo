@@ -1,8 +1,8 @@
 package br.com.vah.protocolo.converters;
 
 import br.com.vah.protocolo.entities.dbamv.Convenio;
-import br.com.vah.protocolo.service.ConvenioService;
-import br.com.vah.protocolo.service.DataAccessService;
+import br.com.vah.protocolo.service.ConvenioSrv;
+import br.com.vah.protocolo.service.AbstractSrv;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -12,10 +12,10 @@ public class ConvenioConverter extends GenericConverter<Convenio> {
 
   private
   @Inject
-  ConvenioService service;
+  ConvenioSrv service;
 
   @Override
-  public DataAccessService<Convenio> getService() {
+  public AbstractSrv<Convenio> getService() {
     return service;
   }
 }

@@ -5,6 +5,7 @@ import java.util.Date;
 import br.com.vah.protocolo.constants.TipoDocumentoEnum;
 import br.com.vah.protocolo.entities.dbamv.AvisoCirurgia;
 import br.com.vah.protocolo.entities.dbamv.PrescricaoMedica;
+import br.com.vah.protocolo.entities.dbamv.RegFaturamento;
 import br.com.vah.protocolo.entities.dbamv.RegistroDocumento;
 import br.com.vah.protocolo.entities.usrdbvah.ItemProtocolo;
 import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
@@ -25,6 +26,8 @@ public class DocumentoDTO {
   private String conselho;
   private ItemProtocolo itemProtocolo;
   private Boolean selected = false;
+  private Protocolo protocoloItem;
+  private RegFaturamento conta;
 
   public DocumentoDTO(PrescricaoMedica prescricao, TipoDocumentoEnum tipo) {
     setFieldsForPrescricao(prescricao, tipo);
@@ -66,6 +69,29 @@ public class DocumentoDTO {
     this.prestador = registro.getNomeUsuario();
   }
 
+  public DocumentoDTO(Protocolo protocolo) {
+    setFieldsProtocoloFilho(protocolo);
+  }
+
+  private void setFieldsProtocoloFilho(Protocolo protocoloItem) {
+    this.protocoloItem = protocoloItem;
+    this.data = protocoloItem.getDataEnvio();
+    this.dataHoraCriacao = protocoloItem.getDataEnvio();
+    this.codigo = String.valueOf(protocoloItem.getId());
+    this.tipo = TipoDocumentoEnum.PROTOCOLO;
+  }
+
+  public DocumentoDTO(RegFaturamento conta) {
+    setFieldsConta(conta);
+  }
+
+  private void setFieldsConta(RegFaturamento conta) {
+    this.conta = conta;
+    this.data = conta.getInicio();
+    this.codigo = String.valueOf(conta.getId());
+    this.tipo = TipoDocumentoEnum.CONTA;
+  }
+
   public DocumentoDTO(ItemProtocolo itemProtocolo) {
     this.itemProtocolo = itemProtocolo;
     switch (itemProtocolo.getTipo()) {
@@ -80,13 +106,15 @@ public class DocumentoDTO {
       case REGISTRO_DOCUMENTO:
         setFieldsForRegistroDocumento(itemProtocolo.getRegistroDocumento());
         break;
+      case PROTOCOLO:
+        setFieldsProtocoloFilho(itemProtocolo.getProtocoloItem());
+        break;
+      case CONTA:
+        setFieldsConta(itemProtocolo.getConta());
+        break;
       default:
         break;
     }
-  }
-
-  public DocumentoDTO() {
-    // Documentos de prontuário
   }
 
   public ItemProtocolo getItemProtocolo() {
@@ -103,6 +131,10 @@ public class DocumentoDTO {
       itemProtocolo.setAvisoCirurgia(aviso);
     } else if (registro != null) {
       itemProtocolo.setRegistroDocumento(registro);
+    } else if (protocoloItem != null) {
+      itemProtocolo.setProtocoloItem(protocoloItem);
+    } else if (conta != null) {
+      itemProtocolo.setConta(conta);
     }
     return itemProtocolo;
   }
@@ -193,6 +225,22 @@ public class DocumentoDTO {
 
   public void setAviso(AvisoCirurgia aviso) {
     this.aviso = aviso;
+  }
+
+  public Protocolo getProtocoloItem() {
+    return protocoloItem;
+  }
+
+  public void setProtocoloItem(Protocolo protocoloItem) {
+    this.protocoloItem = protocoloItem;
+  }
+
+  public RegFaturamento getConta() {
+    return conta;
+  }
+
+  public void setConta(RegFaturamento conta) {
+    this.conta = conta;
   }
 
   public String getConselho() {

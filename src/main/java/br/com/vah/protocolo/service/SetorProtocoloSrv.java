@@ -8,7 +8,7 @@ import javax.ejb.Stateless;
  * Created by Jairoportela on 26/01/2017.
  */
 @Stateless
-public class SetorProtocoloSrv extends DataAccessService<SetorProtocolo> {
+public class SetorProtocoloSrv extends AbstractSrv<SetorProtocolo> {
 
 
   public SetorProtocoloSrv() {

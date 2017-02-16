@@ -24,28 +24,39 @@ public class DtoKeyMap implements Serializable {
   public void put(String key, List<DocumentoDTO> value) {
     map.put(key, value);
     list = new ArrayList<>(map.entrySet());
-    Collections.sort(list, new Comparator<Map.Entry<String, List<DocumentoDTO>>>() {
-      @Override
-      public int compare(Map.Entry<String, List<DocumentoDTO>> o1, Map.Entry<String, List<DocumentoDTO>> o2) {
-        return o1.getKey().compareTo(o2.getKey());
-      }
-    });
+    Collections.sort(list, (o1, o2) -> o1.getKey().compareTo(o2.getKey()));
   }
 
   public List<DocumentoDTO> getSelecionados() {
     List<DocumentoDTO> selecionados = new ArrayList<>();
-    if (getList() != null) {
-      for (Map.Entry<String, List<DocumentoDTO>> docEntry : getList()) {
+    if (list != null) {
+      list.forEach((docEntry) -> {
         if (docEntry.getValue() != null) {
-          for (DocumentoDTO doc : docEntry.getValue()) {
+          docEntry.getValue().forEach((doc) -> {
             if (doc.getSelected()) {
               selecionados.add(doc);
             }
-          }
+          });
         }
-      }
+      });
     }
     return selecionados;
+  }
+
+  public DtoKeyMap getNotSelectedMap() {
+    DtoKeyMap notSelectedMap = new DtoKeyMap();
+    if (list != null) {
+      list.forEach((docEntry) -> {
+        List<DocumentoDTO> notSelecteds = new ArrayList<>();
+        docEntry.getValue().forEach((item) -> {
+          if (!item.getSelected()) {
+            notSelecteds.add(item);
+          }
+        });
+        notSelectedMap.put(docEntry.getKey(), notSelecteds);
+      });
+    }
+    return notSelectedMap;
   }
 
   public List<DocumentoDTO> get(String key) {

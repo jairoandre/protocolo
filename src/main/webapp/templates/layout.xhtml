@@ -44,5 +44,21 @@
   <h:panelGroup layout="block" style="padding: 5px 5px;">
     <ui:insert name="content"/>
   </h:panelGroup>
+  <script type="text/javascript">
+    function openLoading() {
+      PF('changePage').show();
+    }
+
+    function closeLoading() {
+      PF('changePage').hide();
+    }
+
+    function countDownCharacters(value, size, outputSelector) {
+      var output = document.querySelector(outputSelector);
+      var delta = size - (value ? value.length : 0);
+      output.innerHTML = delta.toString();
+    }
+
+  </script>
 </h:body>
 </html>

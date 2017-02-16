@@ -8,9 +8,9 @@ import javax.ejb.Stateless;
  * Created by jairoportela on 11/07/2016.
  */
 @Stateless
-public class ItemProtocoloService extends DataAccessService<ItemProtocolo> {
+public class ItemProtocoloSrv extends AbstractSrv<ItemProtocolo> {
 
-  public ItemProtocoloService() {
+  public ItemProtocoloSrv() {
     super(ItemProtocolo.class);
   }
 

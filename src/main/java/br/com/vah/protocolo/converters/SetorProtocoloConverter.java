@@ -1,7 +1,7 @@
 package br.com.vah.protocolo.converters;
 
 import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
-import br.com.vah.protocolo.service.DataAccessService;
+import br.com.vah.protocolo.service.AbstractSrv;
 import br.com.vah.protocolo.service.SetorProtocoloSrv;
 
 import javax.inject.Inject;
@@ -16,7 +16,7 @@ public class SetorProtocoloConverter  extends GenericConverter<SetorProtocolo> {
   SetorProtocoloSrv service;
 
   @Override
-  public DataAccessService<SetorProtocolo> getService() {
+  public AbstractSrv<SetorProtocolo> getService() {
     return service;
   }
 }

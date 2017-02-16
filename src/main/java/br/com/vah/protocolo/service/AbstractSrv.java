@@ -28,14 +28,14 @@ import org.hibernate.criterion.*;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 @Stateless
-public abstract class DataAccessService<T> implements Serializable {
+public abstract class AbstractSrv<T> implements Serializable {
 
   public static final String ID = "id";
 
   @PersistenceContext
   private EntityManager em;
 
-  public DataAccessService() {
+  public AbstractSrv() {
   }
 
   private Class<T> type;
@@ -45,7 +45,7 @@ public abstract class DataAccessService<T> implements Serializable {
    *
    * @param type entity class
    */
-  public DataAccessService(Class<T> type) {
+  public AbstractSrv(Class<T> type) {
     this.type = type;
   }
 
@@ -215,6 +215,15 @@ public abstract class DataAccessService<T> implements Serializable {
     query.setMaxResults(end - start);
     query.setFirstResult(start);
     return query.getResultList();
+  }
+
+  /**
+   * Session
+   *
+   * @return
+   */
+  public Session getSession() {
+    return em.unwrap(Session.class);
   }
 
   /**

@@ -3,14 +3,15 @@ package br.com.vah.protocolo.controllers;
 import br.com.vah.protocolo.constants.EstadosProtocoloEnum;
 import br.com.vah.protocolo.constants.RolesEnum;
 import br.com.vah.protocolo.dto.DocumentoDTO;
+import br.com.vah.protocolo.entities.dbamv.RegFaturamento;
 import br.com.vah.protocolo.entities.dbamv.Setor;
 import br.com.vah.protocolo.entities.usrdbvah.Comentario;
 import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
 import br.com.vah.protocolo.exceptions.ProtocoloBusinessException;
 import br.com.vah.protocolo.exceptions.ProtocoloPersistException;
-import br.com.vah.protocolo.service.AtendimentoService;
-import br.com.vah.protocolo.service.DataAccessService;
+import br.com.vah.protocolo.service.AtendimentoSrv;
+import br.com.vah.protocolo.service.AbstractSrv;
 import br.com.vah.protocolo.service.ProtocoloSrv;
 import br.com.vah.protocolo.util.DtoKeyMap;
 import br.com.vah.protocolo.util.ViewUtils;
@@ -20,10 +21,7 @@ import javax.faces.application.FacesMessage;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -47,7 +45,7 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
 
   private
   @Inject
-  AtendimentoService atendimentoService;
+  AtendimentoSrv atendimentoSrv;
 
   public static final String[] RELATIONS = {"itens", "historico", "comentarios"};
 
@@ -92,8 +90,6 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
   private Boolean renderReceberDlg = false;
 
   private Boolean renderDocumentosDlg = false;
-
-  private List<Protocolo> protocolos;
 
   private Protocolo protocoloToVisualize;
 
@@ -145,7 +141,6 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
 
   public void changeOrigem() {
     getItem().getItens().clear();
-    getItem().getProtocolos().clear();
     contarDocumentos();
   }
 
@@ -234,7 +229,7 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
   }
 
   public void recuperarDadosRascunho() {
-    Protocolo rascunho = service.buscarDadosRascunho(getItem().getAtendimento());
+    Protocolo rascunho = service.buscarDadosRascunho(getItem());
     if (rascunho == null) {
       if (session.getSetor() != null) {
         getItem().setOrigem(session.getSetor());
@@ -267,24 +262,15 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
 
   public void searchDocumentos() {
     if (getItem().getOrigem() != null) {
-      if(getItem().getOrigem().getNivel() == 0) {
-        documentosNaoSelecionados =
-            service.buscarDocumentosNaoSelecionados(getItem().getAtendimento(), inicioDate, terminoDate, null, getItem());
-      } else {
-        protocolos =
-            service.buscarProtocolos(getItem());
-      }
+      documentosNaoSelecionados =
+          service.buscarDocumentosNaoSelecionados(getItem(), inicioDate, terminoDate);
     }
 
   }
 
+
   private void contarDocumentos() {
-    Integer[] totais;
-    if (getItem().getProtocolos() != null && !getItem().getProtocolos().isEmpty()) {
-      totais = service.contarDocumentosFilhos(getItem());
-    } else {
-      totais = service.contarDocumentos(getItem());
-    }
+    Integer[] totais = service.contarDocumentos(getItem());
     showSumario = true;
     totalDocumentos = totais[0];
     totalPrescricoes = totais[1];
@@ -319,7 +305,7 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
   }
 
   @Override
-  public DataAccessService<Protocolo> getService() {
+  public AbstractSrv<Protocolo> getService() {
     return service;
   }
 
@@ -338,29 +324,30 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
     return protocolo;
   }
 
-  public void associarProtocolos() {
-    List<Protocolo> naoAssociados = new ArrayList<>();
-    for (Protocolo protocolo : this.protocolos) {
-      if (protocolo.getSelected()) {
-        getItem().getProtocolos().add(protocolo);
-      } else {
-        naoAssociados.add(protocolo);
-      }
+  public void changeInicio() {
+    if (inicioDate != null) {
+      Calendar cld = Calendar.getInstance();
+      cld.setTime(inicioDate);
+      cld.add(Calendar.DAY_OF_MONTH, 1);
+      terminoDate = cld.getTime();
     }
-    this.protocolos = naoAssociados;
-    contarDocumentos();
+  }
+
+  public void vincularDocumentos() {
+    if (documentosNaoSelecionados != null) {
+      documentosNaoSelecionados.getSelecionados().forEach((dto) -> {
+        dto.setProtocolo(getItem());
+        getItem().getItens().add(dto.criarItemProtocolo());
+      });
+      documentosNaoSelecionados = documentosNaoSelecionados.getNotSelectedMap();
+      prepareDocumentos();
+    }
   }
 
   public void salvarParcial() {
-    List<DocumentoDTO> docsSelecionados = new ArrayList<>();
-    if (documentosNaoSelecionados != null) {
-      docsSelecionados = documentosNaoSelecionados.getSelecionados();
-    }
     try {
-      setItem(service.salvarParcial(getItem(), docsSelecionados, session.getUser()));
+      setItem(service.salvarParcial(getItem(), session.getUser()));
       setItem(service.initializeLists(getItem()));
-      prepareDocumentos();
-      searchDocumentos();
       addMsg(new FacesMessage(FacesMessage.SEVERITY_INFO, "Sucesso", String.format("Rascunho salvo protocolo nº <b>%s</b>.", getItem().getId())), true);
     } catch (ProtocoloPersistException ppe) {
       addMsg(new FacesMessage(FacesMessage.SEVERITY_WARN, "Atenção", String.format("Erro durante a persistência de dados.")), true);
@@ -517,14 +504,6 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
     return renderDocumentosDlg;
   }
 
-  public List<Protocolo> getProtocolos() {
-    return protocolos;
-  }
-
-  public void setProtocolos(List<Protocolo> protocolos) {
-    this.protocolos = protocolos;
-  }
-
   public EstadosProtocoloEnum getAcaoComentario() {
     return acaoComentario;
   }
@@ -546,10 +525,23 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
               return true;
             }
           }
-          return false;
         }
       }
     }
-    return true;
+    return false;
+  }
+
+  public void selecionarTodosRecebimento() {
+    for (Map.Entry<String, List<DocumentoDTO>> docEntry : documentosSelecionados.getList()) {
+      if (docEntry.getValue() != null) {
+        for (DocumentoDTO doc : docEntry.getValue()) {
+          doc.setSelected(true);
+        }
+      }
+    }
+  }
+
+  public void selecionarTodosDocumentos() {
+    documentosNaoSelecionados.getList().forEach((item) -> item.getValue().forEach((value) -> value.setSelected(true)));
   }
 }

@@ -31,9 +31,6 @@ public class Protocolo extends BaseEntity {
   @JoinColumn(name = "CD_ATENDIMENTO")
   private Atendimento atendimento;
 
-  @Column(name = "CD_REG_FAT")
-  private Long conta;
-
   @Column(name = "CD_STATUS")
   @Enumerated(EnumType.ORDINAL)
   private EstadosProtocoloEnum estado = EstadosProtocoloEnum.RASCUNHO;
@@ -54,11 +51,6 @@ public class Protocolo extends BaseEntity {
 
   @OneToMany(mappedBy = "protocolo", cascade = CascadeType.ALL)
   private List<Comentario> comentarios;
-
-  @ManyToMany(cascade = CascadeType.DETACH)
-  @JoinTable(name = "TB_NPTC_PROTOCOLO_FILHO", joinColumns = {
-      @JoinColumn(name = "ID_PAI")}, inverseJoinColumns = {@JoinColumn(name = "ID_FILHO")}, schema = "USRDBVAH")
-  private Set<Protocolo> protocolos = new LinkedHashSet<>();
 
   @Column(name = "DT_ENVIO")
   private Date dataEnvio;
@@ -91,14 +83,6 @@ public class Protocolo extends BaseEntity {
 
   public void setAtendimento(Atendimento atendimento) {
     this.atendimento = atendimento;
-  }
-
-  public Long getConta() {
-    return conta;
-  }
-
-  public void setConta(Long conta) {
-    this.conta = conta;
   }
 
   public EstadosProtocoloEnum getEstado() {
@@ -179,14 +163,6 @@ public class Protocolo extends BaseEntity {
 
   public void setComentarios(List<Comentario> comentarios) {
     this.comentarios = comentarios;
-  }
-
-  public Set<Protocolo> getProtocolos() {
-    return protocolos;
-  }
-
-  public void setProtocolos(Set<Protocolo> protocolos) {
-    this.protocolos = protocolos;
   }
 
   public Boolean getSelected() {

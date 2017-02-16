@@ -2,9 +2,13 @@ package br.com.vah.protocolo.service;
 
 import br.com.vah.protocolo.entities.dbamv.Atendimento;
 import br.com.vah.protocolo.entities.dbamv.RegistroDocumento;
+import br.com.vah.protocolo.entities.usrdbvah.ItemProtocolo;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.Subqueries;
 
 import java.util.Date;
 import java.util.List;
@@ -12,9 +16,9 @@ import java.util.List;
 /**
  * Created by jairoportela on 23/06/2016.
  */
-public class RegistroDocumentoService extends DataAccessService<RegistroDocumento> {
+public class RegistroDocumentoSrv extends AbstractSrv<RegistroDocumento> {
 
-  public RegistroDocumentoService() {
+  public RegistroDocumentoSrv() {
     super(RegistroDocumento.class);
   }
 
@@ -23,7 +27,7 @@ public class RegistroDocumentoService extends DataAccessService<RegistroDocument
 
     Session session = getEm().unwrap(Session.class);
 
-    Criteria criteria = session.createCriteria(RegistroDocumento.class);
+    Criteria criteria = session.createCriteria(RegistroDocumento.class, "reg");
 
     criteria.add(Restrictions.eq("atendimento", atendimento));
 
@@ -36,6 +40,10 @@ public class RegistroDocumentoService extends DataAccessService<RegistroDocument
     criteria.add(Restrictions.between("dataRegistro", inicio, fim));
 
     criteria.add(Restrictions.eq("multiEmpresa", 1l));
+
+    // Remove itens já protocolados.
+    DetachedCriteria dt = DetachedCriteria.forClass(ItemProtocolo.class, "i");
+    criteria.add(Subqueries.notExists(dt.setProjection(Projections.id()).add(Restrictions.eqProperty("reg.id", "i.registroDocumento.id"))));
 
     return criteria.list();
   }

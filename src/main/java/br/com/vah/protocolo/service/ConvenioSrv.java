@@ -8,9 +8,9 @@ import javax.ejb.Stateless;
  * Created by Jairoportela on 06/04/2016.
  */
 @Stateless
-public class ConvenioService extends DataAccessService<Convenio> {
+public class ConvenioSrv extends AbstractSrv<Convenio> {
 
-  public ConvenioService() {
+  public ConvenioSrv() {
     super(Convenio.class);
   }
 

@@ -1,10 +1,9 @@
 package br.com.vah.protocolo.controllers;
 
 import br.com.vah.protocolo.constants.RolesEnum;
-import br.com.vah.protocolo.entities.dbamv.Setor;
 import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
 import br.com.vah.protocolo.entities.usrdbvah.User;
-import br.com.vah.protocolo.service.UserService;
+import br.com.vah.protocolo.service.UserSrv;
 import br.com.vah.protocolo.util.DateUtility;
 import org.primefaces.event.SelectEvent;
 
@@ -39,7 +38,7 @@ public class SessionController implements Serializable {
 
   private
   @Inject
-  UserService userService;
+  UserSrv userSrv;
 
 
   private String username;
@@ -112,7 +111,7 @@ public class SessionController implements Serializable {
        * Verifica se o usuário já está configurado no sistema
        */
 
-      user = userService.findByLogin(usernameLC);
+      user = userSrv.findByLogin(usernameLC);
 
 
       /**
@@ -121,7 +120,7 @@ public class SessionController implements Serializable {
       if (user == null) {
         user = new User();
         user.setLogin(usernameLC);
-        user = userService.create(user);
+        user = userSrv.create(user);
       }
 
       // gets the user principle and navigates to the appropriate page

@@ -4,6 +4,7 @@ import br.com.vah.protocolo.constants.TipoDocumentoEnum;
 import br.com.vah.protocolo.dto.DocumentoDTO;
 import br.com.vah.protocolo.entities.dbamv.AvisoCirurgia;
 import br.com.vah.protocolo.entities.dbamv.PrescricaoMedica;
+import br.com.vah.protocolo.entities.dbamv.RegFaturamento;
 import br.com.vah.protocolo.entities.dbamv.RegistroDocumento;
 
 import javax.persistence.*;
@@ -48,8 +49,12 @@ public class ItemProtocolo implements Serializable {
   private DocumentoManual documentoManual;
 
   @ManyToOne
-  @JoinColumn(name = "ID_PROTOCOLO_REENVIO")
-  private Protocolo reenvio;
+  @JoinColumn(name = "ID_PROTOCOLO_ITEM")
+  private Protocolo protocoloItem;
+
+  @ManyToOne
+  @JoinColumn(name = "CD_REG_FAT")
+  private RegFaturamento conta;
 
   @Column(name = "CD_TIPO")
   @Enumerated(EnumType.STRING)
@@ -103,12 +108,20 @@ public class ItemProtocolo implements Serializable {
     this.documentoManual = documentoManual;
   }
 
-  public Protocolo getReenvio() {
-    return reenvio;
+  public Protocolo getProtocoloItem() {
+    return protocoloItem;
   }
 
-  public void setReenvio(Protocolo reenvio) {
-    this.reenvio = reenvio;
+  public void setProtocoloItem(Protocolo protocoloItem) {
+    this.protocoloItem = protocoloItem;
+  }
+
+  public RegFaturamento getConta() {
+    return conta;
+  }
+
+  public void setConta(RegFaturamento conta) {
+    this.conta = conta;
   }
 
   public TipoDocumentoEnum getTipo() {

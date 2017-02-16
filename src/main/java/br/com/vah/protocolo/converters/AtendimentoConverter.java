@@ -1,8 +1,8 @@
 package br.com.vah.protocolo.converters;
 
 import br.com.vah.protocolo.entities.dbamv.Atendimento;
-import br.com.vah.protocolo.service.AtendimentoService;
-import br.com.vah.protocolo.service.DataAccessService;
+import br.com.vah.protocolo.service.AtendimentoSrv;
+import br.com.vah.protocolo.service.AbstractSrv;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -11,11 +11,11 @@ import javax.inject.Named;
 public class AtendimentoConverter extends GenericConverter<Atendimento> {
 
   private @Inject
-  AtendimentoService service;
+  AtendimentoSrv service;
 
 
   @Override
-  public DataAccessService<Atendimento> getService() {
+  public AbstractSrv<Atendimento> getService() {
     return service;
   }
 }

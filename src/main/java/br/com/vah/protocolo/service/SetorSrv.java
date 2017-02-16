@@ -11,9 +11,9 @@ import javax.ejb.Stateless;
  * Created by Jairoportela on 06/04/2016.
  */
 @Stateless
-public class SetorService extends DataAccessService<Setor> {
+public class SetorSrv extends AbstractSrv<Setor> {
 
-  public SetorService() {
+  public SetorSrv() {
     super(Setor.class);
   }
 

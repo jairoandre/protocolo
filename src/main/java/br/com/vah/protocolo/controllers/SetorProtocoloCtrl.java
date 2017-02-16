@@ -1,7 +1,7 @@
 package br.com.vah.protocolo.controllers;
 
 import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
-import br.com.vah.protocolo.service.DataAccessService;
+import br.com.vah.protocolo.service.AbstractSrv;
 import br.com.vah.protocolo.service.SetorProtocoloSrv;
 
 import javax.annotation.PostConstruct;
@@ -34,7 +34,7 @@ public class SetorProtocoloCtrl extends AbstractController<SetorProtocolo> {
 
 
   @Override
-  public DataAccessService<SetorProtocolo> getService() {
+  public AbstractSrv<SetorProtocolo> getService() {
     return service;
   }
 

@@ -34,37 +34,17 @@
 
           <p:focus context="protocoloPnlWrapper"/>
 
-          <!-- ATENDIMENTO GRID -->
-          <h:panelGrid id="atendimentoGrid" columns="3" style="margin: 10px 0;">
-            <uivah:autoComplete id="atendimento" value="#{protocoloCtrl.item.atendimento}" label="Atendimento"
-                                controller="#{atendimentoController}" completeMethod="completeAtendimento"
-                                editing="#{protocoloCtrl.editing and protocoloCtrl.item.id == null}"
-                                converter="#{atendimentoConverter}" itemLabel="labelForSelectItem"
-                                styleClass="client-input"
-                                placeholder="Número/Nome paciente">
-              <p:ajax event="itemSelect" listener="#{protocoloCtrl.recuperarDadosRascunho}"
-                      process="@this" update="@form"/>
-              <p:column width="75">
-                #{item.id}
-              </p:column>
-              <p:column>
-                #{item.paciente.name}
-              </p:column>
-            </uivah:autoComplete>
-          </h:panelGrid>
-          <!-- END ATENDIMENTO GRID -->
-
           <!-- DADOS ORIGEM DESTINO PROTOCOLO -->
-          <h:panelGrid columns="6">
+          <h:panelGrid columns="3">
             <uivah:autoComplete id="setorOrigem" value="#{protocoloCtrl.item.origem}" label="Origem"
                                 controller="#{setorProtocoloCtrl}" completeMethod="completeMethod"
                                 editing="#{protocoloCtrl.editing and protocoloCtrl.item.estado == 'RASCUNHO' and empty sessionController.setor}"
-                                rendered="#{not empty protocoloCtrl.item.atendimento}"
                                 converter="#{setorProtocoloConverter}" itemLabel="labelForSelectItem"
                                 placeholder="Origem...">
-              <p:ajax event="change" listener="#{protocoloCtrl.changeOrigem}" process="@this" update="panelBtns docsPnl"/>
+              <p:ajax event="change" listener="#{protocoloCtrl.changeOrigem}" process="@this"
+                      update="actionsPnl docsPnl"/>
               <p:ajax event="itemSelect" listener="#{protocoloCtrl.changeOrigem}" process="@this"
-                      update="panelBtns docsPnl"/>
+                      update="actionsPnl docsPnl"/>
               <p:column>
                 #{item.title}
               </p:column>
@@ -72,11 +52,10 @@
             <uivah:autoComplete id="setorDestino" value="#{protocoloCtrl.item.destino}" label="Destino"
                                 controller="#{setorProtocoloCtrl}" completeMethod="completeMethod"
                                 editing="#{protocoloCtrl.editing and protocoloCtrl.item.estado == 'RASCUNHO'}"
-                                rendered="#{not empty protocoloCtrl.item.atendimento}"
                                 converter="#{setorProtocoloConverter}" itemLabel="labelForSelectItem"
                                 placeholder="Destino...">
-              <p:ajax event="change" process="@this" update="panelBtns"/>
-              <p:ajax event="itemSelect" process="@this docsPnl" update="panelBtns"/>
+              <p:ajax event="change" process="@this" update="actionsPnl"/>
+              <p:ajax event="itemSelect" process="@this docsPnl" update="actionsPnl"/>
               <p:column>
                 #{item.title}
               </p:column>
@@ -86,6 +65,29 @@
 
           <!-- BUSCA DOCUMENTOS PNL -->
           <h:panelGroup id="docsPnl" layout="block" styleClass="margin-top">
+
+            <!-- BUSCA DOCUMENTO POR ATENDIMENTO -->
+            <h:panelGrid columns="3" style="margin: 10px 0;">
+              <uivah:autoComplete id="atendimento" value="#{protocoloCtrl.item.atendimento}" label="Atendimento"
+                                  controller="#{atendimentoController}" completeMethod="completeAtendimento"
+                                  editing="#{protocoloCtrl.editing and protocoloCtrl.item.id == null}"
+                                  converter="#{atendimentoConverter}" itemLabel="labelForSelectItem"
+                                  rendered="#{not empty protocoloCtrl.item.origem and protocoloCtrl.item.origem.nivel eq 0}"
+                                  styleClass="client-input"
+                                  placeholder="Número/Nome paciente">
+                <p:ajax event="itemSelect" listener="#{protocoloCtrl.recuperarDadosRascunho}"
+                        process="@this" update="@form"/>
+                <p:column width="75">
+                  #{item.id}
+                </p:column>
+                <p:column>
+                  #{item.paciente.name}
+                </p:column>
+              </uivah:autoComplete>
+            </h:panelGrid>
+            <!-- END BUSCA DOCUMENTO POR ATENDIMENTO -->
+
+
             <h:panelGroup id="formDocsPnl" rendered="#{not empty protocoloCtrl.item.origem}">
               <!-- BUSCA DE DOCUMENTOS DOCUMENTOS -->
               <h:panelGroup id="searchDocsPnl">
@@ -99,7 +101,10 @@
                       <uivah:inputDate id="inicioDate" label="Início"
                                        value="#{protocoloCtrl.inicioDate}"
                                        editing="#{protocoloCtrl.editing}"
-                                       pattern="dd/MM/yyyy"/>
+                                       pattern="dd/MM/yyyy">
+                        <p:ajax event="change" listener="#{protocoloCtrl.changeInicio}" process="@this"
+                                update="terminoDate"/>
+                      </uivah:inputDate>
                       <uivah:inputDate id="terminoDate" label="Término"
                                        value="#{protocoloCtrl.terminoDate}"
                                        editing="#{protocoloCtrl.editing}"
@@ -109,15 +114,19 @@
                   <p:commandButton id="carregarDocsBtn" value="Buscar" ajax="true"
                                    process="@this datesSearch" update="docSearchResult" validateClient="true"
                                    action="#{protocoloCtrl.searchDocumentos}"/>
+
+
                   <!-- DOCUMENTOS NÃO SELECIONADOS -->
                   <h:panelGroup id="docSearchResult"
                                 rendered="#{protocoloCtrl.editing and not empty protocoloCtrl.item.atendimento and protocoloCtrl.item.estado == 'RASCUNHO'}">
+
+
                     <!-- ASSOCIAÇÃO DOCUMENTOS -->
                     <h:panelGroup id="associarDocumentosPnl">
-                      <p:tabView id="tabView01" value="#{protocoloCtrl.documentosNaoSelecionados.list}"
+                      <p:tabView id="docNaoSelecTab" value="#{protocoloCtrl.documentosNaoSelecionados.list}"
                                  var="docEntry" styleClass="margin-top"
                                  rendered="#{not empty protocoloCtrl.documentosNaoSelecionados and not empty protocoloCtrl.item.origem and protocoloCtrl.item.origem.nivel eq 0}"
-                                 widgetVar="tabView01">
+                                 widgetVar="docNaoSelecTab">
                         <p:tab id="dayTab" title="#{docEntry.key}">
                           <p:dataTable id="docTable" value="#{docEntry.value}"
                                        var="doc"
@@ -155,141 +164,95 @@
                               <h:outputText value="#{doc.tipo.label}"/>
                             </p:column>
                           </p:dataTable>
-                          <p:commandButton id="incluirBtn" value="Incluir Selecionados" icon="fa fa-bullseye"
-                                           ajax="true"
-                                           process="@form" update="@form" validateClient="true"
-                                           style="margin-top: 5px;"
-                                           action="#{protocoloCtrl.salvarParcial}"
-                                           rendered="#{not empty protocoloCtrl.item.atendimento and protocoloCtrl.item.estado == 'RASCUNHO'}"/>
-
                         </p:tab>
                       </p:tabView>
 
-                    </h:panelGroup>
-                    <!-- END ASSOCIAÇÃO DOCUMENTOS -->
-                    <!-- ASSOCIAÇÃO PROTOCOLO -->
-                    <h:panelGroup id="associarProtocoloPnl">
-                      <p:dataTable id="tabProtocolos" value="#{protocoloCtrl.protocolos}"
-                                   var="protocolo" styleClass="margin-top"
-                                   emptyMessage="Sem protocolos para associar"
-                                   rendered="#{not empty protocoloCtrl.protocolos}">
-                        <p:column width="20">
-                          <p:selectBooleanCheckbox value="#{protocolo.selected}" style="cursor: pointer;">
-                            <p:ajax event="change" process="tabProtocolos" update="tabProtocolos"/>
-                          </p:selectBooleanCheckbox>
-                        </p:column>
-                        <p:column headerText="Nº." width="50" styleClass="left-align">
-                          <h:outputText value="#{protocolo.id}"/>
-                        </p:column>
-                        <p:column headerText="Paciente" styleClass="left-align">
-                          <h:outputText value="#{protocolo.atendimento.paciente.name}"/>
-                        </p:column>
-                        <p:column headerText="Data Envio" width="150" styleClass="left-align">
-                          <h:outputText value="#{protocolo.dataEnvio}">
-                            <f:convertDateTime pattern="dd/MM/yyyy HH:mm"/>
-                          </h:outputText>
-                        </p:column>
-                        <p:column headerText="Data Resposta" width="150" styleClass="left-align">
-                          <h:outputText value="#{protocolo.dataResposta}">
-                            <f:convertDateTime pattern="dd/MM/yyyy HH:mm"/>
-                          </h:outputText>
-                        </p:column>
-                      </p:dataTable>
-                      <p:commandButton id="associarProtocoloBtn" value="Associar Protocolos Selecionados"
-                                       icon="fa fa-bullseye" ajax="true"
-                                       process="@form" update="@form" validateClient="true"
-                                       style="margin-top: 5px;"
-                                       action="#{protocoloCtrl.associarProtocolos}"
-                                       rendered="#{not empty protocoloCtrl.protocolos}"/>
-                    </h:panelGroup>
-                    <!-- END ASSOCIAÇÃO PROTOCOLO -->
-                  </h:panelGroup>
-                  <!-- END DOCUMENTOS NÃO SELECIONADOS -->
-                </p:fieldset>
-                <!-- END FIELDSET INCLUIR DOCUMENTOS -->
-              </h:panelGroup>
-              <!-- DOCUMENTOS SELECIONADOS -->
-              <p:fieldset legend="Documentos incluídos"
-                          rendered="#{not empty protocoloCtrl.item.atendimento}"
-                          styleClass="margin-top">
-                <h:panelGroup rendered="#{empty protocoloCtrl.documentosSelecionados.list}">
-                  <h:outputText value="Sem documentos selecionados"/>
-                </h:panelGroup>
-                <h:panelGroup id="docSelecionadosPnl">
-                  <p:tabView id="tabView02" value="#{protocoloCtrl.documentosSelecionados.list}" var="docEntry"
-                             styleClass="margin-top" widgetVar="tabView02"
-                             rendered="#{not empty protocoloCtrl.item.origem and protocoloCtrl.item.origem.nivel eq 0 and not empty protocoloCtrl.documentosSelecionados.list}">
-                    <p:tab title="#{docEntry.key}">
-                      <p:dataTable id="docSelecionadosTable" value="#{docEntry.value}" var="doc"
-                                   emptyMessage="Sem documentos selecionados"
-                                   sortBy="#{doc.dataHoraCriacao}" rowIndexVar="idx">
-                        <p:column headerText="Cód." width="50" styleClass="left-align">
-                          <h:outputText value="#{doc.codigo}"/>
-                        </p:column>
-                        <p:column headerText="Descrição" styleClass="left-align ellipsis-text" width="200">
-                          <h:outputText value="#{doc.descricao}"/>
-                        </p:column>
-                        <p:column headerText="Prestador" styleClass="left-align ellipsis-text" width="200">
-                          <h:outputText id="prest" value="#{doc.prestador}"/>
-                          <vah:toolTip id="prestTooltip" for="#{p:component('prest')}" value="#{doc.prestador}"
-                                       index="#{idx}"/>
-                        </p:column>
-                        <p:column headerText="Conselho" styleClass="left-align" width="75">
-                          <h:outputText value="#{doc.conselho}"/>
-                        </p:column>
-                        <p:column headerText="Data/Hora Criação" styleClass="left-align" width="150">
-                          <h:outputText value="#{doc.dataHoraCriacao}">
-                            <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
-                          </h:outputText>
-                        </p:column>
-                        <p:column headerText="Data/Hora Impressão" styleClass="left-align" width="150">
-                          <h:outputText value="#{doc.dataHoraImpressao}">
-                            <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
-                          </h:outputText>
-                        </p:column>
-                        <p:column headerText="Tipo" styleClass="left-align" width="200">
-                          <h:outputText value="#{doc.tipo.label}"/>
-                        </p:column>
-                        <p:column width="30" style="text-align: center;"
-                                  rendered="#{protocoloCtrl.item.estado == 'RASCUNHO'}">
-                          <p:commandButton icon="fa fa-trash" action="#{protocoloCtrl.removeDoc(doc)}" process="@this"
-                                           update="#{p:component('docSelecionadosPnl')} #{p:component('sumarioPnl')}"/>
-                        </p:column>
-                      </p:dataTable>
-                    </p:tab>
-                  </p:tabView>
-                  <p:dataTable id="protIncluidosTable" value="#{protocoloCtrl.item.protocolos}"
-                               var="protocolo" styleClass="margin-top"
-                               emptyMessage="Sem protocolos para associar"
-                               rendered="#{not empty protocoloCtrl.item.origem and protocoloCtrl.item.origem.nivel ne 0 and not empty protocoloCtrl.item.protocolos}">
-                    <p:column headerText="Nº." width="50" styleClass="left-align">
-                      <h:outputText value="#{protocolo.id}"/>
-                    </p:column>
-                    <p:column headerText="Paciente" styleClass="left-align">
-                      <h:outputText value="#{protocolo.atendimento.paciente.name}"/>
-                    </p:column>
-                    <p:column headerText="Data Envio" width="150" styleClass="left-align">
-                      <h:outputText value="#{protocolo.dataEnvio}">
-                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm"/>
-                      </h:outputText>
-                    </p:column>
-                    <p:column headerText="Data Resposta" width="150" styleClass="left-align">
-                      <h:outputText value="#{protocolo.dataResposta}">
-                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm"/>
-                      </h:outputText>
-                    </p:column>
-                    <p:column width="50" headerText="Doc." style="text-align: center">
-                      <h:panelGroup styleClass="ui-menubutton">
-                        <p:commandButton id="showDocs" action="#{protocoloCtrl.preOpenDocumentosItemDlg(protocolo)}"
-                                         icon="fa fa-eye" process="@this" update="#{p:component('documentosDlgPnl')}"
-                                         oncomplete="PF('documentosDlg').show()"/>
+                      <h:panelGroup layout="block" style="margin-top: 10px;"
+                                    rendered="#{not empty protocoloCtrl.documentosNaoSelecionados.list}">
+                        <p:commandButton id="selectAllDocBtn" value="Selecionar Todos" icon="fa fa-check-square-o"
+                                         ajax="true" process="@this" update="docNaoSelecTab"
+                                         action="#{protocoloCtrl.selecionarTodosDocumentos}"
+                                         rendered="#{protocoloCtrl.editing and protocoloCtrl.item.estado eq 'RASCUNHO'}"/>
+                        <p:commandButton id="associateSelDocBtn" value="Vincular Selecionados" icon="fa fa-bullseye"
+                                         ajax="true"
+                                         process="associarDocumentosPnl"
+                                         update="associarDocumentosPnl docIncluidosPnl sumarioPnl actionsPnl"
+                                         validateClient="true"
+                                         style="margin-left: 5px;"
+                                         action="#{protocoloCtrl.vincularDocumentos}"
+                                         rendered="#{protocoloCtrl.editing and protocoloCtrl.item.estado eq 'RASCUNHO'}"/>
                       </h:panelGroup>
 
-                    </p:column>
-                  </p:dataTable>
-                </h:panelGroup>
-              </p:fieldset>
+                    </h:panelGroup>
+                    <!-- END ASSOCIAÇÃO DOCUMENTOS -->
+
+                  </h:panelGroup>
+                  <!-- END DOCUMENTOS NÃO SELECIONADOS -->
+
+
+                </p:fieldset>
+                <!-- END FIELDSET INCLUIR DOCUMENTOS -->
+
+
+              </h:panelGroup>
+
+              <!-- DOCUMENTOS SELECIONADOS -->
+              <h:panelGroup id="docIncluidosPnl" layout="block">
+                <p:fieldset legend="Documentos incluídos"
+                            rendered="#{not empty protocoloCtrl.item.atendimento}"
+                            styleClass="margin-top">
+                  <h:panelGroup rendered="#{empty protocoloCtrl.documentosSelecionados.list}">
+                    <h:outputText value="Sem documentos selecionados"/>
+                  </h:panelGroup>
+                  <h:panelGroup id="docSelecionadosPnl">
+                    <p:tabView id="tabView02" value="#{protocoloCtrl.documentosSelecionados.list}" var="docEntry"
+                               styleClass="margin-top" widgetVar="tabView02"
+                               rendered="#{not empty protocoloCtrl.item.origem and protocoloCtrl.item.origem.nivel eq 0 and not empty protocoloCtrl.documentosSelecionados.list}">
+                      <p:tab title="#{docEntry.key}">
+                        <p:dataTable id="docSelecionadosTable" value="#{docEntry.value}" var="doc"
+                                     emptyMessage="Sem documentos selecionados"
+                                     sortBy="#{doc.dataHoraCriacao}" rowIndexVar="idx">
+                          <p:column headerText="Cód." width="50" styleClass="left-align">
+                            <h:outputText value="#{doc.codigo}"/>
+                          </p:column>
+                          <p:column headerText="Descrição" styleClass="left-align ellipsis-text" width="200">
+                            <h:outputText value="#{doc.descricao}"/>
+                          </p:column>
+                          <p:column headerText="Prestador" styleClass="left-align ellipsis-text" width="200">
+                            <h:outputText id="prest" value="#{doc.prestador}"/>
+                            <vah:toolTip id="prestTooltip" for="#{p:component('prest')}" value="#{doc.prestador}"
+                                         index="#{idx}"/>
+                          </p:column>
+                          <p:column headerText="Conselho" styleClass="left-align" width="75">
+                            <h:outputText value="#{doc.conselho}"/>
+                          </p:column>
+                          <p:column headerText="Data/Hora Criação" styleClass="left-align" width="150">
+                            <h:outputText value="#{doc.dataHoraCriacao}">
+                              <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
+                            </h:outputText>
+                          </p:column>
+                          <p:column headerText="Data/Hora Impressão" styleClass="left-align" width="150">
+                            <h:outputText value="#{doc.dataHoraImpressao}">
+                              <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
+                            </h:outputText>
+                          </p:column>
+                          <p:column headerText="Tipo" styleClass="left-align" width="200">
+                            <h:outputText value="#{doc.tipo.label}"/>
+                          </p:column>
+                          <p:column width="30" style="text-align: center;"
+                                    rendered="#{protocoloCtrl.item.estado == 'RASCUNHO'}">
+                            <p:commandButton icon="fa fa-trash" action="#{protocoloCtrl.removeDoc(doc)}" process="@this"
+                                             update="#{p:component('docSelecionadosPnl')} #{p:component('sumarioPnl')}"/>
+                          </p:column>
+                        </p:dataTable>
+                      </p:tab>
+                    </p:tabView>
+                  </h:panelGroup>
+                </p:fieldset>
+              </h:panelGroup>
               <!-- END DOCUMENTOS SELECIONADOS -->
+
+
               <!-- SUMÁRIO -->
               <h:panelGroup id="sumarioPnl" rendered="#{not empty protocoloCtrl.item.atendimento}">
                 <p:fieldset legend="Sumário" styleClass="margin-top" rendered="#{protocoloCtrl.showSumario}">
@@ -315,6 +278,8 @@
                 </p:fieldset>
               </h:panelGroup>
               <!-- END SUMÁRIO -->
+
+
             </h:panelGroup>
 
 
@@ -325,17 +290,18 @@
         <!-- END PNL PROTOCOLO FORM -->
 
         <!-- PNL BUTTONS -->
-        <h:panelGroup id="panelBtns" layout="block"
+        <h:panelGroup id="actionsPnl" layout="block"
                       style="margin-top: 10px;">
           <p:commandButton id="enviarBtn" value="Enviar Documentos" icon="fa fa-send" ajax="true"
                            action="#{protocoloCtrl.enviarProtocolo}" process="@this" update="@form"
-                           disabled="#{empty protocoloCtrl.documentosSelecionados.list or empty protocoloCtrl.item.origem or empty protocoloCtrl.item.destino}"
-                           rendered="#{protocoloCtrl.editing and not empty protocoloCtrl.item.atendimento and protocoloCtrl.item.estado == 'RASCUNHO'}"/>
+                           disabled="#{empty protocoloCtrl.item.origem or empty protocoloCtrl.item.destino}"
+                           rendered="#{protocoloCtrl.editing and not empty protocoloCtrl.item.origem and protocoloCtrl.item.estado == 'RASCUNHO'}"/>
           <p:commandButton id="saveBtn" value="Salvar" icon="fa fa-floppy-o" ajax="true"
                            process="@form" update="@form" validateClient="true"
                            styleClass="margin-left"
+                           disabled="#{empty protocoloCtrl.item.itens}"
                            action="#{protocoloCtrl.salvarParcial}"
-                           rendered="#{protocoloCtrl.editing and not empty protocoloCtrl.item.atendimento and protocoloCtrl.item.estado == 'RASCUNHO'}"/>
+                           rendered="#{protocoloCtrl.editing and not empty protocoloCtrl.item.origem and protocoloCtrl.item.estado == 'RASCUNHO'}"/>
           <p:commandButton id="backBtn" value="Voltar" ajax="false" immediate="true"
                            icon="fa fa-undo" styleClass="margin-left"
                            onstart="PF('changePage').show()"

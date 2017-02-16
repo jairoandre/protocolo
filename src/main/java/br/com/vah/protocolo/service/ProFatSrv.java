@@ -14,9 +14,9 @@ import javax.ejb.Stateless;
  * Created by Jairoportela on 06/04/2016.
  */
 @Stateless
-public class ProFatService extends DataAccessService<ProFat> {
+public class ProFatSrv extends AbstractSrv<ProFat> {
 
-  public ProFatService() {
+  public ProFatSrv() {
     super(ProFat.class);
   }
 

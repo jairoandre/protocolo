@@ -1,7 +1,7 @@
 package br.com.vah.protocolo.controllers;
 
 import br.com.vah.protocolo.entities.BaseEntity;
-import br.com.vah.protocolo.service.DataAccessService;
+import br.com.vah.protocolo.service.AbstractSrv;
 import br.com.vah.protocolo.util.GenericLazyDataModel;
 
 import javax.faces.application.FacesMessage;
@@ -48,7 +48,7 @@ public abstract class AbstractController<T extends BaseEntity> implements Serial
   /**
    * @return the service
    */
-  public abstract DataAccessService<T> getService();
+  public abstract AbstractSrv<T> getService();
 
   /**
    * @return
@@ -248,7 +248,7 @@ public abstract class AbstractController<T extends BaseEntity> implements Serial
     this.editing = editing;
   }
 
-  protected void initLazyModel(DataAccessService<T> service, String... relations) {
+  protected void initLazyModel(AbstractSrv<T> service, String... relations) {
     setLazyModel(new GenericLazyDataModel<T>(service));
     if (relations != null && relations.length > 0) {
       getLazyModel().getSearchParams().addRelations(relations);

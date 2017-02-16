@@ -1,7 +1,7 @@
 package br.com.vah.protocolo.converters;
 
 import br.com.vah.protocolo.entities.BaseEntity;
-import br.com.vah.protocolo.service.DataAccessService;
+import br.com.vah.protocolo.service.AbstractSrv;
 
 import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
@@ -14,7 +14,7 @@ import javax.faces.convert.ConverterException;
  */
 public abstract class GenericConverter<T extends BaseEntity> implements Converter {
 
-  public abstract DataAccessService<T> getService();
+  public abstract AbstractSrv<T> getService();
 
   @Override
   public Object getAsObject(FacesContext context, UIComponent component, String value) {

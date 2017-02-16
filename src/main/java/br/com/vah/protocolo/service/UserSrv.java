@@ -14,9 +14,9 @@ import java.util.Map;
  *
  */
 @Stateless
-public class UserService extends DataAccessService<User> {
+public class UserSrv extends AbstractSrv<User> {
 	
-	public UserService(){
+	public UserSrv(){
 		super(User.class);
 	}
 	

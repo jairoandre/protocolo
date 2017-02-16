@@ -1,8 +1,8 @@
 package br.com.vah.protocolo.converters;
 
 import br.com.vah.protocolo.entities.dbamv.Especialidade;
-import br.com.vah.protocolo.service.DataAccessService;
-import br.com.vah.protocolo.service.EspecialidadeService;
+import br.com.vah.protocolo.service.AbstractSrv;
+import br.com.vah.protocolo.service.EspecialidadeSrv;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -12,10 +12,10 @@ public class EspecialidadeConverter extends GenericConverter<Especialidade> {
 
   private
   @Inject
-  EspecialidadeService service;
+  EspecialidadeSrv service;
 
   @Override
-  public DataAccessService<Especialidade> getService() {
+  public AbstractSrv<Especialidade> getService() {
     return service;
   }
 }

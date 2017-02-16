@@ -1,7 +1,7 @@
 package br.com.vah.protocolo.util;
 
 import br.com.vah.protocolo.entities.BaseEntity;
-import br.com.vah.protocolo.service.DataAccessService;
+import br.com.vah.protocolo.service.AbstractSrv;
 import org.primefaces.model.LazyDataModel;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
@@ -28,7 +28,7 @@ public class GenericLazyDataModel<T extends BaseEntity> extends LazyDataModel<T>
   // Total row number
   private int rowCount;
   // Data Access Service for create read update delete operations
-  private DataAccessService crudService;
+  private AbstractSrv crudService;
   /**
    * Search parms
    */
@@ -37,7 +37,7 @@ public class GenericLazyDataModel<T extends BaseEntity> extends LazyDataModel<T>
   /**
    * @param crudService
    */
-  public GenericLazyDataModel(DataAccessService crudService) {
+  public GenericLazyDataModel(AbstractSrv crudService) {
     this.crudService = crudService;
   }
 

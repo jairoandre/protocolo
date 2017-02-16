@@ -110,17 +110,19 @@
             </p:column>
 
             <p:column headerText="Atend." width="45" styleClass="left-align">
-              <h:outputText value="#{item.atendimento.id}"/>
+              <h:outputText value="#{item.atendimento.id}" rendered="#{not empty item.atendimento}"/>
+              <h:outputText value="-" rendered="#{empty item.atendimento}"/>
             </p:column>
 
-            <p:column headerText="Paciente" width="170" styleClass="left-align ellipsis-text">
-              <h:outputText id="pacienteOutput" value="#{item.atendimento.paciente.name}"/>
-              <vah:toolTip id="pacienteToolTip" value="#{item.atendimento.paciente.name}" index="#{indexVar}"
-                           for="#{p:component('pacienteOutput')}"/>
-            </p:column>
-
-            <p:column headerText="Conta" width="45" styleClass="left-align">
-              <h:outputText value="#{item.conta.id}" rendered="#{not empty item.conta}"/>
+            <p:column headerText="Paciente/Remessa" width="170" styleClass="left-align ellipsis-text">
+              <h:panelGroup layout="block" rendered="#{not empty item.atendimento}">
+                <h:outputText id="pacienteOutput" value="#{item.atendimento.paciente.name}"/>
+                <vah:toolTip id="pacienteToolTip" value="#{item.atendimento.paciente.name}" index="#{indexVar}"
+                             for="#{p:component('pacienteOutput')}"/>
+              </h:panelGroup>
+              <h:panelGroup layout="block" rendered="#{empty item.atendimento}">
+                <p:commandButton icon="fa fa-search"/>
+              </h:panelGroup>
             </p:column>
 
             <p:column id="estado" headerText="Estado" width="75" sortBy="#{item.estado}" style="text-align: center;">
@@ -180,7 +182,7 @@
                             process="@this" update="#{p:component('documentosDlgPnl')}"
                             oncomplete="PF('documentosDlg').show()"
                             icon="fa fa-file-text"/>
-                <p:separator/>
+                <p:separator rendered="#{sessionController.isUserInRoles('ADMINISTRATOR')}"/>
                 <p:menuitem value="Excluir" actionListener="#{protocoloCtrl.preDelete(item.id, index)}"
                             process="@this" update="#{p:component('deleteDlg')}" oncomplete="PF('deleteDlg').show()"
                             icon="fa fa-trash" rendered="#{sessionController.isUserInRoles('ADMINISTRATOR')}"/>
@@ -265,13 +267,14 @@
 
           <!-- DIÁLOGO DE EXCLUÇÃO -->
           <h:panelGroup layout="block" style="text-align: center; margin: 10px;">
-            <p:inputText id="deleteConfirmAnswer" value="#{protocoloCtrl.deleteConfirmAnswer}">
+            <p:inputText id="deleteConfirmAnswer" value="#{protocoloCtrl.deleteConfirmAnswer}" style="text-transform: uppercase;">
               <p:ajax event="keyup" process="@this" update="deleteConfirmBtn" global="false"/>
             </p:inputText>
           </h:panelGroup>
           <f:facet name="footer">
             <p:commandButton id="deleteConfirmBtn" value="Excluir" ajax="true" update="@form"
                              action="#{protocoloCtrl.doDelete}"
+                             process="@this"
                              oncomplete="PF('deleteDlg').hide();"
                              disabled="#{protocoloCtrl.deleteConfirmAnswer.toUpperCase() != 'DELETAR'}"/>
             <p:commandButton value="Cancelar"
@@ -364,19 +367,6 @@
               <h:outputText value="Receber Movimentação - Protocolo nº #{protocoloCtrl.item.id}"/>
             </f:facet>
 
-            <div class="ui-messages ui-widget" aria-live="polite">
-              <div class="ui-messages-info ui-corner-all">
-                <span class="ui-messages-info-icon"></span>
-                <ul>
-                  <li>
-                    <h:panelGroup styleClass="ui-messages-info-detail">
-                      Marque todos os documentos presentes na movimentação.
-                    </h:panelGroup>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
             <h:panelGroup id="docSelecionadosPnl">
               <p:tabView id="docsTab"
                          widgetVar="docsTab"
@@ -387,6 +377,7 @@
                   <p:dataTable id="docTable" value="#{docEntry.value}" var="doc"
                                emptyMessage="Sem documentos selecionados"
                                rowStyleClass="#{doc.selected ? 'selected-bg' : ''}"
+                               paginator="true" rows="10" paginatorPosition="bottom"
                                sortBy="#{doc.dataHoraCriacao}" rowIndexVar="idx">
                     <p:column width="20" style="text-align: center;">
                       <p:selectBooleanCheckbox value="#{doc.selected}" style="cursor: pointer;">
@@ -406,20 +397,20 @@
                       <vah:toolTip id="prestTooltip" for="#{p:component('prest')}" value="#{doc.prestador}"
                                    index="#{idx}"/>
                     </p:column>
-                    <p:column headerText="Conselho" styleClass="left-align" width="75">
+                    <p:column headerText="Conselho" styleClass="left-align" width="50">
                       <h:outputText value="#{doc.conselho}"/>
                     </p:column>
-                    <p:column headerText="Data/Hora Criação" styleClass="left-align" width="100">
+                    <p:column headerText="Data/Hora Criação" styleClass="left-align" width="85">
                       <h:outputText value="#{doc.dataHoraCriacao}">
                         <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
                       </h:outputText>
                     </p:column>
-                    <p:column headerText="Data/Hora Impressão" styleClass="left-align" width="100">
+                    <p:column headerText="Data/Hora Impress." styleClass="left-align" width="85">
                       <h:outputText value="#{doc.dataHoraImpressao}">
                         <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
                       </h:outputText>
                     </p:column>
-                    <p:column headerText="Tipo" width="50" styleClass="left-align">
+                    <p:column headerText="Tipo" width="100" styleClass="left-align">
                       <h:outputText value="#{doc.tipo.label}"/>
                     </p:column>
                   </p:dataTable>
@@ -431,12 +422,20 @@
               <p:commandButton id="registrarRecebBtn"
                                value="Registrar Recebimento"
                                ajax="true"
-                               onclick="PF('receberDlg').hide();"
+                               onclick="PF('receberDlg').hide(); openLoading();"
+                               oncomplete="closeLoading();"
                                icon="fa fa-thumbs-up"
                                process="@this"
                                disabled="#{protocoloCtrl.registrarRecebBtnDisabled}"
                                update="tablePnl receberDlgPnl"
                                action="#{protocoloCtrl.receber}"/>
+              <p:commandButton value="Selecionar Todos"
+                               action="#{protocoloCtrl.selecionarTodosRecebimento}"
+                               ajax="true"
+                               icon="fa fa-check-square-o"
+                               style="margin-left: 5px;"
+                               process="@this"
+                               update="docsTab registrarRecebBtn"/>
               <p:commandButton id="closeReceberDlg"
                                value="Fechar"
                                ajax="true"

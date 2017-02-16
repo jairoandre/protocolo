@@ -1,8 +1,8 @@
 package br.com.vah.protocolo.controllers;
 
 import br.com.vah.protocolo.entities.dbamv.Especialidade;
-import br.com.vah.protocolo.service.DataAccessService;
-import br.com.vah.protocolo.service.EspecialidadeService;
+import br.com.vah.protocolo.service.AbstractSrv;
+import br.com.vah.protocolo.service.EspecialidadeSrv;
 
 import javax.annotation.PostConstruct;
 import javax.faces.view.ViewScoped;
@@ -24,7 +24,7 @@ public class EspecialidadeController extends AbstractController<Especialidade> {
 
   private
   @Inject
-  EspecialidadeService service;
+  EspecialidadeSrv service;
 
   @PostConstruct
   public void init() {
@@ -35,7 +35,7 @@ public class EspecialidadeController extends AbstractController<Especialidade> {
 
 
   @Override
-  public DataAccessService<Especialidade> getService() {
+  public AbstractSrv<Especialidade> getService() {
     return service;
   }
 

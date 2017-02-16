@@ -1,7 +1,7 @@
 package br.com.vah.protocolo.converters;
 
 import br.com.vah.protocolo.entities.dbamv.ProFat;
-import br.com.vah.protocolo.service.ProFatService;
+import br.com.vah.protocolo.service.ProFatSrv;
 
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
@@ -14,7 +14,7 @@ public class ProFatConverter implements Converter {
 
   private
   @Inject
-  ProFatService service;
+  ProFatSrv service;
 
   @Override
   public Object getAsObject(FacesContext context, UIComponent component, String value) {

@@ -2,8 +2,8 @@ package br.com.vah.protocolo.controllers;
 
 import br.com.vah.protocolo.constants.RolesEnum;
 import br.com.vah.protocolo.entities.usrdbvah.User;
-import br.com.vah.protocolo.service.DataAccessService;
-import br.com.vah.protocolo.service.UserService;
+import br.com.vah.protocolo.service.AbstractSrv;
+import br.com.vah.protocolo.service.UserSrv;
 
 import javax.annotation.PostConstruct;
 import javax.faces.model.SelectItem;
@@ -26,7 +26,7 @@ public class UserController extends AbstractController<User> {
 
   private
   @Inject
-  UserService service;
+  UserSrv service;
 
   private List<SelectItem> roles;
 
@@ -40,7 +40,7 @@ public class UserController extends AbstractController<User> {
 
 
   @Override
-  public DataAccessService<User> getService() {
+  public AbstractSrv<User> getService() {
     return service;
   }
 

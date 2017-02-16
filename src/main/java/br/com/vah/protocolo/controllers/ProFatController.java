@@ -1,8 +1,8 @@
 package br.com.vah.protocolo.controllers;
 
 import br.com.vah.protocolo.entities.dbamv.ProFat;
-import br.com.vah.protocolo.service.DataAccessService;
-import br.com.vah.protocolo.service.ProFatService;
+import br.com.vah.protocolo.service.AbstractSrv;
+import br.com.vah.protocolo.service.ProFatSrv;
 
 import javax.annotation.PostConstruct;
 import javax.faces.view.ViewScoped;
@@ -22,7 +22,7 @@ public class ProFatController extends AbstractController<ProFat> {
   transient Logger logger;
 
   private @Inject
-  ProFatService service;
+  ProFatSrv service;
 
   @PostConstruct
   public void init() {
@@ -33,7 +33,7 @@ public class ProFatController extends AbstractController<ProFat> {
 
 
   @Override
-  public DataAccessService<ProFat> getService() {
+  public AbstractSrv<ProFat> getService() {
     return service;
   }
 

@@ -1,27 +1,31 @@
 package br.com.vah.protocolo.controllers;
 
-import br.com.vah.protocolo.entities.dbamv.Setor;
+import br.com.vah.protocolo.entities.dbamv.RegFaturamento;
 import br.com.vah.protocolo.service.AbstractSrv;
-import br.com.vah.protocolo.service.SetorSrv;
+import br.com.vah.protocolo.service.RegFaturamentoSrv;
 
 import javax.annotation.PostConstruct;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * Created by Jairoportela on 06/04/2016.
+ * Created by Jairoportela on 13/02/2017.
  */
+
 @Named
 @ViewScoped
-public class SetorController extends AbstractController<Setor> {
+public class RegFaturamentoCtrl extends AbstractController<RegFaturamento> {
 
-  private @Inject
+  private
+  @Inject
   transient Logger logger;
 
-  private @Inject
-  SetorSrv service;
+  private
+  @Inject
+  RegFaturamentoSrv service;
 
   @PostConstruct
   public void init() {
@@ -30,9 +34,8 @@ public class SetorController extends AbstractController<Setor> {
     initLazyModel(service);
   }
 
-
   @Override
-  public AbstractSrv<Setor> getService() {
+  public AbstractSrv<RegFaturamento> getService() {
     return service;
   }
 
@@ -42,24 +45,24 @@ public class SetorController extends AbstractController<Setor> {
   }
 
   @Override
-  public Setor createNewItem() {
-    return new Setor();
+  public RegFaturamento createNewItem() {
+    return new RegFaturamento();
   }
 
   @Override
   public String path() {
-    return "setor";
+    return "regfaturamento";
   }
 
   @Override
   public String getEntityName() {
-    return "Setor";
+    return "Registro Faturamento";
   }
+
+  private @Inject ProtocoloCtrl protocoloCtrl;
 
   @Override
-  public void prepareSearch() {
-    super.prepareSearch();
-    setSearchParam("title", getSearchTerm());
+  public List<RegFaturamento> completeMethod(String query) {
+    return service.obterContas(protocoloCtrl.getItem(), null);
   }
-
 }

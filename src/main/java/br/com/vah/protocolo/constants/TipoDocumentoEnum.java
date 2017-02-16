@@ -7,11 +7,13 @@ public enum TipoDocumentoEnum {
   FOLHA_ANESTESICA("Folha Anestésica"),
   DESCRICAO_CIRURGICA("Descrição Cirúrgica"),
   REGISTRO_DOCUMENTO("Registro Documento"),
+  PROTOCOLO("Protocolo"),
+  CONTA("Conta Faturamento"),
   DOCUMENTO_MANUAL("Documento Manual");
 
   private String label;
 
-  private TipoDocumentoEnum(String label) {
+  TipoDocumentoEnum(String label) {
     this.label = label;
   }
 
