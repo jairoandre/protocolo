@@ -110,10 +110,10 @@
                                        editing="#{protocoloCtrl.editing}"
                                        pattern="dd/MM/yyyy"/>
                     </h:panelGrid>
+                    <p:commandButton id="carregarDocsBtn" value="Buscar" ajax="true"
+                                     process="@this datesSearch" update="docSearchResult" validateClient="true"
+                                     action="#{protocoloCtrl.searchDocumentos}"/>
                   </h:panelGroup>
-                  <p:commandButton id="carregarDocsBtn" value="Buscar" ajax="true"
-                                   process="@this datesSearch" update="docSearchResult" validateClient="true"
-                                   action="#{protocoloCtrl.searchDocumentos}"/>
 
 
                   <!-- DOCUMENTOS NÃO SELECIONADOS -->
@@ -212,37 +212,50 @@
                         <p:dataTable id="docSelecionadosTable" value="#{docEntry.value}" var="doc"
                                      emptyMessage="Sem documentos selecionados"
                                      sortBy="#{doc.dataHoraCriacao}" rowIndexVar="idx">
-                          <p:column headerText="Cód." width="50" styleClass="left-align">
+                          <p:column width="30" style="text-align: center;"
+                                    rendered="#{protocoloCtrl.editing and protocoloCtrl.item.estado == 'RASCUNHO'}">
+                            <h:panelGroup styleClass="ui-menubutton">
+                              <p:commandButton icon="fa fa-trash" action="#{protocoloCtrl.removeDoc(doc)}"
+                                               process="@this"
+                                               style="text-align: center;"
+                                               update="#{p:component('docSelecionadosPnl')} #{p:component('sumarioPnl')}"/>
+                            </h:panelGroup>
+                          </p:column>
+                          <p:column headerText="Cód." sortBy="#{doc.codigo}" width="50" styleClass="left-align">
                             <h:outputText value="#{doc.codigo}"/>
                           </p:column>
-                          <p:column headerText="Descrição" styleClass="left-align ellipsis-text" width="200">
+                          <p:column headerText="Descrição/Conselho" sortBy="#{doc.descricao}"
+                                    styleClass="left-align ellipsis-text" width="200">
                             <h:outputText value="#{doc.descricao}"/>
+                            <h:outputText value="#{doc.conselho}"/>
                           </p:column>
-                          <p:column headerText="Prestador" styleClass="left-align ellipsis-text" width="200">
+                          <p:column headerText="Prestador" sortBy="#{doc.prestador}"
+                                    styleClass="left-align ellipsis-text" width="200">
                             <h:outputText id="prest" value="#{doc.prestador}"/>
                             <vah:toolTip id="prestTooltip" for="#{p:component('prest')}" value="#{doc.prestador}"
                                          index="#{idx}"/>
                           </p:column>
-                          <p:column headerText="Conselho" styleClass="left-align" width="75">
-                            <h:outputText value="#{doc.conselho}"/>
+                          <p:column headerText="Data" sortBy="#{doc.data}"
+                                    styleClass="left-align" width="125">
+                            <h:outputText value="#{doc.data}">
+                              <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
+                            </h:outputText>
                           </p:column>
-                          <p:column headerText="Data/Hora Criação" styleClass="left-align" width="150">
+                          <p:column headerText="Criação" sortBy="#{doc.dataHoraCriacao}"
+                                    styleClass="left-align" width="125">
                             <h:outputText value="#{doc.dataHoraCriacao}">
                               <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
                             </h:outputText>
                           </p:column>
-                          <p:column headerText="Data/Hora Impressão" styleClass="left-align" width="150">
+                          <p:column headerText="Impressão" sortBy="#{doc.dataHoraImpressao}"
+                                    styleClass="left-align" width="125">
                             <h:outputText value="#{doc.dataHoraImpressao}">
                               <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
                             </h:outputText>
                           </p:column>
-                          <p:column headerText="Tipo" styleClass="left-align" width="200">
+                          <p:column headerText="Tipo" sortBy="#{doc.tipo.label}"
+                                    styleClass="left-align" width="175">
                             <h:outputText value="#{doc.tipo.label}"/>
-                          </p:column>
-                          <p:column width="30" style="text-align: center;"
-                                    rendered="#{protocoloCtrl.item.estado == 'RASCUNHO'}">
-                            <p:commandButton icon="fa fa-trash" action="#{protocoloCtrl.removeDoc(doc)}" process="@this"
-                                             update="#{p:component('docSelecionadosPnl')} #{p:component('sumarioPnl')}"/>
                           </p:column>
                         </p:dataTable>
                       </p:tab>
@@ -275,7 +288,27 @@
                     <h:outputText value="#{protocoloCtrl.totalDocumentosManuais}"
                                   style="font-size: 18px; padding: 0 20px;"/>
                   </h:panelGrid>
+                  <p:dataTable id="contasTable" value="#{protocoloCtrl.contas}" var="conta"
+                               rendered="#{not empty protocoloCtrl.contas}" styleClass="margin-top">
+                    <f:facet name="header">
+                      <h:outputText value="CONTAS REFERENCIADAS"/>
+                    </f:facet>
+                    <p:column headerText="Nº Conta" styleClass="left-align" width="75">
+                      <h:outputText value="#{conta.id}"/>
+                    </p:column>
+                    <p:column headerText="Início" width="100" styleClass="left-align">
+                      <h:outputText value="#{conta.inicio}">
+                        <f:convertDateTime pattern="dd/MM/yyyy"/>
+                      </h:outputText>
+                    </p:column>
+                    <p:column headerText="Fim" width="100" styleClass="left-align">
+                      <h:outputText value="#{conta.fim}">
+                        <f:convertDateTime pattern="dd/MM/yyyy"/>
+                      </h:outputText>
+                    </p:column>
+                  </p:dataTable>
                 </p:fieldset>
+
               </h:panelGroup>
               <!-- END SUMÁRIO -->
 
@@ -304,7 +337,7 @@
                            rendered="#{protocoloCtrl.editing and not empty protocoloCtrl.item.origem and protocoloCtrl.item.estado == 'RASCUNHO'}"/>
           <p:commandButton id="backBtn" value="Voltar" ajax="false" immediate="true"
                            icon="fa fa-undo" styleClass="margin-left"
-                           onstart="PF('changePage').show()"
+                           onclick="startLoading();"
                            action="#{protocoloCtrl.back}"/>
         </h:panelGroup>
         <!-- END PNL BUTTONS -->

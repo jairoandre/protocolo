@@ -23,8 +23,8 @@ public class RegFaturamentoSrv extends AbstractSrv<RegFaturamento> {
 
     Criteria criteria = session.createCriteria(RegFaturamento.class);
     criteria.add(Restrictions.eq("atendimento", protocolo.getAtendimento()));
-    criteria.add(Restrictions.le("inicio", range[0]));
-    criteria.add(Restrictions.ge("fim", range[1]));
+    criteria.add(Restrictions.ge("inicio", range[0]));
+    criteria.add(Restrictions.lt("fim", range[1]));
     List<RegFaturamento> result = criteria.list();
     result.forEach((item) -> item.setProtocolo(protocolo));
     return result;

@@ -40,6 +40,10 @@ public class Protocolo extends BaseEntity {
   private SetorProtocolo origem;
 
   @ManyToOne
+  @JoinColumn(name = "CD_REG_FAT")
+  private RegFaturamento contaFaturamento;
+
+  @ManyToOne
   @JoinColumn(name = "CD_SETOR_DESTINO")
   private SetorProtocolo destino;
 
@@ -99,6 +103,14 @@ public class Protocolo extends BaseEntity {
 
   public void setOrigem(SetorProtocolo origem) {
     this.origem = origem;
+  }
+
+  public RegFaturamento getContaFaturamento() {
+    return contaFaturamento;
+  }
+
+  public void setContaFaturamento(RegFaturamento contaFaturamento) {
+    this.contaFaturamento = contaFaturamento;
   }
 
   public SetorProtocolo getDestino() {

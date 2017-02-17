@@ -50,6 +50,10 @@ public class PrescricaoMedica extends BaseEntity {
 	@OneToMany(fetch = FetchType.EAGER)
 	@JoinColumn(name = "CD_PRE_MED")
 	private List<ItemPrescricaoMedica> items;
+
+	@ManyToOne
+	@JoinColumn(name = "CD_UNID_INT")
+	private UnidadeInternacao unidade;
 	
 	@Override
 	public Long getId() {
@@ -121,7 +125,12 @@ public class PrescricaoMedica extends BaseEntity {
 	public void setItems(List<ItemPrescricaoMedica> items) {
 		this.items = items;
 	}
-	
-	
 
+	public UnidadeInternacao getUnidade() {
+		return unidade;
+	}
+
+	public void setUnidade(UnidadeInternacao unidade) {
+		this.unidade = unidade;
+	}
 }

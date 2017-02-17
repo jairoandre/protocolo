@@ -155,6 +155,9 @@
                             process="@this" onstart="PF('changePage').show()"
                             disabled="#{item.dataResposta != null or item.estado eq 'RECUSADO'}"
                             icon="fa fa-pencil" rendered="#{protocoloCtrl.showEditButton(item)}"/>
+                <p:menuitem value="Detalhar" action="#{protocoloCtrl.detail(item)}"
+                            process="@this" onstart="PF('changePage').show()"
+                            icon="fa fa-eye"/>
                 <p:menuitem value="Receber" action="#{protocoloCtrl.preReceber(item)}"
                             ajax="true" process="@this" update="#{p:component('receberDlgPnl')}"
                             oncomplete="PF('receberDlg').show();"

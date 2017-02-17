@@ -27,7 +27,6 @@ public class DocumentoDTO {
   private ItemProtocolo itemProtocolo;
   private Boolean selected = false;
   private Protocolo protocoloItem;
-  private RegFaturamento conta;
 
   public DocumentoDTO(PrescricaoMedica prescricao, TipoDocumentoEnum tipo) {
     setFieldsForPrescricao(prescricao, tipo);
@@ -81,17 +80,6 @@ public class DocumentoDTO {
     this.tipo = TipoDocumentoEnum.PROTOCOLO;
   }
 
-  public DocumentoDTO(RegFaturamento conta) {
-    setFieldsConta(conta);
-  }
-
-  private void setFieldsConta(RegFaturamento conta) {
-    this.conta = conta;
-    this.data = conta.getInicio();
-    this.codigo = String.valueOf(conta.getId());
-    this.tipo = TipoDocumentoEnum.CONTA;
-  }
-
   public DocumentoDTO(ItemProtocolo itemProtocolo) {
     this.itemProtocolo = itemProtocolo;
     switch (itemProtocolo.getTipo()) {
@@ -108,9 +96,6 @@ public class DocumentoDTO {
         break;
       case PROTOCOLO:
         setFieldsProtocoloFilho(itemProtocolo.getProtocoloItem());
-        break;
-      case CONTA:
-        setFieldsConta(itemProtocolo.getConta());
         break;
       default:
         break;
@@ -133,8 +118,6 @@ public class DocumentoDTO {
       itemProtocolo.setRegistroDocumento(registro);
     } else if (protocoloItem != null) {
       itemProtocolo.setProtocoloItem(protocoloItem);
-    } else if (conta != null) {
-      itemProtocolo.setConta(conta);
     }
     return itemProtocolo;
   }
@@ -233,14 +216,6 @@ public class DocumentoDTO {
 
   public void setProtocoloItem(Protocolo protocoloItem) {
     this.protocoloItem = protocoloItem;
-  }
-
-  public RegFaturamento getConta() {
-    return conta;
-  }
-
-  public void setConta(RegFaturamento conta) {
-    this.conta = conta;
   }
 
   public String getConselho() {

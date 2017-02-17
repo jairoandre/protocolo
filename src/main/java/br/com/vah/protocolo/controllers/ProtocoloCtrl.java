@@ -268,6 +268,11 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
 
   }
 
+  private List<RegFaturamento> contas;
+
+  public List<RegFaturamento> getContas() {
+    return contas;
+  }
 
   private void contarDocumentos() {
     Integer[] totais = service.contarDocumentos(getItem());
@@ -279,6 +284,7 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
     totalDescricoes = totais[4];
     totalRegistros = totais[5];
     totalDocumentosManuais = totais[6];
+    contas = new ArrayList<>(service.inferirContas(getItem()));
   }
 
   public String getEditTitle() {

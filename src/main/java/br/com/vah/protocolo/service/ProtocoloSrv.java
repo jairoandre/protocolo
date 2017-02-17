@@ -129,15 +129,12 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
 
 
     List<ReportTotalPorSetor> list = new ArrayList<>(map.values());
-    Collections.sort(list, new Comparator<ReportTotalPorSetor>() {
-      @Override
-      public int compare(ReportTotalPorSetor o1, ReportTotalPorSetor o2) {
-        int compareSetor = o1.getSetor().compareTo(o2.getSetor());
-        if (compareSetor == 0) {
-          return o2.getTotalCriadas().compareTo(o1.getTotalCriadas());
-        }
-        return compareSetor;
+    Collections.sort(list, (o1, o2) -> {
+      int compareSetor = o1.getSetor().compareTo(o2.getSetor());
+      if (compareSetor == 0) {
+        return o2.getTotalCriadas().compareTo(o1.getTotalCriadas());
       }
+      return compareSetor;
     });
 
     return reportLoader.imprimeRelatorio("medias", list);
@@ -151,7 +148,7 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
       historico.setEstado(acao);
       historico.setProtocolo(protocolo);
       if (protocolo.getHistorico() == null) {
-        protocolo.setHistorico(new ArrayList<Historico>());
+        protocolo.setHistorico(new ArrayList<>());
       }
       protocolo.getHistorico().add(historico);
     }
@@ -209,8 +206,7 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
   private List<DocumentoDTO> gerarListaDTO(List<PrescricaoMedica> prescricoes,
                                            List<AvisoCirurgia> avisos,
                                            List<RegistroDocumento> registros,
-                                           List<Protocolo> protocolos,
-                                           List<RegFaturamento> contas) {
+                                           List<Protocolo> protocolos) {
     List<DocumentoDTO> documentos = new ArrayList<>();
 
     // Prescrições e evoluções médicas
@@ -241,11 +237,6 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     // Protocolos
     if (protocolos != null) {
       protocolos.forEach((protocoloItem) -> documentos.add(new DocumentoDTO(protocoloItem)));
-    }
-
-    // Contas
-    if (contas != null) {
-      contas.forEach((conta) -> documentos.add(new DocumentoDTO(conta)));
     }
 
     return documentos;
@@ -317,11 +308,11 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
 
   }
 
-  private List<Protocolo> protocolosAptosParaEnvio(Atendimento atendimento, Date inicio, Date fim, SetorProtocolo setor, Protocolo protocolo) {
+  private List<Protocolo> protocolosAptosParaEnvio(Protocolo protocolo, Date inicio, Date fim) {
     Criteria criteria = getSession().createCriteria(Protocolo.class, "protocolo");
-    criteria.add(Restrictions.eq("atendimento", atendimento));
+    criteria.add(Restrictions.eq("atendimento", protocolo.getAtendimento()));
     criteria.add(Restrictions.eq("estado", EstadosProtocoloEnum.RECEBIDO));
-    criteria.add(Restrictions.eq("destino", setor));
+    criteria.add(Restrictions.eq("destino", protocolo.getOrigem()));
 
     // Remove itens já protocolados.
     DetachedCriteria dt = DetachedCriteria.forClass(ItemProtocolo.class, "i");
@@ -335,23 +326,21 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     List<PrescricaoMedica> prescricoes = null;
     List<AvisoCirurgia> avisos = null;
     List<RegistroDocumento> registros = null;
-    List<RegFaturamento> contas = null;
 
     Atendimento atendimento = protocolo.getAtendimento();
     SetorProtocolo origem = protocolo.getOrigem();
 
 
     if (protocolo.getOrigem().getNivel() == 0) {
-      prescricoes = prescricaoMedicaSrv.consultarPrescricoes(atendimento, inicio, fim);
-      avisos = avisoCirurgiaSrv.consultarAvisos(atendimento, inicio, fim, origem);
-      registros = registroDocumentoSrv.consultarRegistros(atendimento, inicio, fim);
-    } else {
-      contas = inferirContas(protocolo);
+      Date[] range = prescricaoMedicaSrv.normalizeDate(protocolo, inicio, fim);
+      prescricoes = prescricaoMedicaSrv.consultarPrescricoes(protocolo, range[0], range[1]);
+      avisos = avisoCirurgiaSrv.consultarAvisos(atendimento, range[0], range[1], origem);
+      registros = registroDocumentoSrv.consultarRegistros(atendimento, range[0], range[1]);
     }
 
-    List<Protocolo> protocolos = protocolosAptosParaEnvio(atendimento, inicio, fim, origem, protocolo);
+    List<Protocolo> protocolos = protocolosAptosParaEnvio(protocolo, inicio, fim);
 
-    List<DocumentoDTO> dtos = gerarListaDTO(prescricoes, avisos, registros, protocolos, contas);
+    List<DocumentoDTO> dtos = gerarListaDTO(prescricoes, avisos, registros, protocolos);
 
     for (ItemProtocolo itemProtocolo : protocolo.getItens()) {
       dtos = removeIfExists(dtos, itemProtocolo);
@@ -372,12 +361,20 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
 
   public Protocolo enviarProtocolo(Protocolo protocolo) throws ProtocoloBusinessException {
 
-    if (protocolo.getDestino() == null) {
+    if (protocolo.getOrigem() == null) {
       throw new ProtocoloBusinessException("Protocolo sem origem definido.");
     }
 
     if (protocolo.getDestino() == null) {
       throw new ProtocoloBusinessException("Protocolo sem destino definido.");
+    }
+
+    if (protocolo.getOrigem().getNivel() == 0) {
+      Set<RegFaturamento> contas = inferirContas(protocolo);
+      if (contas.size() > 1) {
+        throw new ProtocoloBusinessException("Somente uma conta deve ser referenciada em um envio. Reveja os documentos incluídos.");
+      }
+      protocolo.setContaFaturamento(contas.iterator().next());
     }
 
     if (EstadosProtocoloEnum.RASCUNHO.equals(protocolo.getEstado())) {
@@ -474,9 +471,16 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     }
   }
 
-  public List<RegFaturamento> inferirContas(Protocolo protocolo) {
+
+  public Set<RegFaturamento> inferirContasInitialize(Protocolo protocolo) {
     Protocolo att = initializeLists(protocolo);
+    return inferirContas(att);
+  }
+
+
+  public Set<RegFaturamento> inferirContas(Protocolo att) {
     Date[] range = new Date[2];
+    Set<RegFaturamento> contas = new HashSet<>();
     att.getItens().forEach((itemProtocolo) -> {
       // Check Aviso
       if (itemProtocolo.getAvisoCirurgia() != null) {
@@ -498,8 +502,13 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
         Date dtManual = itemProtocolo.getDocumentoManual().getDataImpressao();
         checkDates(dtManual, range);
       }
+
+      if (itemProtocolo.getProtocoloItem() != null) {
+        contas.addAll(inferirContasInitialize(itemProtocolo.getProtocoloItem()));
+      }
     });
-    return regFaturamentoSrv.obterContas(att, range);
+    contas.addAll(regFaturamentoSrv.obterContas(att, range));
+    return contas;
   }
 
 }
