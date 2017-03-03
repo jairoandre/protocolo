@@ -242,10 +242,16 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     return documentos;
   }
 
-  private List<DocumentoDTO> gerarListaDTO(Protocolo protocolo) {
+  private List<DocumentoDTO> gerarListaDTO(Protocolo protocolo, Boolean subItens) {
     List<DocumentoDTO> dtos = new ArrayList<>();
     if (protocolo.getItens() != null) {
-      protocolo.getItens().forEach((item) -> dtos.add(new DocumentoDTO(item)));
+      protocolo.getItens().forEach((item) -> {
+        dtos.add(new DocumentoDTO(item));
+        if (item.getProtocoloItem() != null && subItens) {
+          Protocolo attIp = initializeLists(item.getProtocoloItem());
+          attIp.getItens().forEach((iP) -> dtos.add(new DocumentoDTO(iP)));
+        }
+      });
     }
     return dtos;
   }
@@ -308,20 +314,87 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
 
   }
 
-  private List<Protocolo> protocolosAptosParaEnvio(Protocolo protocolo, Date inicio, Date fim) {
-    Criteria criteria = getSession().createCriteria(Protocolo.class, "protocolo");
-    criteria.add(Restrictions.eq("atendimento", protocolo.getAtendimento()));
+  private List<Protocolo> protocolosAptosParaEnvio(Protocolo protocolo, Date inicio, Date fim, Convenio convenio, String listaContas) {
+    Criteria criteria = getSession().createCriteria(Protocolo.class, "pro");
+    if (protocolo.getAtendimento() != null) {
+      criteria.add(Restrictions.eq("atendimento", protocolo.getAtendimento()));
+    }
     criteria.add(Restrictions.eq("estado", EstadosProtocoloEnum.RECEBIDO));
     criteria.add(Restrictions.eq("destino", protocolo.getOrigem()));
+    if (inicio != null && fim == null) {
+      criteria.add(Restrictions.ge("dataResposta",inicio));
+    } else if (inicio == null && fim != null) {
+      criteria.add(Restrictions.le("dataResposta",fim));
+    } else if (inicio != null && fim != null) {
+      criteria.add(Restrictions.between("dataResposta", inicio, fim));
+    }
+
+    if (convenio != null) {
+      criteria.createCriteria("atendimento", "atd").add(Restrictions.eq("atd.convenio", convenio));
+    }
+
+    if (listaContas != null && !listaContas.isEmpty()) {
+      String[] contas = listaContas.split(";");
+      List<Long> ids = new ArrayList<>();
+      for (int i = 0, len = contas.length; i < len; i++) {
+        try {
+          Long l = Long.parseLong(contas[i]);
+          ids.add(l);
+        } catch (NumberFormatException nfe) {
+          System.out.println("Erro de conversão silenciado.");
+        }
+      }
+      Disjunction disj = Restrictions.disjunction();
+      disj.add(Restrictions.in("contaFaturamento.id", ids));
+      disj.add(Restrictions.isNull("contaFaturamento"));
+      criteria.add(disj);
+    }
 
     // Remove itens já protocolados.
     DetachedCriteria dt = DetachedCriteria.forClass(ItemProtocolo.class, "i");
-    criteria.add(Subqueries.notExists(dt.setProjection(Projections.id()).add(Restrictions.eqProperty("protocolo.id", "i.protocoloItem.id"))));
+    criteria.add(Subqueries.notExists(dt.setProjection(Projections.id()).add(Restrictions.eqProperty("pro.id", "i.protocoloItem.id"))));
 
     return criteria.list();
   }
 
-  private List<DocumentoDTO> buscarDocumentos(Protocolo protocolo, Date inicio, Date fim) {
+  public void addIfNoExists(Protocolo protocolo, DocumentoDTO dto) {
+    ItemProtocolo newItem = dto.criarItemProtocolo();
+    newItem.setProtocolo(protocolo);
+    Boolean add = true;
+    for (ItemProtocolo item : protocolo.getItens()) {
+      if (item.getTipo().equals(newItem.getTipo())) {
+        if (item.getPrescricaoMedica() != null && newItem.getPrescricaoMedica() != null) {
+          if (item.getPrescricaoMedica().equals(newItem.getPrescricaoMedica())) {
+            add = false;
+            break;
+          }
+        }
+        if (item.getRegistroDocumento() != null && newItem.getRegistroDocumento() != null) {
+          if (item.getRegistroDocumento().equals(newItem.getRegistroDocumento())) {
+            add = false;
+            break;
+          }
+        }
+        if (item.getAvisoCirurgia() != null && newItem.getAvisoCirurgia() != null) {
+          if (item.getAvisoCirurgia().equals(newItem.getAvisoCirurgia())) {
+            add = false;
+            break;
+          }
+        }
+        if (item.getProtocoloItem() != null && newItem.getProtocoloItem() != null) {
+          if (item.getProtocoloItem().equals(newItem.getProtocoloItem())) {
+            add = false;
+            break;
+          }
+        }
+      }
+    }
+    if (add) {
+      protocolo.getItens().add(newItem);
+    }
+  }
+
+  private List<DocumentoDTO> buscarDocumentos(Protocolo protocolo, Date inicio, Date fim, Convenio convenio, String listaContas) {
 
     List<PrescricaoMedica> prescricoes = null;
     List<AvisoCirurgia> avisos = null;
@@ -335,10 +408,44 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
       Date[] range = prescricaoMedicaSrv.normalizeDate(protocolo, inicio, fim);
       prescricoes = prescricaoMedicaSrv.consultarPrescricoes(protocolo, range[0], range[1]);
       avisos = avisoCirurgiaSrv.consultarAvisos(atendimento, range[0], range[1], origem);
-      registros = registroDocumentoSrv.consultarRegistros(atendimento, range[0], range[1]);
+      registros = registroDocumentoSrv.consultarRegistros(protocolo, range[0], range[1]);
     }
 
-    List<Protocolo> protocolos = protocolosAptosParaEnvio(protocolo, inicio, fim);
+    List<Protocolo> protocolos = protocolosAptosParaEnvio(protocolo, inicio, fim, convenio, listaContas);
+
+    /*
+    final List<PrescricaoMedica> prescricoesProtocolo = new ArrayList<>();
+    final List<AvisoCirurgia> avisosProtocolo = new ArrayList<>();
+    final List<RegistroDocumento> registrosProtocolo = new ArrayList<>();
+
+    protocolos.forEach((p) -> p.getItens().forEach((i) -> {
+      if (i.getPrescricaoMedica() != null) {
+        prescricoesProtocolo.add(i.getPrescricaoMedica());
+      }
+      if (i.getAvisoCirurgia() != null) {
+        avisosProtocolo.add(i.getAvisoCirurgia());
+      }
+      if (i.getRegistroDocumento() != null) {
+        registrosProtocolo.add(i.getRegistroDocumento());
+      }
+    }));
+
+    if (prescricoes == null) {
+      prescricoes = prescricoesProtocolo;
+    } else {
+      prescricoes.addAll(prescricoesProtocolo);
+    }
+    if (avisos == null) {
+      avisos = avisosProtocolo;
+    } else {
+      avisos.addAll(avisosProtocolo);
+    }
+    if (registros == null) {
+      registros = registrosProtocolo;
+    } else {
+      registros.addAll(registrosProtocolo);
+    }
+    */
 
     List<DocumentoDTO> dtos = gerarListaDTO(prescricoes, avisos, registros, protocolos);
 
@@ -350,13 +457,13 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
 
   }
 
-  public DtoKeyMap buscarDocumentosNaoSelecionados(Protocolo protocolo, Date inicio, Date fim) {
-    List<DocumentoDTO> documentos = buscarDocumentos(protocolo, inicio, fim);
+  public DtoKeyMap buscarDocumentosNaoSelecionados(Protocolo protocolo, Date inicio, Date fim, Convenio convenio, String listaContas) {
+    List<DocumentoDTO> documentos = buscarDocumentos(protocolo, inicio, fim, convenio, listaContas);
     return gerarDtoKeyMap(documentos);
   }
 
-  public DtoKeyMap gerarDocumentosSelecionados(Protocolo protocolo) {
-    return gerarDtoKeyMap(gerarListaDTO(protocolo));
+  public DtoKeyMap gerarDocumentosSelecionados(Protocolo protocolo, Boolean subItens) {
+    return gerarDtoKeyMap(gerarListaDTO(protocolo, subItens));
   }
 
   public Protocolo enviarProtocolo(Protocolo protocolo) throws ProtocoloBusinessException {
@@ -369,20 +476,51 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
       throw new ProtocoloBusinessException("Protocolo sem destino definido.");
     }
 
+    if (protocolo.getOrigem().equals(protocolo.getDestino())) {
+      throw new ProtocoloBusinessException("Destino e origem iguais.");
+    }
+
     if (protocolo.getOrigem().getNivel() == 0) {
+
       Set<RegFaturamento> contas = inferirContas(protocolo);
       if (contas.size() > 1) {
         throw new ProtocoloBusinessException("Somente uma conta deve ser referenciada em um envio. Reveja os documentos incluídos.");
       }
-      protocolo.setContaFaturamento(contas.iterator().next());
+      if (contas.size() > 0) {
+        protocolo.setContaFaturamento(contas.iterator().next());
+      }
     }
 
-    if (EstadosProtocoloEnum.RASCUNHO.equals(protocolo.getEstado())) {
+    if (protocolo.getOrigem().getNivel() == 1) {
+
+      if (protocolo.getDestino().getNivel() == 0) {
+        final Set<RegFaturamento> contaSet = new HashSet<>();
+        protocolo.getItens().forEach((it) -> {
+          Protocolo protItem = it.getProtocoloItem();
+          if (protItem != null) {
+            if (protItem.getContaFaturamento() != null) {
+              contaSet.add(protItem.getContaFaturamento());
+            }
+          }
+        });
+        if (contaSet.size() > 1) {
+          throw new ProtocoloBusinessException("Existe mais de uma conta referenciada neste protocolo.");
+        } else if (contaSet.size() == 1) {
+          protocolo.setContaFaturamento(contaSet.iterator().next());
+        }
+      }
+
+      if (protocolo.getDestino().getNivel() == 2) {
+
+      }
+    }
+
+    if (EstadosProtocoloEnum.RASCUNHO.equals(protocolo.getEstado()) || EstadosProtocoloEnum.RECUSADO.equals(protocolo.getEstado())) {
       protocolo.setEstado(EstadosProtocoloEnum.ENVIADO);
       protocolo.setDataEnvio(new Date());
       protocolo = update(protocolo);
     } else {
-      throw new ProtocoloBusinessException("Apenas rascunhos ou novos protocolos podem ser enviados.");
+      throw new ProtocoloBusinessException("Apenas rascunhos, protocolos recusados ou novos protocolos podem ser enviados.");
     }
 
     return protocolo;

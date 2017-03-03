@@ -3,6 +3,8 @@ package br.com.vah.protocolo.util;
 import br.com.vah.protocolo.dto.DocumentoDTO;
 
 import java.io.Serializable;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -21,10 +23,22 @@ public class DtoKeyMap implements Serializable {
     return list;
   }
 
+  private SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+
+  private int compareKeys(Map.Entry<String, List<DocumentoDTO>> o1, Map.Entry<String, List<DocumentoDTO>> o2)  {
+    try {
+      Date d1 = sdf.parse(o1.getKey());
+      Date d2 = sdf.parse(o2.getKey());
+      return d1.compareTo(d2);
+    } catch (ParseException pe) {
+      return 0;
+    }
+  }
+
   public void put(String key, List<DocumentoDTO> value) {
     map.put(key, value);
     list = new ArrayList<>(map.entrySet());
-    Collections.sort(list, (o1, o2) -> o1.getKey().compareTo(o2.getKey()));
+    Collections.sort(list, (o1, o2) -> compareKeys(o1, o2));
   }
 
   public List<DocumentoDTO> getSelecionados() {
@@ -43,6 +57,20 @@ public class DtoKeyMap implements Serializable {
     return selecionados;
   }
 
+  public void addDto(DocumentoDTO dto) {
+    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+    String key = sdf.format(dto.getData());
+    List<DocumentoDTO> listaDoc = this.get(key);
+    if (listaDoc == null) {
+      listaDoc = new ArrayList<>();
+      this.put(key, listaDoc);
+    }
+    listaDoc.add(dto);
+    Collections.sort(listaDoc, (o1, o2) -> o1.getData().compareTo(o2.getData()));
+    list = new ArrayList<>(map.entrySet());
+    Collections.sort(list, (o1, o2) -> compareKeys(o1, o2));
+  }
+
   public DtoKeyMap getNotSelectedMap() {
     DtoKeyMap notSelectedMap = new DtoKeyMap();
     if (list != null) {
@@ -53,7 +81,9 @@ public class DtoKeyMap implements Serializable {
             notSelecteds.add(item);
           }
         });
-        notSelectedMap.put(docEntry.getKey(), notSelecteds);
+        if (!notSelecteds.isEmpty()) {
+          notSelectedMap.put(docEntry.getKey(), notSelecteds);
+        }
       });
     }
     return notSelectedMap;

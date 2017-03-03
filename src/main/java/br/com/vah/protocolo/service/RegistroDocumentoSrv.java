@@ -3,6 +3,7 @@ package br.com.vah.protocolo.service;
 import br.com.vah.protocolo.entities.dbamv.Atendimento;
 import br.com.vah.protocolo.entities.dbamv.RegistroDocumento;
 import br.com.vah.protocolo.entities.usrdbvah.ItemProtocolo;
+import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.DetachedCriteria;
@@ -23,13 +24,13 @@ public class RegistroDocumentoSrv extends AbstractSrv<RegistroDocumento> {
   }
 
   @SuppressWarnings("unchecked")
-  public List<RegistroDocumento> consultarRegistros(Atendimento atendimento, Date inicio, Date fim) {
+  public List<RegistroDocumento> consultarRegistros(Protocolo protocolo, Date inicio, Date fim) {
 
     Session session = getEm().unwrap(Session.class);
 
     Criteria criteria = session.createCriteria(RegistroDocumento.class, "reg");
 
-    criteria.add(Restrictions.eq("atendimento", atendimento));
+    criteria.add(Restrictions.eq("atendimento", protocolo.getAtendimento()));
 
     criteria.add(Restrictions.eq("impresso", "S"));
 

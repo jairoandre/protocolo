@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 @SuppressWarnings("serial")
-public abstract class AbstractController<T extends BaseEntity> implements Serializable {
+public abstract class AbstractCtrl<T extends BaseEntity> implements Serializable {
 
   private T item;
 

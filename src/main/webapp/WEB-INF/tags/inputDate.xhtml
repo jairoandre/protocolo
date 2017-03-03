@@ -1,5 +1,4 @@
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
-                xmlns:f="http://java.sun.com/jsf/core"
                 xmlns:h="http://java.sun.com/jsf/html"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
                 xmlns:p="http://primefaces.org/ui">
@@ -11,12 +10,20 @@
     <p:tooltip id="#{id}Tooltip" for="#{id}Info" value="#{info}"
                rendered="#{info != null}"/>
   </h:panelGroup>
-  <p:calendar id="#{id}" value="#{value}"
-              required="#{required == null ? false : required}" label="#{label}"
-              rendered="#{rendered == null ? true : rendered}"
-              disabled="#{editing == null ? false : !editing}"
-              pattern="#{pattern == null ? 'dd/MM/yyyy' : pattern}" mask="true" locale="pt_BR">
-    <ui:insert/>
-  </p:calendar>
+  <h:panelGroup>
+    <p:calendar id="#{id}" value="#{value}"
+                required="#{required == null ? false : required}" label="#{label}"
+                rendered="#{rendered == null ? true : rendered}"
+                disabled="#{editing == null ? false : !editing}"
+                pattern="#{pattern == null ? 'dd/MM/yyyy' : pattern}" mask="true" locale="pt_BR">
+      <ui:insert/>
+    </p:calendar>
+    <script>
+      function #{id}Focus() {
+        document.getElementById('#{p:component(id)}_input').focus();
+      }
+    </script>
+  </h:panelGroup>
+
   <p:message id="#{id}Message" for="#{id}" rendered="#{rendered == null ? true : rendered}"/>
 </ui:composition>

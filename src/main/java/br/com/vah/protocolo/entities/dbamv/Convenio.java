@@ -43,6 +43,6 @@ public class Convenio extends BaseEntity {
 
   @Override
   public String getLabelForSelectItem() {
-    return String.format("%l - %s", id, getTitle());
+    return String.format("%d - %s", id, getTitle());
   }
 }

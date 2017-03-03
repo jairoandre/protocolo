@@ -7,7 +7,20 @@
                 xmlns:vah="http://java.sun.com/jsf/composite/vah">
   <ui:define name="content">
     <h:form id="form">
-      <p:panel header="Protocolos">
+      <p:panel>
+
+        <f:facet name="header">
+          <h:outputText value="Protocolos "/>
+          <h:panelGroup id="filtersWrapper">
+            <ui:repeat value="#{protocoloCtrl.fieldsMap}" var="filtro">
+              <p:commandButton value="#{protocoloCtrl.interpolarTextoMapFiltros(filtro)}" icon="fa fa-ban"
+                               action="#{protocoloCtrl.removeFilterItem(filtro)}"
+                               escape="false"
+                               styleClass="margin-left" ajax="true" process="@this"
+                               update="#{p:component('tablePnl')} #{p:component('filtersWrapper')}"/>
+            </ui:repeat>
+          </h:panelGroup>
+        </f:facet>
 
         <h:panelGroup id="tablePnl">
           <vah:dataTable id="dataTable" controller="#{protocoloCtrl}"
@@ -29,7 +42,7 @@
                                 dismissable="false">
                   <p:commandButton id="currentMonthBtn" value="Mês corrente"
                                    actionListener="#{protocoloCtrl.filterCurrentMonth}" ajax="true"
-                                   process="@this" update="table, dateFilterInputs"/>
+                                   process="@this" update="table dateFilterInputs #{p:component('filtersWrapper')}"/>
                   <p:commandButton id="dataFilterConvOverlay" value="Fechar" onclick="PF('dataFilterPnl').hide()"
                                    ajax="true" styleClass="margin-left"/>
                   <h:panelGrid id="dateFilterInputs" columns="2">
@@ -41,7 +54,7 @@
                   <p:separator/>
                   <p:commandButton id="filterByDate" value="Filtrar"
                                    actionListener="#{protocoloCtrl.prepareSearch}" ajax="true"
-                                   process="@this, dateFilterInputs" update="table"/>
+                                   process="@this dateFilterInputs" update="table #{p:component('filtersWrapper')}"/>
                 </p:overlayPanel>
 
                 <!-- FILTRO ESTADO -->
@@ -51,10 +64,10 @@
                                 hideEffect="fade">
                   <p:commandButton id="estadoClearBtn" value="Limpar Filtro"
                                    actionListener="#{protocoloCtrl.clearSelectedEstados}" ajax="true"
-                                   process="@this" update="table, estadoMany"/>
+                                   process="@this" update="table estadoMany #{p:component('filtersWrapper')}"/>
                   <p:selectManyMenu id="estadoMany" value="#{protocoloCtrl.selectedEstados}" showCheckbox="true"
                                     styleClass="margin-top">
-                    <p:ajax event="change" process="@this" listener="#{protocoloCtrl.prepareSearch}" update="table"/>
+                    <p:ajax event="change" process="@this" listener="#{protocoloCtrl.prepareSearch}" update="table #{p:component('filtersWrapper')}"/>
                     <f:selectItems value="#{protocoloCtrl.estados}" var="estado" itemLabel="#{estado.label}"
                                    itemValue="#{estado}"/>
                   </p:selectManyMenu>
@@ -63,20 +76,16 @@
                 <!-- FILTRO SETOR -->
                 <p:commandButton id="setorFilterBtn" value="Filtrar por Setor" type="button" styleClass="margin-left"/>
                 <p:overlayPanel id="setorFilterPnl" widgetVar="setorFilterPnl" for="setorFilterBtn" hideEffect="fade">
-                  <p:commandButton id="setorClearFilterBtn" value="Limpar Filtro"
-                                   actionListener="#{protocoloCtrl.clearSetor}" ajax="true"
-                                   process="@this" update="table, setorFilter"
-                                   rendered="#{sessionController.isUserInRoles('ADMINISTRATOR')}"/>
                   <p:autoComplete id="setorFilter" value="#{protocoloCtrl.setor}"
                                   var="setor"
                                   itemLabel="#{setor.title}"
                                   itemValue="#{setor}"
-                                  converter="#{setorConverter}"
+                                  converter="#{setorProtocoloConverter}"
                                   inputStyleClass="lance-input"
                                   queryDelay="250"
-                                  completeMethod="#{setorController.completeSetor}"
+                                  completeMethod="#{setorProtocoloCtrl.completeMethod}"
                                   placeholder="Digite o código ou o nome do setor.">
-                    <p:ajax event="itemSelect" listener="#{protocoloCtrl.prepareSearch}" update="table"/>
+                    <p:ajax event="itemSelect" listener="#{protocoloCtrl.prepareSearch}" update="table #{p:component('filtersWrapper')}"/>
                     <p:column>
                       #{setor.id}
                     </p:column>
@@ -114,14 +123,14 @@
               <h:outputText value="-" rendered="#{empty item.atendimento}"/>
             </p:column>
 
-            <p:column headerText="Paciente/Remessa" width="170" styleClass="left-align ellipsis-text">
+            <p:column headerText="Paciente" width="170" styleClass="left-align ellipsis-text">
               <h:panelGroup layout="block" rendered="#{not empty item.atendimento}">
                 <h:outputText id="pacienteOutput" value="#{item.atendimento.paciente.name}"/>
                 <vah:toolTip id="pacienteToolTip" value="#{item.atendimento.paciente.name}" index="#{indexVar}"
                              for="#{p:component('pacienteOutput')}"/>
               </h:panelGroup>
               <h:panelGroup layout="block" rendered="#{empty item.atendimento}">
-                <p:commandButton icon="fa fa-search"/>
+                <h:outputText value="#{item.contaFaturamento.id}" rendered="#{not empty item.contaFaturamento}"/>
               </h:panelGroup>
             </p:column>
 
@@ -153,7 +162,7 @@
               <p:menuButton id="menuButton" value="Ações">
                 <p:menuitem value="Editar" action="#{protocoloCtrl.edit(item)}"
                             process="@this" onstart="PF('changePage').show()"
-                            disabled="#{item.dataResposta != null or item.estado eq 'RECUSADO'}"
+                            disabled="#{item.dataResposta == null ? item.estado ne 'RASCUNHO' : item.estado ne 'RECUSADO'}"
                             icon="fa fa-pencil" rendered="#{protocoloCtrl.showEditButton(item)}"/>
                 <p:menuitem value="Detalhar" action="#{protocoloCtrl.detail(item)}"
                             process="@this" onstart="PF('changePage').show()"
@@ -175,15 +184,19 @@
                             icon="fa fa-comment"/>
                 <p:menuitem value="Histórico" action="#{protocoloCtrl.preHistorico(item)}"
                             process="@this" update="#{p:component('historicoDlgPnl')}"
-                            oncomplete="PF('historicoDlg').show()"
+                            onclick="openLoading();"
+                            oncomplete="PF('historicoDlg').show(); closeLoading();"
                             icon="fa fa-tags"/>
                 <p:menuitem value="Comentários" action="#{protocoloCtrl.preOpenComentariosDlg(item)}"
-                            process="@this" update="#{p:component('comentariosDlgPnl')}"
-                            oncomplete="PF('comentariosDlg').show()"
+                            process="@this"
+                            update="#{p:component('comentariosDlgPnl')}"
+                            onclick="openLoading();"
+                            oncomplete="PF('comentariosDlg').show(); closeLoading();"
                             icon="fa fa-comments"/>
                 <p:menuitem value="Documentos" action="#{protocoloCtrl.preOpenDocumentosDlg(item)}"
                             process="@this" update="#{p:component('documentosDlgPnl')}"
-                            oncomplete="PF('documentosDlg').show()"
+                            onclick="openLoading();"
+                            oncomplete="PF('documentosDlg').show(); closeLoading();"
                             icon="fa fa-file-text"/>
                 <p:separator rendered="#{sessionController.isUserInRoles('ADMINISTRATOR')}"/>
                 <p:menuitem value="Excluir" actionListener="#{protocoloCtrl.preDelete(item.id, index)}"
@@ -374,6 +387,7 @@
               <p:tabView id="docsTab"
                          widgetVar="docsTab"
                          value="#{protocoloCtrl.documentosSelecionados.list}"
+                         onTabChange="updateTooltips();"
                          var="docEntry"
                          rendered="#{not empty protocoloCtrl.documentosSelecionados.list}">
                 <p:tab title="#{docEntry.key}">
@@ -395,13 +409,10 @@
                     <p:column headerText="Descrição" styleClass="left-align ellipsis-text" width="150">
                       <h:outputText value="#{doc.descricao}"/>
                     </p:column>
-                    <p:column headerText="Prestador" styleClass="left-align ellipsis-text" width="150">
+                    <p:column headerText="Conselho/Prestador" styleClass="left-align ellipsis-text" width="200">
                       <h:outputText id="prest" value="#{doc.prestador}"/>
                       <vah:toolTip id="prestTooltip" for="#{p:component('prest')}" value="#{doc.prestador}"
                                    index="#{idx}"/>
-                    </p:column>
-                    <p:column headerText="Conselho" styleClass="left-align" width="50">
-                      <h:outputText value="#{doc.conselho}"/>
                     </p:column>
                     <p:column headerText="Data/Hora Criação" styleClass="left-align" width="85">
                       <h:outputText value="#{doc.dataHoraCriacao}">
@@ -466,6 +477,7 @@
 
             <p:tabView value="#{protocoloCtrl.documentosSelecionados.list}"
                        var="docEntry"
+                       onTabChange="updateTooltips()"
                        rendered="#{not empty protocoloCtrl.documentosSelecionados.list}">
               <p:tab title="#{docEntry.key}">
                 <p:dataTable value="#{docEntry.value}" var="doc"
@@ -475,28 +487,25 @@
                   <p:column headerText="Cód." width="50" styleClass="left-align">
                     <h:outputText value="#{doc.codigo}"/>
                   </p:column>
-                  <p:column headerText="Descrição" styleClass="left-align ellipsis-text" width="150">
+                  <p:column headerText="Descrição" styleClass="left-align ellipsis-text">
                     <h:outputText value="#{doc.descricao}"/>
                   </p:column>
-                  <p:column headerText="Prestador" styleClass="left-align ellipsis-text" width="150">
+                  <p:column headerText="Conselho/Prestador" styleClass="left-align ellipsis-text" width="250">
                     <h:outputText id="prestVis" value="#{doc.prestador}"/>
                     <vah:toolTip id="prestVisTooltip" for="#{p:component('prestVis')}" value="#{doc.prestador}"
                                  index="#{idx}"/>
                   </p:column>
-                  <p:column headerText="Conselho" styleClass="left-align" width="75">
-                    <h:outputText value="#{doc.conselho}"/>
-                  </p:column>
-                  <p:column headerText="Data/Hora Criação" styleClass="left-align" width="100">
+                  <p:column headerText="Data/Hora Criação" styleClass="left-align" width="135">
                     <h:outputText value="#{doc.dataHoraCriacao}">
                       <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
                     </h:outputText>
                   </p:column>
-                  <p:column headerText="Data/Hora Impressão" styleClass="left-align" width="100">
+                  <p:column headerText="Data/Hora Impressão" styleClass="left-align" width="135">
                     <h:outputText value="#{doc.dataHoraImpressao}">
                       <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
                     </h:outputText>
                   </p:column>
-                  <p:column headerText="Tipo" width="50" styleClass="left-align">
+                  <p:column headerText="Tipo" width="100" styleClass="left-align">
                     <h:outputText value="#{doc.tipo.label}"/>
                   </p:column>
                 </p:dataTable>

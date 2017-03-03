@@ -1,8 +1,8 @@
 package br.com.vah.protocolo.controllers;
 
-import br.com.vah.protocolo.entities.dbamv.Especialidade;
+import br.com.vah.protocolo.entities.dbamv.ProFat;
 import br.com.vah.protocolo.service.AbstractSrv;
-import br.com.vah.protocolo.service.EspecialidadeSrv;
+import br.com.vah.protocolo.service.ProFatSrv;
 
 import javax.annotation.PostConstruct;
 import javax.faces.view.ViewScoped;
@@ -16,15 +16,13 @@ import java.util.logging.Logger;
  */
 @Named
 @ViewScoped
-public class EspecialidadeController extends AbstractController<Especialidade> {
+public class ProFatCtrl extends AbstractCtrl<ProFat> {
 
-  private
-  @Inject
+  private @Inject
   transient Logger logger;
 
-  private
-  @Inject
-  EspecialidadeSrv service;
+  private @Inject
+  ProFatSrv service;
 
   @PostConstruct
   public void init() {
@@ -35,7 +33,7 @@ public class EspecialidadeController extends AbstractController<Especialidade> {
 
 
   @Override
-  public AbstractSrv<Especialidade> getService() {
+  public AbstractSrv<ProFat> getService() {
     return service;
   }
 
@@ -45,30 +43,28 @@ public class EspecialidadeController extends AbstractController<Especialidade> {
   }
 
   @Override
-  public Especialidade createNewItem() {
-    return new Especialidade();
+  public ProFat createNewItem() {
+    return new ProFat();
   }
 
   @Override
   public String path() {
-    return "especialidade";
+    return "profat";
   }
 
   @Override
   public String getEntityName() {
-    return "Especialidade";
+    return "ProFat";
   }
 
   @Override
   public void prepareSearch() {
-    super.prepareSearch();
     setSearchParam("title", getSearchTerm());
   }
 
-  public List<Especialidade> completeEspecialidade(String query) {
+  public List<ProFat> completeProFat(String query) {
     setSearchTerm(query);
-    super.prepareSearch();
-    setSearchParam("title", query);
+    prepareSearch();
     return getLazyModel().load(10);
   }
 }

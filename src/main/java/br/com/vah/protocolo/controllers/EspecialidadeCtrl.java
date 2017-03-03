@@ -1,8 +1,8 @@
 package br.com.vah.protocolo.controllers;
 
-import br.com.vah.protocolo.entities.dbamv.Atendimento;
-import br.com.vah.protocolo.service.AtendimentoSrv;
+import br.com.vah.protocolo.entities.dbamv.Especialidade;
 import br.com.vah.protocolo.service.AbstractSrv;
+import br.com.vah.protocolo.service.EspecialidadeSrv;
 
 import javax.annotation.PostConstruct;
 import javax.faces.view.ViewScoped;
@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  */
 @Named
 @ViewScoped
-public class AtendimentoController extends AbstractController<Atendimento> {
+public class EspecialidadeCtrl extends AbstractCtrl<Especialidade> {
 
   private
   @Inject
@@ -24,7 +24,7 @@ public class AtendimentoController extends AbstractController<Atendimento> {
 
   private
   @Inject
-  AtendimentoSrv service;
+  EspecialidadeSrv service;
 
   @PostConstruct
   public void init() {
@@ -35,7 +35,7 @@ public class AtendimentoController extends AbstractController<Atendimento> {
 
 
   @Override
-  public AbstractSrv<Atendimento> getService() {
+  public AbstractSrv<Especialidade> getService() {
     return service;
   }
 
@@ -45,30 +45,30 @@ public class AtendimentoController extends AbstractController<Atendimento> {
   }
 
   @Override
-  public Atendimento createNewItem() {
-    return new Atendimento();
+  public Especialidade createNewItem() {
+    return new Especialidade();
   }
 
   @Override
   public String path() {
-    return "atendimento";
+    return "especialidade";
   }
 
   @Override
   public String getEntityName() {
-    return "Atendimento";
+    return "Especialidade";
   }
 
   @Override
   public void prepareSearch() {
     super.prepareSearch();
-    setSearchParam("paciente", getSearchTerm());
+    setSearchParam("title", getSearchTerm());
   }
 
-  public List<Atendimento> completeAtendimento(String query) {
+  public List<Especialidade> completeEspecialidade(String query) {
     setSearchTerm(query);
-    resetSearchParams();
-    searchById();
-    return getLazyModel().load(15);
+    super.prepareSearch();
+    setSearchParam("title", query);
+    return getLazyModel().load(10);
   }
 }

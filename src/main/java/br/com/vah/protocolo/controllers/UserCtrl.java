@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  */
 @Named
 @ViewScoped
-public class UserController extends AbstractController<User> {
+public class UserCtrl extends AbstractCtrl<User> {
 
   private
   @Inject

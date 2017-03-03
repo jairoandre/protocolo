@@ -15,7 +15,7 @@ import java.util.logging.Logger;
  */
 @Named
 @ViewScoped
-public class SetorController extends AbstractController<Setor> {
+public class SetorCtrl extends AbstractCtrl<Setor> {
 
   private @Inject
   transient Logger logger;

@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 
 @Named
 @ViewScoped
-public class RegFaturamentoCtrl extends AbstractController<RegFaturamento> {
+public class RegFaturamentoCtrl extends AbstractCtrl<RegFaturamento> {
 
   private
   @Inject

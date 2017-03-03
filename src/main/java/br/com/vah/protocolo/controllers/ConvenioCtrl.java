@@ -1,28 +1,28 @@
 package br.com.vah.protocolo.controllers;
 
-import br.com.vah.protocolo.entities.dbamv.ProFat;
+import br.com.vah.protocolo.entities.dbamv.Convenio;
 import br.com.vah.protocolo.service.AbstractSrv;
-import br.com.vah.protocolo.service.ProFatSrv;
+import br.com.vah.protocolo.service.ConvenioSrv;
 
 import javax.annotation.PostConstruct;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * Created by Jairoportela on 06/04/2016.
+ * Created by Jairoportela on 20/02/2017.
  */
 @Named
 @ViewScoped
-public class ProFatController extends AbstractController<ProFat> {
+public class ConvenioCtrl extends AbstractCtrl<Convenio> {
 
-  private @Inject
+  private
+  @Inject
   transient Logger logger;
 
   private @Inject
-  ProFatSrv service;
+  ConvenioSrv service;
 
   @PostConstruct
   public void init() {
@@ -33,7 +33,7 @@ public class ProFatController extends AbstractController<ProFat> {
 
 
   @Override
-  public AbstractSrv<ProFat> getService() {
+  public AbstractSrv<Convenio> getService() {
     return service;
   }
 
@@ -43,28 +43,23 @@ public class ProFatController extends AbstractController<ProFat> {
   }
 
   @Override
-  public ProFat createNewItem() {
-    return new ProFat();
+  public Convenio createNewItem() {
+    return new Convenio();
   }
 
   @Override
   public String path() {
-    return "profat";
+    return "convenio";
   }
 
   @Override
   public String getEntityName() {
-    return "ProFat";
+    return "Convênio";
   }
 
   @Override
   public void prepareSearch() {
+    super.prepareSearch();
     setSearchParam("title", getSearchTerm());
-  }
-
-  public List<ProFat> completeProFat(String query) {
-    setSearchTerm(query);
-    prepareSearch();
-    return getLazyModel().load(10);
   }
 }

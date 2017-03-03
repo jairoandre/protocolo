@@ -7,23 +7,23 @@
                 xmlns:uivah="http://vah.com.br/vah">
   <ui:define name="metadata">
     <f:metadata>
-      <f:viewParam name="id" value="#{userController.id}"/>
-      <f:viewAction action="#{userController.onLoad}"/>
+      <f:viewParam name="id" value="#{userCtrl.id}"/>
+      <f:viewAction action="#{userCtrl.onLoad}"/>
     </f:metadata>
   </ui:define>
   <ui:define name="content">
     <h:form id="form">
 
-      <vah:editForm id="contractPnl" controller="#{userController}"
+      <vah:editForm id="contractPnl" controller="#{userCtrl}"
                        columns="3">
 
         <uivah:inputText id="name" label="Login"
-                            value="#{userController.item.login}"
+                            value="#{userCtrl.item.login}"
                             editing="false"/>
 
-        <uivah:selectOneEnum id="role" label="Perfil" value="#{userController.item.role}" required="true"
-                                editing="#{userController.editing}"
-                                options="#{userController.roles}"/>
+        <uivah:selectOneEnum id="role" label="Perfil" value="#{userCtrl.item.role}" required="true"
+                             editing="#{userCtrl.editing}"
+                             options="#{userCtrl.roles}"/>
 
       </vah:editForm>
     </h:form>

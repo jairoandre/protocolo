@@ -52,10 +52,6 @@ public class ItemProtocolo implements Serializable {
   @JoinColumn(name = "ID_PROTOCOLO_ITEM")
   private Protocolo protocoloItem;
 
-  @ManyToOne
-  @JoinColumn(name = "CD_REG_FAT")
-  private RegFaturamento conta;
-
   @Column(name = "CD_TIPO")
   @Enumerated(EnumType.STRING)
   private TipoDocumentoEnum tipo;
@@ -114,14 +110,6 @@ public class ItemProtocolo implements Serializable {
 
   public void setProtocoloItem(Protocolo protocoloItem) {
     this.protocoloItem = protocoloItem;
-  }
-
-  public RegFaturamento getConta() {
-    return conta;
-  }
-
-  public void setConta(RegFaturamento conta) {
-    this.conta = conta;
   }
 
   public TipoDocumentoEnum getTipo() {

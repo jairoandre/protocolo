@@ -1,13 +1,14 @@
 package br.com.vah.protocolo.controllers;
 
-import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
+import br.com.vah.protocolo.entities.dbamv.Atendimento;
+import br.com.vah.protocolo.service.AtendimentoSrv;
 import br.com.vah.protocolo.service.AbstractSrv;
-import br.com.vah.protocolo.service.SetorProtocoloSrv;
 
 import javax.annotation.PostConstruct;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -15,7 +16,7 @@ import java.util.logging.Logger;
  */
 @Named
 @ViewScoped
-public class SetorProtocoloCtrl extends AbstractCtrl<SetorProtocolo> {
+public class AtendimentoCtrl extends AbstractCtrl<Atendimento> {
 
   private
   @Inject
@@ -23,7 +24,7 @@ public class SetorProtocoloCtrl extends AbstractCtrl<SetorProtocolo> {
 
   private
   @Inject
-  SetorProtocoloSrv service;
+  AtendimentoSrv service;
 
   @PostConstruct
   public void init() {
@@ -34,7 +35,7 @@ public class SetorProtocoloCtrl extends AbstractCtrl<SetorProtocolo> {
 
 
   @Override
-  public AbstractSrv<SetorProtocolo> getService() {
+  public AbstractSrv<Atendimento> getService() {
     return service;
   }
 
@@ -44,24 +45,30 @@ public class SetorProtocoloCtrl extends AbstractCtrl<SetorProtocolo> {
   }
 
   @Override
-  public SetorProtocolo createNewItem() {
-    return new SetorProtocolo();
+  public Atendimento createNewItem() {
+    return new Atendimento();
   }
 
   @Override
   public String path() {
-    return "setor";
+    return "atendimento";
   }
 
   @Override
   public String getEntityName() {
-    return "Setor";
+    return "Atendimento";
   }
 
   @Override
   public void prepareSearch() {
     super.prepareSearch();
-    setSearchParam("title", getSearchTerm());
+    setSearchParam("paciente", getSearchTerm());
   }
 
+  public List<Atendimento> completeAtendimento(String query) {
+    setSearchTerm(query);
+    resetSearchParams();
+    searchById();
+    return getLazyModel().load(15);
+  }
 }

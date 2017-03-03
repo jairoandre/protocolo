@@ -2,6 +2,7 @@ package br.com.vah.protocolo.util;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -18,6 +19,17 @@ public class DateUtility {
             Date date = new Date();
             return dateFormat.format(date);
 	}
+
+  public static Date zeroHour(Date date) {
+    Calendar cld = Calendar.getInstance();
+    if (date != null) {
+      cld.setTime(date);
+    }
+    cld.set(Calendar.HOUR_OF_DAY, 0);
+    cld.set(Calendar.MINUTE, 0);
+    cld.set(Calendar.SECOND, 0);
+    return cld.getTime();
+  }
 
 
 }

@@ -4,12 +4,12 @@ public enum TipoDocumentoEnum {
   PRESCRICAO("Prescrição"),
   DOCUMENTO_PRONTUARIO("Prontuário"),
   EVOLUCAO("Evolução"),
-  FOLHA_ANESTESICA("Folha Anestésica"),
-  DESCRICAO_CIRURGICA("Descrição Cirúrgica"),
-  REGISTRO_DOCUMENTO("Registro Documento"),
+  FOLHA_ANESTESICA("Folha Anest."),
+  DESCRICAO_CIRURGICA("Desc. Cirúr."),
+  REGISTRO_DOCUMENTO("Reg. Doc."),
   PROTOCOLO("Protocolo"),
-  CONTA("Conta Faturamento"),
-  DOCUMENTO_MANUAL("Documento Manual");
+  CONTA("Conta Fat."),
+  DOCUMENTO_MANUAL("Doc. Manual");
 
   private String label;
 

@@ -1,17 +1,18 @@
 package br.com.vah.protocolo.controllers;
 
 import br.com.vah.protocolo.constants.EstadosProtocoloEnum;
+import br.com.vah.protocolo.constants.ProtocoloFieldEnum;
 import br.com.vah.protocolo.constants.RolesEnum;
 import br.com.vah.protocolo.dto.DocumentoDTO;
+import br.com.vah.protocolo.entities.dbamv.Convenio;
 import br.com.vah.protocolo.entities.dbamv.RegFaturamento;
-import br.com.vah.protocolo.entities.dbamv.Setor;
 import br.com.vah.protocolo.entities.usrdbvah.Comentario;
 import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
 import br.com.vah.protocolo.exceptions.ProtocoloBusinessException;
 import br.com.vah.protocolo.exceptions.ProtocoloPersistException;
-import br.com.vah.protocolo.service.AtendimentoSrv;
 import br.com.vah.protocolo.service.AbstractSrv;
+import br.com.vah.protocolo.service.AtendimentoSrv;
 import br.com.vah.protocolo.service.ProtocoloSrv;
 import br.com.vah.protocolo.util.DtoKeyMap;
 import br.com.vah.protocolo.util.ViewUtils;
@@ -29,7 +30,7 @@ import java.util.logging.Logger;
  */
 @Named
 @ViewScoped
-public class ProtocoloCtrl extends AbstractController<Protocolo> {
+public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   private
   @Inject
@@ -49,11 +50,13 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
 
   public static final String[] RELATIONS = {"itens", "historico", "comentarios"};
 
-  private Setor setor;
+  private SetorProtocolo setor;
 
   private EstadosProtocoloEnum[] estados = EstadosProtocoloEnum.values();
 
   private EstadosProtocoloEnum[] selectedEstados;
+
+  private Map<ProtocoloFieldEnum, Object> mapFiltros = new HashMap<>();
 
   private Date inicioDate;
 
@@ -64,6 +67,8 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
   private DtoKeyMap documentosNaoSelecionados;
 
   private DtoKeyMap documentosSelecionados;
+
+  private DtoKeyMap documentosToVisualize;
 
   private Boolean showSumario;
 
@@ -93,15 +98,16 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
 
   private Protocolo protocoloToVisualize;
 
+  private String listaContas;
+
+  private Convenio convenio;
+
   @PostConstruct
   public void init() {
     logger.info(this.getClass().getSimpleName() + " created");
     setItem(createNewItem());
     initLazyModel(service, RELATIONS);
     prepareSearch();
-    Date[] range = ViewUtils.getDateRange2Days();
-    inicioDate = range[0];
-    terminoDate = range[1];
   }
 
   @Override
@@ -109,20 +115,25 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
     resetSearchParams();
     String regex = "[0-9]+";
     if (getSearchTerm() != null && getSearchTerm().matches(regex)) {
+      mapFiltros.put(ProtocoloFieldEnum.ATENDIMENTO, Long.valueOf(getSearchTerm()));
       setSearchParam("atendimento", Long.valueOf(getSearchTerm()));
-    } else {
+    } else if (getSearchTerm() != null && !getSearchTerm().isEmpty()) {
+      mapFiltros.put(ProtocoloFieldEnum.PACIENTE, getSearchTerm());
       setSearchParam("paciente", getSearchTerm());
     }
     if (setor != null) {
+      mapFiltros.put(ProtocoloFieldEnum.SETOR, setor.getTitle());
       setSearchParam("setor", setor);
     }
     if (session.getSetor() != null) {
       setSearchParam("setor", session.getSetor());
     }
     if (selectedEstados != null && selectedEstados.length > 0) {
+      mapFiltros.put(ProtocoloFieldEnum.ESTADO, selectedEstados);
       setSearchParam("estados", selectedEstados);
     }
     if (inicioDate != null || terminoDate != null) {
+      mapFiltros.put(ProtocoloFieldEnum.DATA, new Date[]{inicioDate, terminoDate});
       setSearchParam("dateRange", new Date[]{inicioDate, terminoDate});
     }
   }
@@ -164,9 +175,15 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
 
   public void preReceber(Protocolo protocolo) {
     Protocolo att = service.initializeLists(protocolo);
-    documentosSelecionados = service.gerarDocumentosSelecionados(att);
+    documentosSelecionados = service.gerarDocumentosSelecionados(att, false);
     setItem(att);
     renderReceberDlg = true;
+  }
+
+  public void visualizarDoc(DocumentoDTO dto) {
+    Protocolo att = service.initializeLists(dto.getProtocoloItem());
+    protocoloToVisualize = att;
+    documentosToVisualize = service.gerarDocumentosSelecionados(att, false);
   }
 
   public void closeReceberDlg() {
@@ -183,16 +200,9 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
     setItem(service.initializeLists(protocolo));
   }
 
-  public void preOpenDocumentosItemDlg(Protocolo protocolo) {
-    Protocolo att = service.initializeLists(protocolo);
-    documentosSelecionados = service.gerarDocumentosSelecionados(att);
-    renderDocumentosDlg = true;
-    protocoloToVisualize = att;
-  }
-
   public void preOpenDocumentosDlg(Protocolo protocolo) {
     Protocolo att = service.initializeLists(protocolo);
-    documentosSelecionados = service.gerarDocumentosSelecionados(att);
+    documentosSelecionados = service.gerarDocumentosSelecionados(att, true);
     renderDocumentosDlg = true;
     setItem(att);
   }
@@ -242,7 +252,7 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
 
   public void prepareDocumentos() {
     contarDocumentos();
-    documentosSelecionados = service.gerarDocumentosSelecionados(getItem());
+    documentosSelecionados = service.gerarDocumentosSelecionados(getItem(), false);
   }
 
   public void salvarNovoComentario() {
@@ -263,7 +273,7 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
   public void searchDocumentos() {
     if (getItem().getOrigem() != null) {
       documentosNaoSelecionados =
-          service.buscarDocumentosNaoSelecionados(getItem(), inicioDate, terminoDate);
+          service.buscarDocumentosNaoSelecionados(getItem(), inicioDate, terminoDate, convenio, listaContas);
     }
 
   }
@@ -307,6 +317,9 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
 
   public void removeDoc(DocumentoDTO doc) {
     getItem().getItens().remove(doc.getItemProtocolo());
+    if (documentosNaoSelecionados != null) {
+      documentosNaoSelecionados.addDto(doc);
+    }
     prepareDocumentos();
   }
 
@@ -341,10 +354,7 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
 
   public void vincularDocumentos() {
     if (documentosNaoSelecionados != null) {
-      documentosNaoSelecionados.getSelecionados().forEach((dto) -> {
-        dto.setProtocolo(getItem());
-        getItem().getItens().add(dto.criarItemProtocolo());
-      });
+      documentosNaoSelecionados.getSelecionados().forEach((dto) -> service.addIfNoExists(getItem(), dto));
       documentosNaoSelecionados = documentosNaoSelecionados.getNotSelectedMap();
       prepareDocumentos();
     }
@@ -388,21 +398,25 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
     if (RolesEnum.ADMINISTRATOR.equals(session.getUser().getRole())) {
       return true;
     }
-    if (session.getSetor() == null) {
-      return EstadosProtocoloEnum.RASCUNHO.equals(protocolo.getEstado()) && session.getSetor().equals(protocolo.getOrigem());
+    if (session.getSetor() != null && session.getSetor().equals(protocolo.getOrigem())) {
+      return EstadosProtocoloEnum.RASCUNHO.equals(protocolo.getEstado()) || EstadosProtocoloEnum.RECUSADO.equals(protocolo.getEstado());
     }
     return false;
+  }
+
+  public Boolean getCanSendOrSave() {
+    return getEditing() && getItem().getOrigem() != null && (EstadosProtocoloEnum.RASCUNHO.equals(getItem().getEstado()) || EstadosProtocoloEnum.RECUSADO.equals(getItem().getEstado()));
   }
 
   public Boolean disableResponderItem(Protocolo item) {
     return !EstadosProtocoloEnum.ENVIADO.equals(item.getEstado());
   }
 
-  public Setor getSetor() {
+  public SetorProtocolo getSetor() {
     return setor;
   }
 
-  public void setSetor(Setor setor) {
+  public void setSetor(SetorProtocolo setor) {
     this.setor = setor;
   }
 
@@ -494,6 +508,10 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
     this.documentosSelecionados = documentosSelecionados;
   }
 
+  public DtoKeyMap getDocumentosToVisualize() {
+    return documentosToVisualize;
+  }
+
   public Boolean getRenderComentariosDlg() {
     return renderComentariosDlg;
   }
@@ -547,7 +565,60 @@ public class ProtocoloCtrl extends AbstractController<Protocolo> {
     }
   }
 
+  public void removeFilterItem(ProtocoloFieldEnum filtro) {
+    switch (filtro) {
+      case ATENDIMENTO:
+        mapFiltros.remove(ProtocoloFieldEnum.ATENDIMENTO);
+        setSearchTerm(null);
+        break;
+      case DATA:
+        inicioDate = null;
+        terminoDate = null;
+        mapFiltros.remove(ProtocoloFieldEnum.DATA);
+        break;
+      case PACIENTE:
+        setSearchTerm(null);
+        mapFiltros.remove(ProtocoloFieldEnum.PACIENTE);
+        break;
+      case ESTADO:
+        selectedEstados = null;
+        mapFiltros.remove(ProtocoloFieldEnum.ESTADO);
+        break;
+      case SETOR:
+        setor = null;
+        mapFiltros.remove(ProtocoloFieldEnum.SETOR);
+        break;
+      default:
+        break;
+    }
+    prepareSearch();
+  }
+
   public void selecionarTodosDocumentos() {
     documentosNaoSelecionados.getList().forEach((item) -> item.getValue().forEach((value) -> value.setSelected(true)));
+  }
+
+  public String getListaContas() {
+    return listaContas;
+  }
+
+  public void setListaContas(String listaContas) {
+    this.listaContas = listaContas;
+  }
+
+  public Convenio getConvenio() {
+    return convenio;
+  }
+
+  public void setConvenio(Convenio convenio) {
+    this.convenio = convenio;
+  }
+
+  public String interpolarTextoMapFiltros(ProtocoloFieldEnum filtro) {
+    return ProtocoloFieldEnum.getText(mapFiltros, filtro);
+  }
+
+  public List<ProtocoloFieldEnum> getFieldsMap() {
+    return new ArrayList<>(mapFiltros.keySet());
   }
 }

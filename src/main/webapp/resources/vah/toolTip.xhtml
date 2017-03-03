@@ -16,8 +16,8 @@
     <div id="mdl#{cc.attrs.id}#{cc.attrs.index}" for="#{cc.attrs.for}" class="mdl-tooltip vah-tooltip">
       <h:outputText value="#{cc.attrs.value}"/>
     </div>
-    <script>
-      componentHandler.upgradeElement($('#mdl#{cc.attrs.id}#{cc.attrs.index}')[0]);
+    <script type="application/javascript">
+      componentHandler.upgradeElement(document.getElementById('mdl#{cc.attrs.id}#{cc.attrs.index}'));
     </script>
   </h:panelGroup>
 </composite:implementation>

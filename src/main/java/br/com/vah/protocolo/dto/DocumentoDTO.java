@@ -1,12 +1,10 @@
 package br.com.vah.protocolo.dto;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import br.com.vah.protocolo.constants.TipoDocumentoEnum;
-import br.com.vah.protocolo.entities.dbamv.AvisoCirurgia;
-import br.com.vah.protocolo.entities.dbamv.PrescricaoMedica;
-import br.com.vah.protocolo.entities.dbamv.RegFaturamento;
-import br.com.vah.protocolo.entities.dbamv.RegistroDocumento;
+import br.com.vah.protocolo.entities.dbamv.*;
 import br.com.vah.protocolo.entities.usrdbvah.ItemProtocolo;
 import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 
@@ -42,6 +40,7 @@ public class DocumentoDTO {
     this.tipo = tipo;
     // Atributos inferidos
     resolverConselho();
+    this.prestador = this.conselho + " - " + this.prestador;
   }
 
   public DocumentoDTO(AvisoCirurgia aviso, TipoDocumentoEnum tipo) {
@@ -74,6 +73,17 @@ public class DocumentoDTO {
 
   private void setFieldsProtocoloFilho(Protocolo protocoloItem) {
     this.protocoloItem = protocoloItem;
+    if (protocoloItem.getContaFaturamento() != null) {
+      SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+      RegFaturamento conta = protocoloItem.getContaFaturamento();
+      String from = sdf.format(conta.getInicio());
+      String to = conta.getFim() == null ? "_" : sdf.format(conta.getFim());
+      this.descricao = String.format("Conta: %d (de %s à %s)", conta.getId(), from, to);
+    }
+    if (protocoloItem.getAtendimento() != null) {
+      Atendimento atd = protocoloItem.getAtendimento();
+      this.prestador = String.format("%s - %d - %s", atd.getConvenio().getTitle(), atd.getId(), atd.getPaciente().getName());;
+    }
     this.data = protocoloItem.getDataEnvio();
     this.dataHoraCriacao = protocoloItem.getDataEnvio();
     this.codigo = String.valueOf(protocoloItem.getId());
@@ -122,7 +132,7 @@ public class DocumentoDTO {
     return itemProtocolo;
   }
 
-  private void resolverConselho () {
+  private void resolverConselho() {
     if (prescricao.getTipoPrescricao().equals("E")) {
       conselho = "COREN";
     } else {

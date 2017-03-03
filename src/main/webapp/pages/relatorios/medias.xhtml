@@ -23,7 +23,7 @@
                             itemValue="#{item}"
                             converter="#{setorConverter}"
                             inputStyleClass="lance-input"
-                            completeMethod="#{setorController.completeSetor}"
+                            completeMethod="#{setorCtrl.completeSetor}"
                             placeholder="Filtrar por setores...">
               <p:ajax event="itemSelect" listener="#{relatorioMediasController.addSetor}" process="@this"
                       update="@this setoresList" oncomplete="$(PF('setores').jqId + '_input').val('')"/>
