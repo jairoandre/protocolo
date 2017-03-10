@@ -413,40 +413,6 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
 
     List<Protocolo> protocolos = protocolosAptosParaEnvio(protocolo, inicio, fim, convenio, listaContas);
 
-    /*
-    final List<PrescricaoMedica> prescricoesProtocolo = new ArrayList<>();
-    final List<AvisoCirurgia> avisosProtocolo = new ArrayList<>();
-    final List<RegistroDocumento> registrosProtocolo = new ArrayList<>();
-
-    protocolos.forEach((p) -> p.getItens().forEach((i) -> {
-      if (i.getPrescricaoMedica() != null) {
-        prescricoesProtocolo.add(i.getPrescricaoMedica());
-      }
-      if (i.getAvisoCirurgia() != null) {
-        avisosProtocolo.add(i.getAvisoCirurgia());
-      }
-      if (i.getRegistroDocumento() != null) {
-        registrosProtocolo.add(i.getRegistroDocumento());
-      }
-    }));
-
-    if (prescricoes == null) {
-      prescricoes = prescricoesProtocolo;
-    } else {
-      prescricoes.addAll(prescricoesProtocolo);
-    }
-    if (avisos == null) {
-      avisos = avisosProtocolo;
-    } else {
-      avisos.addAll(avisosProtocolo);
-    }
-    if (registros == null) {
-      registros = registrosProtocolo;
-    } else {
-      registros.addAll(registrosProtocolo);
-    }
-    */
-
     List<DocumentoDTO> dtos = gerarListaDTO(prescricoes, avisos, registros, protocolos);
 
     for (ItemProtocolo itemProtocolo : protocolo.getItens()) {
@@ -481,13 +447,8 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     }
 
     if (protocolo.getOrigem().getNivel() == 0) {
-
-      Set<RegFaturamento> contas = inferirContas(protocolo);
-      if (contas.size() > 1) {
-        throw new ProtocoloBusinessException("Somente uma conta deve ser referenciada em um envio. Reveja os documentos incluídos.");
-      }
-      if (contas.size() > 0) {
-        protocolo.setContaFaturamento(contas.iterator().next());
+      if (protocolo.getContaFaturamento() == null) {
+        throw new ProtocoloBusinessException("Por favor, indique a conta desta movimentação.");
       }
     }
 

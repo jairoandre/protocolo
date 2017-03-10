@@ -1,14 +1,10 @@
 package br.com.vah.protocolo.controllers;
 
-import br.com.vah.protocolo.constants.EstadosProtocoloEnum;
-import br.com.vah.protocolo.constants.ProtocoloFieldEnum;
-import br.com.vah.protocolo.constants.RolesEnum;
+import br.com.vah.protocolo.constants.*;
 import br.com.vah.protocolo.dto.DocumentoDTO;
 import br.com.vah.protocolo.entities.dbamv.Convenio;
 import br.com.vah.protocolo.entities.dbamv.RegFaturamento;
-import br.com.vah.protocolo.entities.usrdbvah.Comentario;
-import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
-import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
+import br.com.vah.protocolo.entities.usrdbvah.*;
 import br.com.vah.protocolo.exceptions.ProtocoloBusinessException;
 import br.com.vah.protocolo.exceptions.ProtocoloPersistException;
 import br.com.vah.protocolo.service.AbstractSrv;
@@ -47,6 +43,8 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
   private
   @Inject
   AtendimentoSrv atendimentoSrv;
+
+  private TipoDocumentoManualEnum[] tiposDocManual = TipoDocumentoManualEnum.values();
 
   public static final String[] RELATIONS = {"itens", "historico", "comentarios"};
 
@@ -102,6 +100,10 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   private Convenio convenio;
 
+  private DocumentoManual docManualToAdd;
+
+  private RegFaturamento contaFaturamento;
+
   @PostConstruct
   public void init() {
     logger.info(this.getClass().getSimpleName() + " created");
@@ -155,6 +157,14 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     contarDocumentos();
   }
 
+  public void definirContaFaturamento(RegFaturamento conta) {
+    if (conta.equals(getItem().getContaFaturamento())) {
+      getItem().setContaFaturamento(null);
+    } else {
+      getItem().setContaFaturamento(conta);
+    }
+  }
+
   public void clearSetor() {
     setor = null;
     prepareSearch();
@@ -198,6 +208,10 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
   public void preComentario(Protocolo protocolo) {
     acaoComentario = EstadosProtocoloEnum.COMENTARIO;
     setItem(service.initializeLists(protocolo));
+  }
+
+  public void preComentarioEdicao() {
+    acaoComentario = EstadosProtocoloEnum.COMENTARIO;
   }
 
   public void preOpenDocumentosDlg(Protocolo protocolo) {
@@ -255,7 +269,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     documentosSelecionados = service.gerarDocumentosSelecionados(getItem(), false);
   }
 
-  public void salvarNovoComentario() {
+  public void salvarNovoComentarioEdit() {
     Comentario newComment = new Comentario();
     newComment.setProtocolo(getItem());
     newComment.setAutor(session.getUser());
@@ -265,8 +279,12 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     if (EstadosProtocoloEnum.RECUSADO.equals(acaoComentario)) {
       saveAddingHistory(EstadosProtocoloEnum.RECUSADO);
     } else {
-      saveAddingHistory(EstadosProtocoloEnum.COMENTARIO);
+      saveAddingHistory(getItem().getEstado());
     }
+  }
+
+  public void salvarNovoComentario() {
+    salvarNovoComentarioEdit();
     setItem(createNewItem());
   }
 
@@ -371,6 +389,29 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   }
 
+  public void preAddDocManual() {
+    docManualToAdd = new DocumentoManual();
+    docManualToAdd.setDataCriacao(new Date());
+  }
+
+  public void addDocManual() {
+    ItemProtocolo itemProtocolo = new ItemProtocolo();
+    itemProtocolo.setTipo(TipoDocumentoEnum.DOCUMENTO_MANUAL);
+    itemProtocolo.setProtocolo(getItem());
+    itemProtocolo.setDocumentoManual(docManualToAdd);
+    getItem().getItens().add(itemProtocolo);
+    prepareDocumentos();
+    docManualToAdd = null;
+  }
+
+  public DocumentoManual getDocManualToAdd() {
+    return docManualToAdd;
+  }
+
+  public void setDocManualToAdd(DocumentoManual docManualToAdd) {
+    this.docManualToAdd = docManualToAdd;
+  }
+
   @Override
   public void onLoad() {
     super.onLoad();
@@ -378,6 +419,45 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
       setItem(service.initializeLists(getItem()));
       prepareDocumentos();
     }
+  }
+
+  public void selecionarTodosRecebimento() {
+    for (Map.Entry<String, List<DocumentoDTO>> docEntry : documentosSelecionados.getList()) {
+      if (docEntry.getValue() != null) {
+        for (DocumentoDTO doc : docEntry.getValue()) {
+          doc.setSelected(true);
+        }
+      }
+    }
+  }
+
+  public void removeFilterItem(ProtocoloFieldEnum filtro) {
+    switch (filtro) {
+      case ATENDIMENTO:
+        mapFiltros.remove(ProtocoloFieldEnum.ATENDIMENTO);
+        setSearchTerm(null);
+        break;
+      case DATA:
+        inicioDate = null;
+        terminoDate = null;
+        mapFiltros.remove(ProtocoloFieldEnum.DATA);
+        break;
+      case PACIENTE:
+        setSearchTerm(null);
+        mapFiltros.remove(ProtocoloFieldEnum.PACIENTE);
+        break;
+      case ESTADO:
+        selectedEstados = null;
+        mapFiltros.remove(ProtocoloFieldEnum.ESTADO);
+        break;
+      case SETOR:
+        setor = null;
+        mapFiltros.remove(ProtocoloFieldEnum.SETOR);
+        break;
+      default:
+        break;
+    }
+    prepareSearch();
   }
 
   @Override
@@ -555,45 +635,6 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     return false;
   }
 
-  public void selecionarTodosRecebimento() {
-    for (Map.Entry<String, List<DocumentoDTO>> docEntry : documentosSelecionados.getList()) {
-      if (docEntry.getValue() != null) {
-        for (DocumentoDTO doc : docEntry.getValue()) {
-          doc.setSelected(true);
-        }
-      }
-    }
-  }
-
-  public void removeFilterItem(ProtocoloFieldEnum filtro) {
-    switch (filtro) {
-      case ATENDIMENTO:
-        mapFiltros.remove(ProtocoloFieldEnum.ATENDIMENTO);
-        setSearchTerm(null);
-        break;
-      case DATA:
-        inicioDate = null;
-        terminoDate = null;
-        mapFiltros.remove(ProtocoloFieldEnum.DATA);
-        break;
-      case PACIENTE:
-        setSearchTerm(null);
-        mapFiltros.remove(ProtocoloFieldEnum.PACIENTE);
-        break;
-      case ESTADO:
-        selectedEstados = null;
-        mapFiltros.remove(ProtocoloFieldEnum.ESTADO);
-        break;
-      case SETOR:
-        setor = null;
-        mapFiltros.remove(ProtocoloFieldEnum.SETOR);
-        break;
-      default:
-        break;
-    }
-    prepareSearch();
-  }
-
   public void selecionarTodosDocumentos() {
     documentosNaoSelecionados.getList().forEach((item) -> item.getValue().forEach((value) -> value.setSelected(true)));
   }
@@ -620,5 +661,9 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   public List<ProtocoloFieldEnum> getFieldsMap() {
     return new ArrayList<>(mapFiltros.keySet());
+  }
+
+  public TipoDocumentoManualEnum[] getTiposDocManual() {
+    return tiposDocManual;
   }
 }

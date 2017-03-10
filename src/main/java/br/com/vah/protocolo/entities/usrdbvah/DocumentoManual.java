@@ -21,6 +21,8 @@ public class DocumentoManual extends BaseEntity {
   public final static String COUNT = "DocumentoManual.count";
 
   @Id
+  @SequenceGenerator(name = "seqDocManual", sequenceName = "SEQ_NPTC_DOC_MANUAL", schema = "USRDBVAH", allocationSize = 1)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqDocManual")
   @Column(name = "ID")
   private Long id;
 

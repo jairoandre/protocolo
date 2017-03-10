@@ -5,6 +5,7 @@ import java.util.Date;
 
 import br.com.vah.protocolo.constants.TipoDocumentoEnum;
 import br.com.vah.protocolo.entities.dbamv.*;
+import br.com.vah.protocolo.entities.usrdbvah.DocumentoManual;
 import br.com.vah.protocolo.entities.usrdbvah.ItemProtocolo;
 import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 
@@ -15,6 +16,7 @@ public class DocumentoDTO {
   private PrescricaoMedica prescricao;
   private AvisoCirurgia aviso;
   private RegistroDocumento registro;
+  private DocumentoManual docManual;
   private String descricao;
   private Date data;
   private String codigo;
@@ -90,6 +92,16 @@ public class DocumentoDTO {
     this.tipo = TipoDocumentoEnum.PROTOCOLO;
   }
 
+  private void setFieldsDocManual(DocumentoManual docManual) {
+    this.docManual = docManual;
+    this.codigo = String.format("%d", docManual.getCodigo());
+    this.descricao = docManual.getObservacao();
+    this.tipo = TipoDocumentoEnum.DOCUMENTO_MANUAL;
+    this.data = docManual.getDataCriacao();
+    this.dataHoraCriacao = docManual.getDataCriacao();
+    this.dataHoraImpressao = docManual.getDataImpressao();
+  }
+
   public DocumentoDTO(ItemProtocolo itemProtocolo) {
     this.itemProtocolo = itemProtocolo;
     switch (itemProtocolo.getTipo()) {
@@ -106,6 +118,9 @@ public class DocumentoDTO {
         break;
       case PROTOCOLO:
         setFieldsProtocoloFilho(itemProtocolo.getProtocoloItem());
+        break;
+      case DOCUMENTO_MANUAL:
+        setFieldsDocManual(itemProtocolo.getDocumentoManual());
         break;
       default:
         break;
