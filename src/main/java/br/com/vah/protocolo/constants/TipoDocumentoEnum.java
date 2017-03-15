@@ -9,7 +9,8 @@ public enum TipoDocumentoEnum {
   REGISTRO_DOCUMENTO("Reg. Doc."),
   PROTOCOLO("Protocolo"),
   CONTA("Conta Fat."),
-  DOCUMENTO_MANUAL("Doc. Manual");
+  DOCUMENTO_MANUAL("Doc. Manual"),
+  EVOLUCAO_ENFERMAGEM("Evolu. Enferm.");
 
   private String label;
 

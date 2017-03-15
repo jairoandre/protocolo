@@ -47,6 +47,10 @@ public class Protocolo extends BaseEntity {
   @JoinColumn(name = "CD_SETOR_DESTINO")
   private SetorProtocolo destino;
 
+  @ManyToOne
+  @JoinColumn(name = "ID_PROTOCOLO_PAI")
+  private Protocolo pai;
+
   @OneToMany(mappedBy = "protocolo", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<ItemProtocolo> itens = new LinkedHashSet<>();
 
@@ -67,9 +71,6 @@ public class Protocolo extends BaseEntity {
 
   @Column(name = "SN_ARQUIVADO")
   private Boolean arquivado = false;
-
-  @Transient
-  private Boolean selected;
 
   @Override
   public Long getId() {
@@ -119,6 +120,14 @@ public class Protocolo extends BaseEntity {
 
   public void setDestino(SetorProtocolo destino) {
     this.destino = destino;
+  }
+
+  public Protocolo getPai() {
+    return pai;
+  }
+
+  public void setPai(Protocolo pai) {
+    this.pai = pai;
   }
 
   public Set<ItemProtocolo> getItens() {
@@ -175,14 +184,6 @@ public class Protocolo extends BaseEntity {
 
   public void setComentarios(List<Comentario> comentarios) {
     this.comentarios = comentarios;
-  }
-
-  public Boolean getSelected() {
-    return selected;
-  }
-
-  public void setSelected(Boolean selected) {
-    this.selected = selected;
   }
 
   @Override

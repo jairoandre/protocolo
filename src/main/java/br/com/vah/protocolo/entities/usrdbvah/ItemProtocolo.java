@@ -2,10 +2,7 @@ package br.com.vah.protocolo.entities.usrdbvah;
 
 import br.com.vah.protocolo.constants.TipoDocumentoEnum;
 import br.com.vah.protocolo.dto.DocumentoDTO;
-import br.com.vah.protocolo.entities.dbamv.AvisoCirurgia;
-import br.com.vah.protocolo.entities.dbamv.PrescricaoMedica;
-import br.com.vah.protocolo.entities.dbamv.RegFaturamento;
-import br.com.vah.protocolo.entities.dbamv.RegistroDocumento;
+import br.com.vah.protocolo.entities.dbamv.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -43,6 +40,10 @@ public class ItemProtocolo implements Serializable {
   @ManyToOne
   @JoinColumn(name = "CD_REGISTRO_DOCUMENTO")
   private RegistroDocumento registroDocumento;
+
+  @ManyToOne
+  @JoinColumn(name = "CD_EVO_ENF")
+  private EvolucaoEnfermagem evolucaoEnfermagem;
 
   @ManyToOne
   @JoinColumn(name = "ID_DOC_MANUAL")
@@ -94,6 +95,14 @@ public class ItemProtocolo implements Serializable {
 
   public void setRegistroDocumento(RegistroDocumento registroDocumento) {
     this.registroDocumento = registroDocumento;
+  }
+
+  public EvolucaoEnfermagem getEvolucaoEnfermagem() {
+    return evolucaoEnfermagem;
+  }
+
+  public void setEvolucaoEnfermagem(EvolucaoEnfermagem evolucaoEnfermagem) {
+    this.evolucaoEnfermagem = evolucaoEnfermagem;
   }
 
   public DocumentoManual getDocumentoManual() {

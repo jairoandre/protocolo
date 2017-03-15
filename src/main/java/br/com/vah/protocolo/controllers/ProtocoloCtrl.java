@@ -154,6 +154,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   public void changeOrigem() {
     getItem().getItens().clear();
+    documentosNaoSelecionados = null;
     contarDocumentos();
   }
 
@@ -216,7 +217,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   public void preOpenDocumentosDlg(Protocolo protocolo) {
     Protocolo att = service.initializeLists(protocolo);
-    documentosSelecionados = service.gerarDocumentosSelecionados(att, true);
+    documentosSelecionados = service.gerarDocumentosSelecionados(att, false);
     renderDocumentosDlg = true;
     setItem(att);
   }
@@ -293,7 +294,6 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
       documentosNaoSelecionados =
           service.buscarDocumentosNaoSelecionados(getItem(), inicioDate, terminoDate, convenio, listaContas);
     }
-
   }
 
   private List<RegFaturamento> contas;
@@ -470,10 +470,6 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     return "Protocolo";
   }
 
-  public Boolean showRefuseButton(Protocolo protocolo) {
-    return true;
-  }
-
   public Boolean showEditButton(Protocolo protocolo) {
     if (RolesEnum.ADMINISTRATOR.equals(session.getUser().getRole())) {
       return true;
@@ -490,6 +486,10 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   public Boolean disableResponderItem(Protocolo item) {
     return !EstadosProtocoloEnum.ENVIADO.equals(item.getEstado());
+  }
+
+  public Boolean renderResponserItem(Protocolo item) {
+    return session.getUser().getRole().equals(RolesEnum.ADMINISTRATOR) || session.getSetor().equals(item.getDestino());
   }
 
   public SetorProtocolo getSetor() {

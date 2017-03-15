@@ -11,6 +11,7 @@
                   itemValue="#{item}"
                   onclick="this.setSelectionRange(0, this.value.length)"
                   onchange="#{onchange}#{empty onchange ? 'return' : '()'};"
+
                   converter="#{converter}"
                   required="#{required == null ? false : required}"
                   inputStyleClass="lance-input #{styleClass}"
@@ -19,5 +20,6 @@
                   rendered="#{rendered == null ? true : rendered}">
     <ui:insert/>
   </p:autoComplete>
+
   <p:message for="#{id}" rendered="#{rendered == null ? true : rendered}"/>
 </ui:composition>

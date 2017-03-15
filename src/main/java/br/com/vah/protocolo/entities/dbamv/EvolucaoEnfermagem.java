@@ -29,6 +29,21 @@ public class EvolucaoEnfermagem extends BaseEntity {
   @JoinColumn(name = "CD_PRESTADOR")
   private Prestador prestador;
 
+  @Transient
+  private String descricao;
+
+  @Column(name = "NM_USUARIO")
+  private String usuario;
+
+  @Column(name = "DT_EVO_ENF")
+  private Date data;
+
+  @Column(name = "HR_EVO_ENF")
+  private Date hora;
+
+  @Column(name = "DT_IMPRESSAO")
+  private Date dataImpressao;
+
   @Override
   public Long getId() {
     return id;
@@ -53,6 +68,46 @@ public class EvolucaoEnfermagem extends BaseEntity {
 
   public void setPrestador(Prestador prestador) {
     this.prestador = prestador;
+  }
+
+  public String getDescricao() {
+    return descricao;
+  }
+
+  public void setDescricao(String descricao) {
+    this.descricao = descricao;
+  }
+
+  public String getUsuario() {
+    return usuario;
+  }
+
+  public void setUsuario(String usuario) {
+    this.usuario = usuario;
+  }
+
+  public Date getData() {
+    return data;
+  }
+
+  public void setData(Date data) {
+    this.data = data;
+  }
+
+  public Date getHora() {
+    return hora;
+  }
+
+  public void setHora(Date hora) {
+    this.hora = hora;
+  }
+
+  public Date getDataImpressao() {
+    return dataImpressao;
+  }
+
+  public void setDataImpressao(Date dataImpressao) {
+    this.dataImpressao = dataImpressao;
   }
 
   @Override

@@ -1,5 +1,7 @@
 package br.com.vah.protocolo.service;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -10,6 +12,7 @@ import javax.persistence.Query;
 import br.com.vah.protocolo.entities.dbamv.ConfiguracaoSetor;
 import br.com.vah.protocolo.entities.usrdbvah.ItemProtocolo;
 import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
+import br.com.vah.protocolo.util.DateUtility;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.SQLQuery;
@@ -43,7 +46,7 @@ public class PrescricaoMedicaSrv extends AbstractSrv<PrescricaoMedica> {
       List<ConfiguracaoSetor> configs = criteria.list();
       if (configs.size() > 0) {
         Date hour = configs.get(0).getHoraInicioPreMed();
-        if (hour == null) {
+        if (hour != null) {
           Calendar hourCld = Calendar.getInstance();
           hourCld.setTime(hour);
 
@@ -53,17 +56,16 @@ public class PrescricaoMedicaSrv extends AbstractSrv<PrescricaoMedica> {
           Calendar endCld = Calendar.getInstance();
           endCld.setTime(end);
 
-
           // Verifica a existência de prescrições anteriores à data de busca
-          Integer count = countPreMed(protocolo, begin);
+          Date dataUltimaPresc = dataUltimaPrescricao(protocolo, begin);
 
-          if (count > 0) {
-            beginCld.set(Calendar.HOUR_OF_DAY, hourCld.get(Calendar.HOUR_OF_DAY));
-            beginCld.set(Calendar.MINUTE, hourCld.get(Calendar.MINUTE));
-            beginCld.set(Calendar.SECOND, hourCld.get(Calendar.SECOND));
+          if (dataUltimaPresc == null) {
+            beginCld.add(Calendar.DAY_OF_MONTH, -1);
           }
 
-
+          beginCld.set(Calendar.HOUR_OF_DAY, hourCld.get(Calendar.HOUR_OF_DAY));
+          beginCld.set(Calendar.MINUTE, hourCld.get(Calendar.MINUTE));
+          beginCld.set(Calendar.SECOND, hourCld.get(Calendar.SECOND));
 
           endCld.set(Calendar.HOUR_OF_DAY, hourCld.get(Calendar.HOUR_OF_DAY));
           endCld.set(Calendar.MINUTE, hourCld.get(Calendar.MINUTE));
@@ -81,25 +83,25 @@ public class PrescricaoMedicaSrv extends AbstractSrv<PrescricaoMedica> {
 
   }
 
-  public Integer countPreMed(Protocolo protocolo, Date begin) {
+  public Date dataUltimaPrescricao(Protocolo protocolo, Date begin) {
     Session session = getEm().unwrap(Session.class);
 
     String sql  =
-        "SELECT COUNT(*) FROM DBAMV.PRE_MED PRE " +
-            "LEFT OUTER JOIN DBAMV.UNIDADE U ON U.CD_UNID_INT = PRE.CD_UNID_INT " +
+        "SELECT MAX(PRE.DT_PRE_MED) FROM DBAMV.PRE_MED PRE " +
+            "LEFT OUTER JOIN DBAMV.UNID_INT U ON U.CD_UNID_INT = PRE.CD_UNID_INT " +
             "LEFT OUTER JOIN DBAMV.SETOR S ON S.CD_SETOR= U.CD_SETOR " +
             "WHERE PRE.CD_ATENDIMENTO = :CD_ATENDIMENTO " +
             "AND S.CD_SETOR = :CD_SETOR " +
-            "AND PRE.DT_PRE_MED < :DT_PRE_MED ";
+            "AND PRE.DT_PRE_MED < :DATE_BEGIN";
 
     SQLQuery query = session.createSQLQuery(sql);
     query.setParameter("CD_ATENDIMENTO", protocolo.getAtendimento().getId());
     query.setParameter("CD_SETOR", protocolo.getOrigem().getSetorMV().getId());
-    query.setParameter("DT_PRE_MED", begin);
+    query.setParameter("DATE_BEGIN", begin);
 
-    Integer count = query.getFirstResult();
+    List result = query.list();
 
-    return count;
+    return ((Date) result.iterator().next());
 
   }
 
@@ -133,5 +135,18 @@ public class PrescricaoMedicaSrv extends AbstractSrv<PrescricaoMedica> {
 
     return !list.isEmpty();
 
+  }
+
+  public Date[] rangeDataPrescricoes(List<PrescricaoMedica> prescricoes) {
+    final Date[] range = new Date[2];
+    prescricoes.forEach((presc) -> {
+      if (range[0] == null || range[0].after(presc.getDataHoraCriacao())) {
+        range[0] = presc.getDataHoraCriacao();
+      }
+      if (range[1] == null || range[1].before(presc.getDataValidade())) {
+        range[1] = presc.getDataValidade();
+      }
+    });
+    return range;
   }
 }

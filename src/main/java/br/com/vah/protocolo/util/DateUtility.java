@@ -31,5 +31,16 @@ public class DateUtility {
     return cld.getTime();
   }
 
+  public static Date lastHour(Date date) {
+    Calendar cld = Calendar.getInstance();
+    if (date != null) {
+      cld.setTime(date);
+    }
+    cld.set(Calendar.HOUR_OF_DAY, 23);
+    cld.set(Calendar.MINUTE, 59);
+    cld.set(Calendar.SECOND, 59);
+    return cld.getTime();
+  }
+
 
 }

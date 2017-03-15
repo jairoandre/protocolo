@@ -171,12 +171,14 @@
                             ajax="true" process="@this" update="#{p:component('receberDlgPnl')}"
                             oncomplete="PF('receberDlg').show();"
                             disabled="#{protocoloCtrl.disableResponderItem(item)}"
+                            rendered="#{protocoloCtrl.renderResponserItem(item)}"
                             icon="fa fa-thumbs-up"/>
                 <p:menuitem value="Recusar" action="#{protocoloCtrl.preRecusar(item)}"
                             process="@this" update="#{p:component('novoComentarioDlg')}"
                             oncomplete="PF('novoComentarioDlg').show()"
                             disabled="#{protocoloCtrl.disableResponderItem(item)}"
-                            icon="fa fa-thumbs-down" rendered="#{protocoloCtrl.showRefuseButton(item)}"/>
+                            rendered="#{protocoloCtrl.renderResponserItem(item)}"
+                            icon="fa fa-thumbs-down"/>
                 <p:separator/>
                 <p:menuitem value="Novo comentário" action="#{protocoloCtrl.preComentario(item)}"
                             process="@this" update="#{p:component('novoComentarioDlg')}"
@@ -403,10 +405,10 @@
                                 update="docTable #{p:component('registrarRecebBtn')}"/>
                       </p:selectBooleanCheckbox>
                     </p:column>
-                    <p:column headerText="Cód." width="50" styleClass="left-align">
+                    <p:column headerText="Cód." sortBy="#{doc.codigo}" width="50" styleClass="left-align">
                       <h:outputText value="#{doc.codigo}"/>
                     </p:column>
-                    <p:column headerText="Descrição" styleClass="left-align ellipsis-text" width="150">
+                    <p:column headerText="Descrição" sortBy="#{doc.descricao}" styleClass="left-align ellipsis-text" width="150">
                       <h:outputText value="#{doc.descricao}"/>
                     </p:column>
                     <p:column headerText="Conselho/Prestador" styleClass="left-align ellipsis-text" width="200">
@@ -414,17 +416,17 @@
                       <vah:toolTip id="prestTooltip" for="#{p:component('prest')}" value="#{doc.prestador}"
                                    index="#{idx}"/>
                     </p:column>
-                    <p:column headerText="Data/Hora Criação" styleClass="left-align" width="85">
+                    <p:column headerText="Data/Hora Criação" sortBy="#{doc.dataHoraCriacao}" styleClass="left-align" width="85">
                       <h:outputText value="#{doc.dataHoraCriacao}">
                         <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
                       </h:outputText>
                     </p:column>
-                    <p:column headerText="Data/Hora Impress." styleClass="left-align" width="85">
+                    <p:column headerText="Data/Hora Impress." sortBy="#{doc.dataHoraImpressao}" styleClass="left-align" width="85">
                       <h:outputText value="#{doc.dataHoraImpressao}">
                         <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
                       </h:outputText>
                     </p:column>
-                    <p:column headerText="Tipo" width="100" styleClass="left-align">
+                    <p:column headerText="Tipo" sortBy="#{doc.tipo}" width="100" styleClass="left-align">
                       <h:outputText value="#{doc.tipo.label}"/>
                     </p:column>
                   </p:dataTable>

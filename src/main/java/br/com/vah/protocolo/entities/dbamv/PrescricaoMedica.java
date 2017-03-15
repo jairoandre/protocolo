@@ -29,7 +29,7 @@ public class PrescricaoMedica extends BaseEntity {
 	@JoinColumn(name = "CD_ATENDIMENTO")
 	private Atendimento atendimento;
 
-	@Column(name = "DT_PRE_MED")
+	@Column(name = "HR_PRE_MED")
 	private Date datePreMed;
 
 	@Temporal(TemporalType.TIMESTAMP)
@@ -39,6 +39,10 @@ public class PrescricaoMedica extends BaseEntity {
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "DH_IMPRESSAO")
 	private Date dataHoraImpressao;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "DT_VALIDADE")
+	private Date dataValidade;
 	
 	@Column(name = "TP_PRE_MED")
 	private String tipoPrescricao;
@@ -95,6 +99,14 @@ public class PrescricaoMedica extends BaseEntity {
 
 	public void setDataHoraImpressao(Date dataHoraImpressao) {
 		this.dataHoraImpressao = dataHoraImpressao;
+	}
+
+	public Date getDataValidade() {
+		return dataValidade;
+	}
+
+	public void setDataValidade(Date dataValidade) {
+		this.dataValidade = dataValidade;
 	}
 
 	public Prestador getPrestador() {
