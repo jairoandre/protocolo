@@ -6,6 +6,7 @@ import br.com.vah.protocolo.entities.dbamv.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * Created by jairoportela on 05/07/2016.
@@ -30,32 +31,12 @@ public class ItemProtocolo implements Serializable {
   private Protocolo protocolo;
 
   @ManyToOne
-  @JoinColumn(name = "CD_PRE_MED")
-  private PrescricaoMedica prescricaoMedica;
+  @JoinColumn(name = "ID_DOCUMENTO")
+  private DocumentoProtocolo documento;
 
   @ManyToOne
-  @JoinColumn(name = "CD_AVISO_CIRURGIA")
-  private AvisoCirurgia avisoCirurgia;
-
-  @ManyToOne
-  @JoinColumn(name = "CD_REGISTRO_DOCUMENTO")
-  private RegistroDocumento registroDocumento;
-
-  @ManyToOne
-  @JoinColumn(name = "CD_EVO_ENF")
-  private EvolucaoEnfermagem evolucaoEnfermagem;
-
-  @ManyToOne
-  @JoinColumn(name = "ID_DOC_MANUAL")
-  private DocumentoManual documentoManual;
-
-  @ManyToOne
-  @JoinColumn(name = "ID_PROTOCOLO_ITEM")
-  private Protocolo protocoloItem;
-
-  @Column(name = "CD_TIPO")
-  @Enumerated(EnumType.STRING)
-  private TipoDocumentoEnum tipo;
+  @JoinColumn(name = "ID_PROTOCOLO_FILHO")
+  private Protocolo filho;
 
   public Long getId() {
     return id;
@@ -73,59 +54,19 @@ public class ItemProtocolo implements Serializable {
     this.protocolo = protocolo;
   }
 
-  public PrescricaoMedica getPrescricaoMedica() {
-    return prescricaoMedica;
+  public DocumentoProtocolo getDocumento() {
+    return documento;
   }
 
-  public void setPrescricaoMedica(PrescricaoMedica prescricaoMedica) {
-    this.prescricaoMedica = prescricaoMedica;
+  public void setDocumento(DocumentoProtocolo documento) {
+    this.documento = documento;
   }
 
-  public AvisoCirurgia getAvisoCirurgia() {
-    return avisoCirurgia;
+  public Protocolo getFilho() {
+    return filho;
   }
 
-  public void setAvisoCirurgia(AvisoCirurgia avisoCirurgia) {
-    this.avisoCirurgia = avisoCirurgia;
-  }
-
-  public RegistroDocumento getRegistroDocumento() {
-    return registroDocumento;
-  }
-
-  public void setRegistroDocumento(RegistroDocumento registroDocumento) {
-    this.registroDocumento = registroDocumento;
-  }
-
-  public EvolucaoEnfermagem getEvolucaoEnfermagem() {
-    return evolucaoEnfermagem;
-  }
-
-  public void setEvolucaoEnfermagem(EvolucaoEnfermagem evolucaoEnfermagem) {
-    this.evolucaoEnfermagem = evolucaoEnfermagem;
-  }
-
-  public DocumentoManual getDocumentoManual() {
-    return documentoManual;
-  }
-
-  public void setDocumentoManual(DocumentoManual documentoManual) {
-    this.documentoManual = documentoManual;
-  }
-
-  public Protocolo getProtocoloItem() {
-    return protocoloItem;
-  }
-
-  public void setProtocoloItem(Protocolo protocoloItem) {
-    this.protocoloItem = protocoloItem;
-  }
-
-  public TipoDocumentoEnum getTipo() {
-    return tipo;
-  }
-
-  public void setTipo(TipoDocumentoEnum tipo) {
-    this.tipo = tipo;
+  public void setFilho(Protocolo filho) {
+    this.filho = filho;
   }
 }

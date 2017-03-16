@@ -59,14 +59,14 @@ public class DtoKeyMap implements Serializable {
 
   public void addDto(DocumentoDTO dto) {
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-    String key = sdf.format(dto.getData());
+    String key = sdf.format(dto.getDataHoraCriacao());
     List<DocumentoDTO> listaDoc = this.get(key);
     if (listaDoc == null) {
       listaDoc = new ArrayList<>();
       this.put(key, listaDoc);
     }
     listaDoc.add(dto);
-    Collections.sort(listaDoc, (o1, o2) -> o1.getData().compareTo(o2.getData()));
+    Collections.sort(listaDoc, (o1, o2) -> o1.getDataHoraCriacao().compareTo(o2.getDataHoraCriacao()));
     list = new ArrayList<>(map.entrySet());
     Collections.sort(list, (o1, o2) -> compareKeys(o1, o2));
   }

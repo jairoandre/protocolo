@@ -33,7 +33,7 @@ public class User extends BaseEntity {
   private String title;
 
   @Column(name = "CD_ROLE", nullable = false)
-  @Enumerated(EnumType.STRING)
+  @Enumerated(EnumType.ORDINAL)
   private RolesEnum role;
 
   public User() {

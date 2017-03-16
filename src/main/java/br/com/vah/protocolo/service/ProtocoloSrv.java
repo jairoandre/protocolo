@@ -12,10 +12,7 @@ import br.com.vah.protocolo.reports.ReportTotalPorSetor;
 import br.com.vah.protocolo.util.DateUtility;
 import br.com.vah.protocolo.util.DtoKeyMap;
 import br.com.vah.protocolo.util.PaginatedSearchParam;
-import org.hibernate.Criteria;
-import org.hibernate.FetchMode;
-import org.hibernate.SQLQuery;
-import org.hibernate.Session;
+import org.hibernate.*;
 import org.hibernate.criterion.*;
 import org.hibernate.sql.JoinType;
 import org.primefaces.model.StreamedContent;
@@ -208,60 +205,13 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     return criteria;
   }
 
-  private List<DocumentoDTO> gerarListaDTO(List<PrescricaoMedica> prescricoes,
-                                           List<AvisoCirurgia> avisos,
-                                           List<RegistroDocumento> registros,
-                                           List<EvolucaoEnfermagem> evolucoes,
-                                           List<Protocolo> protocolos) {
-    List<DocumentoDTO> documentos = new ArrayList<>();
-
-    // Prescrições e evoluções médicas
-    if (prescricoes != null) {
-      for (PrescricaoMedica prescricao : prescricoes) {
-        if (!prescricao.getItems().isEmpty()) {
-          documentos.add(new DocumentoDTO(prescricao, TipoDocumentoEnum.PRESCRICAO));
-        }
-        if (prescricaoMedicaSrv.hasEvolucao(prescricao)) {
-          documentos.add(new DocumentoDTO(prescricao, TipoDocumentoEnum.EVOLUCAO));
-        }
-      }
-    }
-
-    // Avisos de cirurgia
-    if (avisos != null) {
-      for (AvisoCirurgia aviso : avisos) {
-        documentos.add(new DocumentoDTO(aviso, TipoDocumentoEnum.DESCRICAO_CIRURGICA));
-        documentos.add(new DocumentoDTO(aviso, TipoDocumentoEnum.FOLHA_ANESTESICA));
-      }
-    }
-
-    // Registro de Documentos
-    if (registros != null) {
-      registros.forEach((registro) -> documentos.add(new DocumentoDTO(registro)));
-    }
-
-    if (evolucoes != null) {
-      evolucoes.forEach((evolucao) -> {
-        // evolucao.setDescricao(evolucaoEnfermagemSrv.getDescricao(evolucao));
-        documentos.add(new DocumentoDTO(evolucao));
-      });
-    }
-
-    // Protocolos
-    if (protocolos != null) {
-      protocolos.forEach((protocoloItem) -> documentos.add(new DocumentoDTO(protocoloItem)));
-    }
-
-    return documentos;
-  }
-
   private List<DocumentoDTO> gerarListaDTO(Protocolo protocolo, Boolean subItens) {
     List<DocumentoDTO> dtos = new ArrayList<>();
     if (protocolo.getItens() != null) {
       protocolo.getItens().forEach((item) -> {
         dtos.add(new DocumentoDTO(item));
-        if (item.getProtocoloItem() != null && subItens) {
-          Protocolo attIp = initializeLists(item.getProtocoloItem());
+        if (item.getFilho() != null && subItens) {
+          Protocolo attIp = initializeLists(item.getFilho());
           attIp.getItens().forEach((iP) -> dtos.add(new DocumentoDTO(iP)));
         }
       });
@@ -280,9 +230,9 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
 
     for (DocumentoDTO documento : documentos) {
 
-      Date keyData = documento.getData();
+      Date keyData = documento.getDataHoraCriacao();
 
-      if (!TipoDocumentoEnum.PRESCRICAO.equals(documento.getTipo())) {
+      if (false && !TipoDocumentoEnum.PRESCRICAO.equals(documento.getTipo())) {
         ConfiguracaoSetor config = getConfiguracaoSetor(protocolo);
 
         if (config != null) {
@@ -326,31 +276,30 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     return null;
   }
 
+  public Boolean documentoIguais(DocumentoDTO dto, ItemProtocolo itemProtocolo) {
+    Protocolo filho = itemProtocolo.getFilho();
+    DocumentoProtocolo documento = itemProtocolo.getDocumento();
+    DocumentoProtocolo dtoDoc = dto.getDocumento();
+    Protocolo dtoFilho = dto.getFilho();
+    Boolean igual = false;
+    if (filho != null && dtoFilho != null) {
+      if (filho.equals(dtoFilho)) {
+        igual = true;
+      }
+    } else if (documento != null && dtoDoc != null) {
+      if (documento.getCodigo().equals(dtoDoc.getCodigo()) && documento.getTipo().equals(dtoDoc.getTipo())) {
+        igual = true;
+      }
+    }
+    return igual;
+  }
+
   public List<DocumentoDTO> removeIfExists(List<DocumentoDTO> dtos, ItemProtocolo itemProtocolo) {
     DocumentoDTO toRemove = null;
     for (DocumentoDTO dto : dtos) {
-      if (itemProtocolo.getTipo().equals(dto.getTipo())) {
-        if (dto.getPrescricao() != null) {
-          if (dto.getPrescricao().equals(itemProtocolo.getPrescricaoMedica())) {
-            toRemove = dto;
-            break;
-          }
-        } else if (dto.getAviso() != null) {
-          if (dto.getAviso().equals(itemProtocolo.getAvisoCirurgia())) {
-            toRemove = dto;
-            break;
-          }
-        } else if (dto.getRegistro() != null) {
-          if (dto.getRegistro().equals(itemProtocolo.getRegistroDocumento())) {
-            toRemove = dto;
-            break;
-          }
-        } else if (dto.getEvolucao() != null) {
-          if (dto.getEvolucao().equals(itemProtocolo.getEvolucaoEnfermagem())) {
-            toRemove = dto;
-            break;
-          }
-        }
+      if (documentoIguais(dto, itemProtocolo)) {
+        toRemove = dto;
+        break;
       }
     }
 
@@ -401,7 +350,7 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
 
     // Remove itens já protocolados.
     DetachedCriteria dt = DetachedCriteria.forClass(ItemProtocolo.class, "i");
-    criteria.add(Subqueries.notExists(dt.setProjection(Projections.id()).add(Restrictions.eqProperty("pro.id", "i.protocoloItem.id"))));
+    criteria.add(Subqueries.notExists(dt.setProjection(Projections.id()).add(Restrictions.eqProperty("pro.id", "i.filho.id"))));
 
     return criteria.list();
   }
@@ -411,31 +360,9 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     newItem.setProtocolo(protocolo);
     Boolean add = true;
     for (ItemProtocolo item : protocolo.getItens()) {
-      if (item.getTipo().equals(newItem.getTipo())) {
-        if (item.getPrescricaoMedica() != null && newItem.getPrescricaoMedica() != null) {
-          if (item.getPrescricaoMedica().equals(newItem.getPrescricaoMedica())) {
-            add = false;
-            break;
-          }
-        }
-        if (item.getRegistroDocumento() != null && newItem.getRegistroDocumento() != null) {
-          if (item.getRegistroDocumento().equals(newItem.getRegistroDocumento())) {
-            add = false;
-            break;
-          }
-        }
-        if (item.getAvisoCirurgia() != null && newItem.getAvisoCirurgia() != null) {
-          if (item.getAvisoCirurgia().equals(newItem.getAvisoCirurgia())) {
-            add = false;
-            break;
-          }
-        }
-        if (item.getProtocoloItem() != null && newItem.getProtocoloItem() != null) {
-          if (item.getProtocoloItem().equals(newItem.getProtocoloItem())) {
-            add = false;
-            break;
-          }
-        }
+      if (documentoIguais(dto, item)) {
+        add = false;
+        break;
       }
     }
     if (add) {
@@ -493,63 +420,53 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
 
   }
 
-  private List<DocumentoDTO> buscarDocumentos(Protocolo protocolo, Date inicio, Date fim, Convenio convenio, String listaContas) {
+  private List<DocumentoDTO> buscarDocumentosView(Protocolo protocolo, Date begin, Date end, Convenio convenio, String listaContas) {
 
-    List<PrescricaoMedica> prescricoes = null;
-    List<AvisoCirurgia> avisos = null;
-    List<RegistroDocumento> registros = null;
-    List<EvolucaoEnfermagem> evolucoes = null;
-
-    Atendimento atendimento = protocolo.getAtendimento();
-    SetorProtocolo origem = protocolo.getOrigem();
+    final List<DocumentoDTO> result = new ArrayList<>();
 
     if (protocolo.getOrigem().getNivel() == 0) {
-      List<Date[]> periodos = periodoBuscaDocumentos(protocolo, inicio, fim);
-      if (!periodos.isEmpty()) {
-        prescricoes = new ArrayList<>();
-        avisos = new ArrayList<>();
-        registros = new ArrayList<>();
-        evolucoes = new ArrayList<>();
+      String sql = "SELECT " +
+          "VW.COD_ITEM_PRONTUARIO, " +
+          "VW.TIPO_ITEM_PRONTUARIO, " +
+          "VW.NOME_DOCUMENTO, " +
+          "VW.CD_CONSELHO_PROF, " +
+          "VW.MN_PROFISSIONAL, " +
+          "VW.DH_CRIACAO, " +
+          "VW.DH_IMPRESSAO " +
+          "FROM DBAMV.VDIC_ATEND_PRONT_PRESC_ATU VW " +
+          "LEFT JOIN DBAMV.UNID_INT U ON U.CD_UNID_INT = VW.CD_UNID_INT " +
+          "WHERE CD_ATENDIMENTO = :CD_ATENDIMENTO AND " +
+          "U.CD_SETOR = :CD_SETOR AND " +
+          "VW.DT_REFERENCIA BETWEEN :DT_BEGIN AND :DT_END";
 
-        for (Date[] periodo : periodos) {
-          prescricoes.addAll(prescricaoMedicaSrv.consultarPrescricoes(protocolo, periodo[0], periodo[1]));
-          avisos = avisoCirurgiaSrv.consultarAvisos(atendimento, periodo[0], periodo[1], origem);
-          registros = registroDocumentoSrv.consultarRegistros(protocolo, periodo[0], periodo[1]);
-          evolucoes = evolucaoEnfermagemSrv.consultarEvolucoesEnfermagem(protocolo, periodo[0], periodo[1]);
-        }
+      Session session = getSession();
+      SQLQuery query = session.createSQLQuery(sql);
+      query.setParameter("CD_ATENDIMENTO", protocolo.getAtendimento().getId());
+      query.setParameter("CD_SETOR", protocolo.getOrigem().getSetorMV().getId());
+      query.setParameter("DT_BEGIN", begin);
+      query.setParameter("DT_END", end);
+      List<Object[]> rows = query.list();
 
-      }
+      rows.forEach((row) -> result.add(new DocumentoDTO(row)));
+
     }
 
-    List<Protocolo> protocolos = protocolosAptosParaEnvio(protocolo, inicio, fim, convenio, listaContas);
+    List<Protocolo> protocolos = protocolosAptosParaEnvio(protocolo, begin, end, convenio, listaContas);
 
-    // Para o setor "ENVIOS", desagrupe
-    if (protocolo.getOrigem().getNivel() == 2) {
-      final List<Protocolo> desagrupados = new ArrayList<>();
-      for (Protocolo pai : protocolos) {
-        pai.getItens().forEach((item) -> {
-          Protocolo filho = item.getProtocoloItem();
-          if (filho != null && !filho.getReenviado()) {
-            desagrupados.add(filho);
-          }
-        });
-      }
-      protocolos = desagrupados;
-    }
+    protocolos.forEach((p) -> result.add(new DocumentoDTO(p)));
 
-    List<DocumentoDTO> dtos = gerarListaDTO(prescricoes, avisos, registros, evolucoes, protocolos);
+    List<DocumentoDTO> dtos = result;
 
     for (ItemProtocolo itemProtocolo : protocolo.getItens()) {
       dtos = removeIfExists(dtos, itemProtocolo);
     }
 
     return dtos;
-
   }
 
   public DtoKeyMap buscarDocumentosNaoSelecionados(Protocolo protocolo, Date inicio, Date fim, Convenio convenio, String listaContas) {
-    fim = DateUtility.lastHour(fim);
-    List<DocumentoDTO> documentos = buscarDocumentos(protocolo, inicio, fim, convenio, listaContas);
+    //fim = DateUtility.lastHour(fim);
+    List<DocumentoDTO> documentos = buscarDocumentosView(protocolo, inicio, fim, convenio, listaContas);
     return gerarDtoKeyMap(protocolo, documentos);
   }
 
@@ -583,13 +500,13 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
       if (protocolo.getDestino().getNivel() == 0) {
         final Set<RegFaturamento> contaSet = new HashSet<>();
         protocolo.getItens().forEach((it) -> {
-          Protocolo protItem = it.getProtocoloItem();
-          if (protItem != null) {
-            if (protItem.getContaFaturamento() != null) {
-              contaSet.add(protItem.getContaFaturamento());
+          Protocolo filho = it.getFilho();
+          if (filho != null) {
+            if (filho.getContaFaturamento() != null) {
+              contaSet.add(filho.getContaFaturamento());
             }
             // Seta o pai do envio
-            protItem.setPai(protocolo);
+            filho.setPai(protocolo);
           }
         });
         if (contaSet.size() > 1) {
@@ -607,8 +524,26 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     // Envio a partir do "ENVIOS" - Verifica a necessidade de setar flag que indica que todos os documentos de um protocolo foram enviados.
     if (protocolo.getOrigem().getNivel() == 2) {
       Map<Protocolo, Integer> countMap = new HashMap<>();
+      Set<ItemProtocolo> itens = protocolo.getItens();
+      if (itens == null && itens.isEmpty() && protocolo.getId() != null) {
+        Protocolo attProtocolo = find(protocolo.getId());
+        itens = attProtocolo.getItens();
+        Set<Protocolo> pais = new HashSet<>();
+        itens.forEach((filho) -> {
+          Protocolo protocoloFilho = filho.getFilho();
+          if (protocoloFilho != null && protocoloFilho.getPai() != null) {
+            Protocolo pai = protocoloFilho.getPai();
+            if (!pais.contains(pai)) {
+              pais.add(pai);
+              pai.setReenviado(false);
+              update(pai);
+            }
+          }
+        });
+      }
+      // Itens incluídos
       for (ItemProtocolo item : protocolo.getItens()) {
-        Protocolo filho = item.getProtocoloItem();
+        Protocolo filho = item.getFilho();
         if (filho != null && filho.getPai() != null) {
           Protocolo pai = filho.getPai();
           Integer count = countMap.get(pai);
@@ -618,8 +553,12 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
           countMap.put(pai, count + 1);
         }
       }
-      countMap.forEach((key, value) -> {
-        if (key.)
+      // Se todos os protocolos filhos foram enviados, marque o protocolo pai como "reenviado" para não ser mostrado novamente
+      // na busca de documentos
+      countMap.forEach((pai, count) -> {
+        pai.setReenviado(pai.getItens().size() == count);
+        // Atualize  o pai
+        update(pai);
       });
     }
 
@@ -640,48 +579,70 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     Integer totalFolha = 0;
     Integer totalRegistros = 0;
     Integer totalDocumentosManuais = 0;
+    Integer totalEvolucaoAnotacao = 0;
 
     for (ItemProtocolo item : protocolo.getItens()) {
-      switch (item.getTipo()) {
-        case EVOLUCAO:
-          totalDocumentos++;
-          totalEvolucoes++;
-          break;
-        case DESCRICAO_CIRURGICA:
-          totalDocumentos++;
-          totalDescricoes++;
-          break;
-        case FOLHA_ANESTESICA:
-          totalDocumentos++;
-          totalFolha++;
-          break;
-        case PRESCRICAO:
-          totalDocumentos++;
-          totalPrescricoes++;
-          break;
-        case REGISTRO_DOCUMENTO:
-          totalDocumentos++;
-          totalRegistros++;
-          break;
-        case DOCUMENTO_MANUAL:
-          totalDocumentos++;
-          totalDocumentosManuais++;
-          break;
-        case PROTOCOLO:
-          Integer[] resultFilho = contarDocumentos(initializeLists(item.getProtocoloItem()));
-          totalDocumentos += resultFilho[0];
-          totalPrescricoes += resultFilho[1];
-          totalEvolucoes += resultFilho[2];
-          totalDescricoes += resultFilho[3];
-          totalFolha += resultFilho[4];
-          totalRegistros += resultFilho[5];
-          totalDocumentosManuais += resultFilho[6];
-          break;
-        default:
-          break;
+      DocumentoProtocolo documento = item.getDocumento();
+      Protocolo filho = item.getFilho();
+      if (documento != null) {
+        switch (documento.getTipo()) {
+          case EVOLUCAO:
+            totalDocumentos++;
+            totalEvolucoes++;
+            break;
+          case DESCRICAO_CIRURGICA:
+            totalDocumentos++;
+            totalDescricoes++;
+            break;
+          case FOLHA_ANESTESICA:
+            totalDocumentos++;
+            totalFolha++;
+            break;
+          case PRESCRICAO:
+            totalDocumentos++;
+            totalPrescricoes++;
+            break;
+          case REGISTRO_DOCUMENTO:
+            totalDocumentos++;
+            totalRegistros++;
+            break;
+          case EVOLUCAO_ENFERMAGEM:
+            totalDocumentos++;
+            totalEvolucaoAnotacao++;
+            break;
+          case DOC_MANUAL_EVOLUCAO:
+          case DOC_MANUAL_PRESCRICAO:
+          case DOC_MANUAL_EVOLUCAO_ANOTACAO:
+          case DOC_MANUAL_DESCRICAO_CIRURGICA:
+          case DOC_MANUAL_FOLHA_ANESTESICA:
+          case DOC_MANUAL_HDA:
+          case DOC_MANUAL_EVOLUCAO_ENFERMAGEM:
+          case DOC_MANUAL_EXAME_FISICO_EVOLUCAO_ENFERMAGEM:
+          case DOC_MANUAL_REGISTRO_SINAIS_VITAIS_PS:
+          case DOC_MANUAL_CLASSIFICACAO_RISCO:
+          case DOC_MANUAL_FOLHA_CLASSIFICACAO:
+          case DOC_MANUAL_SADT:
+          case DOC_MANUAL_AUTORIZACAO_PS:
+            totalDocumentos++;
+            totalDocumentosManuais++;
+            break;
+          default:
+            break;
+        }
+      } else if (filho != null) {
+        Integer[] resultFilho = contarDocumentos(initializeLists(filho));
+        totalDocumentos += resultFilho[0];
+        totalPrescricoes += resultFilho[1];
+        totalEvolucoes += resultFilho[2];
+        totalDescricoes += resultFilho[3];
+        totalFolha += resultFilho[4];
+        totalRegistros += resultFilho[5];
+        totalDocumentosManuais += resultFilho[6];
+        totalEvolucaoAnotacao += resultFilho[7];
       }
+
     }
-    return new Integer[]{totalDocumentos, totalPrescricoes, totalEvolucoes, totalFolha, totalDescricoes, totalRegistros, totalDocumentosManuais};
+    return new Integer[]{totalDocumentos, totalPrescricoes, totalEvolucoes, totalFolha, totalDescricoes, totalRegistros, totalDocumentosManuais, totalEvolucaoAnotacao};
   }
 
   public Protocolo buscarDadosRascunho(Protocolo protocolo) {
@@ -726,29 +687,12 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     Date[] range = new Date[2];
     Set<RegFaturamento> contas = new HashSet<>();
     att.getItens().forEach((itemProtocolo) -> {
-      // Check Aviso
-      if (itemProtocolo.getAvisoCirurgia() != null) {
-        Date dtAviso = itemProtocolo.getAvisoCirurgia().getInicioCirurgia();
-        checkDates(dtAviso, range);
-      }
-      // Check Prescrição
-      if (itemProtocolo.getPrescricaoMedica() != null) {
-        Date dtPrescricao = itemProtocolo.getPrescricaoMedica().getDataHoraImpressao();
-        checkDates(dtPrescricao, range);
-      }
-      // Check Registro
-      if (itemProtocolo.getRegistroDocumento() != null) {
-        Date dtRegistro = itemProtocolo.getRegistroDocumento().getDataRegistro();
-        checkDates(dtRegistro, range);
-      }
-      // Check Doc. Manual
-      if (itemProtocolo.getDocumentoManual() != null) {
-        Date dtManual = itemProtocolo.getDocumentoManual().getDataImpressao();
-        checkDates(dtManual, range);
-      }
-
-      if (itemProtocolo.getProtocoloItem() != null) {
-        contas.addAll(inferirContasInitialize(itemProtocolo.getProtocoloItem()));
+      DocumentoProtocolo documento = itemProtocolo.getDocumento();
+      Protocolo filho = itemProtocolo.getFilho();
+      if (documento != null) {
+        checkDates(documento.getDataHoraImpressao(), range);
+      } else if (filho != null) {
+        contas.addAll(inferirContasInitialize(filho));
       }
     });
     contas.addAll(regFaturamentoSrv.obterContas(att, range));

@@ -44,7 +44,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
   @Inject
   AtendimentoSrv atendimentoSrv;
 
-  private TipoDocumentoManualEnum[] tiposDocManual = TipoDocumentoManualEnum.values();
+  private TipoDocumentoEnum[] tiposDocManual = TipoDocumentoEnum.documentosManuais;
 
   public static final String[] RELATIONS = {"itens", "historico", "comentarios"};
 
@@ -100,9 +100,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   private Convenio convenio;
 
-  private DocumentoManual docManualToAdd;
-
-  private RegFaturamento contaFaturamento;
+  private DocumentoProtocolo docManualToAdd;
 
   @PostConstruct
   public void init() {
@@ -192,7 +190,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
   }
 
   public void visualizarDoc(DocumentoDTO dto) {
-    Protocolo att = service.initializeLists(dto.getProtocoloItem());
+    Protocolo att = service.initializeLists(dto.getFilho());
     protocoloToVisualize = att;
     documentosToVisualize = service.gerarDocumentosSelecionados(att, false);
   }
@@ -390,25 +388,24 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
   }
 
   public void preAddDocManual() {
-    docManualToAdd = new DocumentoManual();
-    docManualToAdd.setDataCriacao(new Date());
+    docManualToAdd = new DocumentoProtocolo();
+    docManualToAdd.setDataHoraCriacao(new Date());
   }
 
   public void addDocManual() {
     ItemProtocolo itemProtocolo = new ItemProtocolo();
-    itemProtocolo.setTipo(TipoDocumentoEnum.DOCUMENTO_MANUAL);
     itemProtocolo.setProtocolo(getItem());
-    itemProtocolo.setDocumentoManual(docManualToAdd);
+    itemProtocolo.setDocumento(docManualToAdd);
     getItem().getItens().add(itemProtocolo);
     prepareDocumentos();
     docManualToAdd = null;
   }
 
-  public DocumentoManual getDocManualToAdd() {
+  public DocumentoProtocolo getDocManualToAdd() {
     return docManualToAdd;
   }
 
-  public void setDocManualToAdd(DocumentoManual docManualToAdd) {
+  public void setDocManualToAdd(DocumentoProtocolo docManualToAdd) {
     this.docManualToAdd = docManualToAdd;
   }
 
@@ -663,7 +660,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     return new ArrayList<>(mapFiltros.keySet());
   }
 
-  public TipoDocumentoManualEnum[] getTiposDocManual() {
+  public TipoDocumentoEnum[] getTiposDocManual() {
     return tiposDocManual;
   }
 }

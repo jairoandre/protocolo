@@ -185,11 +185,11 @@
                                              index="#{idx}"/>
                               </h:panelGroup>
                             </p:column>
-                            <p:column headerText="Conselho/Prestador/Convênio" sortBy="#{doc.prestador}"
+                            <p:column headerText="Conselho/Prestador/Convênio" sortBy="#{doc.consPrestConv}"
                                       styleClass="left-align ellipsis-text">
-                              <h:outputText id="consPrestConvNaoSelec" value="#{doc.prestador}"/>
+                              <h:outputText id="consPrestConvNaoSelec" value="#{doc.consPrestConv}"/>
                               <vah:toolTip id="consPrestConvNaoSelecTool" for="#{p:component('consPrestConvNaoSelec')}"
-                                           value="#{doc.prestador}"
+                                           value="#{doc.consPrestConv}"
                                            index="#{idx}"/>
                             </p:column>
                             <p:column headerText="Criação" sortBy="#{doc.dataHoraCriacao}" styleClass="left-align"
@@ -204,7 +204,7 @@
                                 <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
                               </h:outputText>
                             </p:column>
-                            <p:column headerText="Tipo" sortBy="#{doc.tipo}" styleClass="left-align" width="100">
+                            <p:column headerText="Tipo" sortBy="#{doc.tipo}" styleClass="left-align" width="150">
                               <h:outputText value="#{doc.tipo.label}"/>
                             </p:column>
                           </p:dataTable>
@@ -270,7 +270,7 @@
                                                  process="@this"
                                                  style="text-align: center;"
                                                  onclick="var tab02 = PF('tabView02').getActiveIndex()"
-                                                 oncomplete="PF('tabView02').select(tab02);"
+                                                 oncomplete="selectTab02(tab02)"
                                                  update="#{p:component('docSelecionadosPnl')} #{p:component('sumarioPnl')} #{p:component('associarDocumentosPnl')} #{p:component('contasRelacionadasPnl')}"/>
                               </h:panelGroup>
                             </p:column>
@@ -295,12 +295,6 @@
                                            value="#{doc.prestador}"
                                            index="#{idx}"/>
                             </p:column>
-                            <p:column headerText="Data" sortBy="#{doc.data}"
-                                      styleClass="left-align" width="125">
-                              <h:outputText value="#{doc.data}">
-                                <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
-                              </h:outputText>
-                            </p:column>
                             <p:column headerText="Criação" sortBy="#{doc.dataHoraCriacao}"
                                       styleClass="left-align" width="125">
                               <h:outputText value="#{doc.dataHoraCriacao}">
@@ -314,7 +308,7 @@
                               </h:outputText>
                             </p:column>
                             <p:column headerText="Tipo" sortBy="#{doc.tipo.label}"
-                                      styleClass="left-align" width="100">
+                                      styleClass="left-align" width="150">
                               <h:outputText value="#{doc.tipo.label}"/>
                             </p:column>
                           </p:dataTable>
@@ -479,9 +473,9 @@
                   <vah:toolTip id="docDlgDescTool" for="#{p:component('docDlgDesc')}" value="#{doc.descricao}"
                                index="#{idx}"/>
                 </p:column>
-                <p:column headerText="Conselho/Prestador" styleClass="left-align ellipsis-text" width="225">
-                  <h:outputText id="prestVis" value="#{doc.prestador}"/>
-                  <vah:toolTip id="prestVisTooltip" for="#{p:component('prestVis')}" value="#{doc.prestador}"
+                <p:column headerText="Conselho/Prestador" sortBy="#{doc.consPrestConv}" styleClass="left-align ellipsis-text" width="225">
+                  <h:outputText id="prestVis" value="#{doc.consPrestConv}"/>
+                  <vah:toolTip id="prestVisTooltip" for="#{p:component('prestVis')}" value="#{doc.consPrestConv}"
                                index="#{idx}"/>
                 </p:column>
                 <p:column headerText="Data/Hora Criação" styleClass="left-align" width="100">
@@ -494,7 +488,7 @@
                     <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
                   </h:outputText>
                 </p:column>
-                <p:column headerText="Tipo" width="50" styleClass="left-align">
+                <p:column headerText="Tipo" width="150" styleClass="left-align">
                   <h:outputText value="#{doc.tipo.label}"/>
                 </p:column>
               </p:dataTable>
@@ -531,14 +525,14 @@
               <p:outputLabel value="Código *" styleClass="lance-label"/>
               <p:inputText id="docCodigo" value="#{protocoloCtrl.docManualToAdd.codigo}" required="true" size="30"/>
               <p:outputLabel value="Criação *" styleClass="lance-label"/>
-              <p:calendar id="docManualDate" value="#{protocoloCtrl.docManualToAdd.dataCriacao}" pattern="dd/MM/yyyy"
+              <p:calendar id="docManualDate" value="#{protocoloCtrl.docManualToAdd.dataHoraCriacao}" pattern="dd/MM/yyyy"
                           required="true" timeZone="GMT-03:00" mask="true" locale="pt_BR"/>
               <p:outputLabel value="Impressão *" styleClass="lance-label"/>
-              <p:calendar id="docManualImpressao" value="#{protocoloCtrl.docManualToAdd.dataImpressao}"
+              <p:calendar id="docManualImpressao" value="#{protocoloCtrl.docManualToAdd.dataHoraImpressao}"
                           pattern="dd/MM/yyyy"
                           required="true" timeZone="GMT-03:00" mask="true" locale="pt_BR"/>
-              <p:outputLabel value="Observação" styleClass="lance-label"/>
-              <p:inputText id="docManualObs" value="#{protocoloCtrl.docManualToAdd.observacao}" maxlength="50"
+              <p:outputLabel value="Descrição" styleClass="lance-label"/>
+              <p:inputText id="docManualObs" value="#{protocoloCtrl.docManualToAdd.descricao}" maxlength="50"
                            size="50"/>
             </h:panelGrid>
           </h:panelGroup>
@@ -627,6 +621,16 @@
             window.scrollTo(0, 0);
           }
           closeLoading();
+        }
+        function selectTab02(idx) {
+          if (idx &gt; (PF('tabView02').getLength() - 1)) {
+            idx = idx - 1;
+          }
+
+          if (idx &gt; 0) {
+            PF('tabView02').select(idx);
+          }
+
         }
       </script>
 
