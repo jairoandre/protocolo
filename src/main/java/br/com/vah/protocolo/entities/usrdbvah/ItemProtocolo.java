@@ -30,7 +30,7 @@ public class ItemProtocolo implements Serializable {
   @JoinColumn(name = "ID_PROTOCOLO")
   private Protocolo protocolo;
 
-  @ManyToOne
+  @ManyToOne(cascade = CascadeType.ALL)
   @JoinColumn(name = "ID_DOCUMENTO")
   private DocumentoProtocolo documento;
 

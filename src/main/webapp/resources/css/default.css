@@ -407,3 +407,8 @@ input.ui-state-disabled {
 .protocolo-estado--RECUSADO {
   background-color: #8D272E;
 }
+
+.protocolo-documento--COUNT {
+  font-size: 18px;
+  padding: 0 20px;
+}

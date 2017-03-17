@@ -120,7 +120,6 @@
 
             <p:column headerText="Atend." width="45" styleClass="left-align">
               <h:outputText value="#{item.atendimento.id}" rendered="#{not empty item.atendimento}"/>
-              <h:outputText value="-" rendered="#{empty item.atendimento}"/>
             </p:column>
 
             <p:column headerText="Paciente" width="170" styleClass="left-align ellipsis-text">
@@ -211,7 +210,7 @@
         </h:panelGroup>
 
         <!-- DIALOGO NOVO COMENTARIO -->
-        <p:dialog id="novoComentarioDlg" widgetVar="novoComentarioDlg" modal="true">
+        <p:dialog id="novoComentarioDlg" widgetVar="novoComentarioDlg" modal="true" position="top">
           <f:facet name="header">
             <h:outputText
               value="Inserir Comentário - Protocolo nº #{protocoloCtrl.item.id}"
@@ -265,7 +264,7 @@
         </p:dialog>
 
         <!-- DIÁLOGO CONFIRMAÇÃO EXCLUSÃO -->
-        <p:dialog id="deleteDlg" header="Atenção"
+        <p:dialog id="deleteDlg" header="Atenção" position="top"
                   widgetVar="deleteDlg" modal="true">
 
           <div class="ui-messages ui-widget" aria-live="polite">
@@ -307,6 +306,7 @@
                     widgetVar="historicoDlg"
                     rendered="#{protocoloCtrl.renderHistoricoDlg}"
                     modal="true"
+                    position="top"
                     width="500">
             <f:facet name="header">
               <h:outputText value="Histórico - Protocolo nº #{protocoloCtrl.item.id}"/>
@@ -342,6 +342,7 @@
           <p:dialog id="comentariosDlg"
                     widgetVar="comentariosDlg"
                     rendered="#{protocoloCtrl.renderComentariosDlg}"
+                    position="top"
                     modal="true" width="700">
             <f:facet name="header">
               <h:outputText value="Comentários - Protocolo nº #{protocoloCtrl.item.id}"/>
@@ -379,6 +380,7 @@
                     widgetVar="receberDlg"
                     modal="true"
                     width="1200"
+                    position="top"
                     rendered="#{protocoloCtrl.renderReceberDlg}">
 
             <f:facet name="header">
@@ -408,25 +410,29 @@
                     <p:column headerText="Cód." sortBy="#{doc.codigo}" width="50" styleClass="left-align">
                       <h:outputText value="#{doc.codigo}"/>
                     </p:column>
-                    <p:column headerText="Descrição" sortBy="#{doc.descricao}" styleClass="left-align ellipsis-text" width="150">
-                      <h:outputText value="#{doc.descricao}"/>
-                    </p:column>
-                    <p:column headerText="Conselho/Prestador" styleClass="left-align ellipsis-text" width="200">
-                      <h:outputText id="prest" value="#{doc.prestador}"/>
-                      <vah:toolTip id="prestTooltip" for="#{p:component('prest')}" value="#{doc.prestador}"
+                    <p:column headerText="Descrição" sortBy="#{doc.descricao}" styleClass="left-align ellipsis-text" width="200">
+                      <h:outputText id="recebDescri" value="#{doc.descricao}"/>
+                      <vah:toolTip id="recebDescriTooltip" for="#{p:component('recebDescri')}" value="#{doc.descricao}"
                                    index="#{idx}"/>
                     </p:column>
-                    <p:column headerText="Data/Hora Criação" sortBy="#{doc.dataHoraCriacao}" styleClass="left-align" width="85">
+                    <p:column headerText="#{doc.protocolo.origem.nivel eq 0 ? 'Conselho/Prestador' : 'Convênio/Atendimento'}"
+                              sortBy="#{doc.consPresConv}"
+                              styleClass="left-align ellipsis-text" width="150">
+                      <h:outputText id="prest" value="#{doc.consPrestConv}"/>
+                      <vah:toolTip id="prestTooltip" for="#{p:component('prest')}" value="#{doc.consPrestConv}"
+                                   index="#{idx}"/>
+                    </p:column>
+                    <p:column headerText="Criação" sortBy="#{doc.dataHoraCriacao}" styleClass="left-align" width="85">
                       <h:outputText value="#{doc.dataHoraCriacao}">
-                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
+                        <f:convertDateTime pattern="dd/MM/yy HH:mm:ss"/>
                       </h:outputText>
                     </p:column>
-                    <p:column headerText="Data/Hora Impress." sortBy="#{doc.dataHoraImpressao}" styleClass="left-align" width="85">
+                    <p:column headerText="Impressão" sortBy="#{doc.dataHoraImpressao}" styleClass="left-align" width="85">
                       <h:outputText value="#{doc.dataHoraImpressao}">
-                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
+                        <f:convertDateTime pattern="dd/MM/yy HH:mm:ss"/>
                       </h:outputText>
                     </p:column>
-                    <p:column headerText="Tipo" sortBy="#{doc.tipo}" width="100" styleClass="left-align">
+                    <p:column headerText="Tipo" sortBy="#{doc.tipo}" width="100" styleClass="left-align ellipsis-text">
                       <h:outputText value="#{doc.tipo.label}"/>
                     </p:column>
                   </p:dataTable>
@@ -471,6 +477,7 @@
                     widgetVar="documentosDlg"
                     modal="true"
                     width="1200"
+                    position="top"
                     rendered="#{protocoloCtrl.renderDocumentosDlg}">
 
             <f:facet name="header">
@@ -489,25 +496,28 @@
                   <p:column headerText="Cód." width="50" styleClass="left-align">
                     <h:outputText value="#{doc.codigo}"/>
                   </p:column>
-                  <p:column headerText="Descrição" styleClass="left-align ellipsis-text">
-                    <h:outputText value="#{doc.descricao}"/>
+                  <p:column headerText="Descrição" styleClass="left-align ellipsis-text" width="200">
+                    <h:outputText id="docDescri" value="#{doc.descricao}"/>
+                    <vah:toolTip id="docDescriTooltip" for="#{p:component('docDescri')}" value="#{doc.descricao}"
+                                 index="#{idx}"/>
                   </p:column>
-                  <p:column headerText="Conselho/Prestador" styleClass="left-align ellipsis-text" width="250">
+                  <p:column headerText="#{doc.protocolo.origem.nivel eq 0 ? 'Conselho/Prestador' : 'Convênio/Atendimento'}"
+                            styleClass="left-align ellipsis-text" width="250">
                     <h:outputText id="prestVis" value="#{doc.consPrestConv}"/>
                     <vah:toolTip id="prestVisTooltip" for="#{p:component('prestVis')}" value="#{doc.consPrestConv}"
                                  index="#{idx}"/>
                   </p:column>
-                  <p:column headerText="Data/Hora Criação" styleClass="left-align" width="135">
+                  <p:column headerText="Criação" styleClass="left-align" width="100">
                     <h:outputText value="#{doc.dataHoraCriacao}">
-                      <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
+                      <f:convertDateTime pattern="dd/MM/yy HH:mm:ss"/>
                     </h:outputText>
                   </p:column>
-                  <p:column headerText="Data/Hora Impressão" styleClass="left-align" width="135">
+                  <p:column headerText="Impressão" styleClass="left-align" width="100">
                     <h:outputText value="#{doc.dataHoraImpressao}">
-                      <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
+                      <f:convertDateTime pattern="dd/MM/yy HH:mm:ss"/>
                     </h:outputText>
                   </p:column>
-                  <p:column headerText="Tipo" width="100" styleClass="left-align">
+                  <p:column headerText="Tipo" width="100" styleClass="left-align ellipsis-text">
                     <h:outputText value="#{doc.tipo.label}"/>
                   </p:column>
                 </p:dataTable>

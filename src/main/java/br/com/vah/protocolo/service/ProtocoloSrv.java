@@ -21,6 +21,7 @@ import javax.ejb.Stateless;
 import javax.inject.Inject;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Jairoportela on 06/04/2016.
@@ -205,14 +206,14 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     return criteria;
   }
 
-  private List<DocumentoDTO> gerarListaDTO(Protocolo protocolo, Boolean subItens) {
+  private List<DocumentoDTO> gerarListaDTO(Protocolo protocolo, Boolean onlyDocs) {
     List<DocumentoDTO> dtos = new ArrayList<>();
     if (protocolo.getItens() != null) {
       protocolo.getItens().forEach((item) -> {
-        dtos.add(new DocumentoDTO(item));
-        if (item.getFilho() != null && subItens) {
-          Protocolo attIp = initializeLists(item.getFilho());
-          attIp.getItens().forEach((iP) -> dtos.add(new DocumentoDTO(iP)));
+        if (onlyDocs && item.getFilho() != null) {
+          dtos.addAll(gerarListaDTO(initializeLists(item.getFilho()), true));
+        } else {
+          dtos.add(new DocumentoDTO(item));
         }
       });
     }
@@ -311,7 +312,7 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
 
   }
 
-  private List<Protocolo> protocolosAptosParaEnvio(Protocolo protocolo, Date inicio, Date fim, Convenio convenio, String listaContas) {
+  private List<Protocolo> protocolosAptosParaEnvio(Protocolo protocolo, Convenio convenio, String listaContas) {
     Criteria criteria = getSession().createCriteria(Protocolo.class, "pro");
     if (protocolo.getAtendimento() != null) {
       criteria.add(Restrictions.eq("atendimento", protocolo.getAtendimento()));
@@ -319,21 +320,17 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     criteria.add(Restrictions.eq("estado", EstadosProtocoloEnum.RECEBIDO));
     criteria.add(Restrictions.eq("destino", protocolo.getOrigem()));
     criteria.add(Restrictions.eq("reenviado", false));
-    if (inicio != null && fim == null) {
-      criteria.add(Restrictions.ge("dataResposta", inicio));
-    } else if (inicio == null && fim != null) {
-      criteria.add(Restrictions.le("dataResposta", fim));
-    } else if (inicio != null && fim != null) {
-      criteria.add(Restrictions.between("dataResposta", inicio, fim));
-    }
 
-    if (convenio != null) {
+
+    if (convenio != null && protocolo.getOrigem().getNivel() < 2) {
       criteria.createCriteria("atendimento", "atd").add(Restrictions.eq("atd.convenio", convenio));
     }
 
+    List<Long> ids = new ArrayList<>();
+
     if (listaContas != null && !listaContas.isEmpty()) {
       String[] contas = listaContas.split(";");
-      List<Long> ids = new ArrayList<>();
+
       for (int i = 0, len = contas.length; i < len; i++) {
         try {
           Long l = Long.parseLong(contas[i]);
@@ -352,7 +349,24 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     DetachedCriteria dt = DetachedCriteria.forClass(ItemProtocolo.class, "i");
     criteria.add(Subqueries.notExists(dt.setProjection(Projections.id()).add(Restrictions.eqProperty("pro.id", "i.filho.id"))));
 
-    return criteria.list();
+    List<Protocolo> rawResult = criteria.list();
+
+    if (protocolo.getOrigem().getNivel() == 2) {
+      final List<Protocolo> contas = new ArrayList<>();
+      rawResult.forEach((prot) ->
+        prot.getItens().forEach((it) -> {
+          Protocolo filho = it.getFilho();
+          Boolean checkIds = ids.isEmpty() || filho.getContaFaturamento() == null || (ids.contains(filho.getContaFaturamento().getId()));
+          Boolean checkConvenio = convenio == null || filho.getAtendimento() == null || filho.getAtendimento().getConvenio().equals(convenio);
+          if (checkIds && checkConvenio) {
+            contas.add(it.getFilho());
+          }
+        })
+      );
+      return contas;
+    }
+
+    return rawResult;
   }
 
   public void addIfNoExists(Protocolo protocolo, DocumentoDTO dto) {
@@ -370,54 +384,17 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     }
   }
 
-  public List<Date[]> periodoBuscaDocumentos(Protocolo protocolo, Date begin, Date end) {
-    String sql = "SELECT MOV.HR_MOV_INT, MOV.HR_LIB_MOV  FROM DBAMV.MOV_INT MOV " +
-        "LEFT JOIN DBAMV.LEITO L ON L.CD_LEITO = MOV.CD_LEITO " +
-        "LEFT JOIN DBAMV.UNID_INT U ON U.CD_UNID_INT = L.CD_UNID_INT " +
-        "WHERE MOV.CD_ATENDIMENTO = :CD_ATENDIMENTO AND " +
-        "U.CD_SETOR = :CD_SETOR AND " +
-        "(" +
-        "(MOV.HR_MOV_INT BETWEEN :DT_BEGIN AND :DT_END) OR " +
-        "(MOV.HR_LIB_MOV BETWEEN :DT_BEGIN AND :DT_END) OR " +
-        "(MOV.HR_LIB_MOV < :DT_BEGIN AND (MOV.HR_LIB_MOV > :DT_END OR MOV.HR_LIB_MOV IS NULL))" +
-        ")";
-
-    Session session = getEm().unwrap(Session.class);
-
-    SQLQuery query = session.createSQLQuery(sql);
-    query.setParameter("CD_ATENDIMENTO", protocolo.getAtendimento().getId());
-    query.setParameter("CD_SETOR", protocolo.getOrigem().getSetorMV().getId());
-    query.setParameter("DT_BEGIN", begin);
-    query.setParameter("DT_END", end);
-
-    List<Object[]> result = query.list();
-
-    List<Date[]> periodos = new ArrayList<>();
-
-    if (!result.isEmpty()) {
-      for (Object[] datas : result) {
-        Date[] periodo = new Date[2];
-
-        periodo[0] = (Date) datas[0];
-        periodo[1] = (Date) datas[1];
-
-        if (periodo[1] == null) {
-          periodo[1] = DateUtility.lastHour(end);
-        }
-
-        if (periodo[0].before(begin)) {
-          periodo[0] = begin;
-        }
-
-        if (periodo[1].after(end)) {
-          periodo[1] = end;
-        }
-        periodos.add(periodo);
-      }
+  private Boolean jaProtocolado(DocumentoDTO dto) {
+    Session session = getSession();
+    Criteria criteria = session.createCriteria(DocumentoProtocolo.class);
+    criteria.add(Restrictions.eq("codigo", dto.getDocumento().getCodigo()));
+    criteria.add(Restrictions.eq("tipo", dto.getDocumento().getTipo()));
+    if (criteria.list().size() > 0) {
+      Criteria itemProtocoloCrit = getSession().createCriteria(ItemProtocolo.class);
+      itemProtocoloCrit.add(Restrictions.eq("documento", criteria.list().iterator().next()));
+      return itemProtocoloCrit.list().size() > 0;
     }
-
-    return periodos;
-
+    return false;
   }
 
   private List<DocumentoDTO> buscarDocumentosView(Protocolo protocolo, Date begin, Date end, Convenio convenio, String listaContas) {
@@ -436,22 +413,28 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
           "FROM DBAMV.VDIC_ATEND_PRONT_PRESC_ATU VW " +
           "LEFT JOIN DBAMV.UNID_INT U ON U.CD_UNID_INT = VW.CD_UNID_INT " +
           "WHERE CD_ATENDIMENTO = :CD_ATENDIMENTO AND " +
-          "U.CD_SETOR = :CD_SETOR AND " +
-          "VW.DT_REFERENCIA BETWEEN :DT_BEGIN AND :DT_END";
+          "U.CD_SETOR = :CD_SETOR " +
+          ((begin != null && end != null) ? "AND VW.DT_REFERENCIA BETWEEN :DT_BEGIN AND :DT_END" : "");
 
       Session session = getSession();
       SQLQuery query = session.createSQLQuery(sql);
       query.setParameter("CD_ATENDIMENTO", protocolo.getAtendimento().getId());
       query.setParameter("CD_SETOR", protocolo.getOrigem().getSetorMV().getId());
-      query.setParameter("DT_BEGIN", begin);
-      query.setParameter("DT_END", end);
+      if (begin != null && end != null) {
+        query.setParameter("DT_BEGIN", begin);
+        query.setParameter("DT_END", end);
+      }
       List<Object[]> rows = query.list();
 
-      rows.forEach((row) -> result.add(new DocumentoDTO(row)));
+      final List<DocumentoDTO> rawResult = new ArrayList<>();
+
+      rows.forEach((row) -> rawResult.add(new DocumentoDTO(row)));
+
+      result.addAll(rawResult.stream().filter((dto) -> !jaProtocolado(dto)).collect(Collectors.toList()));
 
     }
 
-    List<Protocolo> protocolos = protocolosAptosParaEnvio(protocolo, begin, end, convenio, listaContas);
+    List<Protocolo> protocolos = protocolosAptosParaEnvio(protocolo, convenio, listaContas);
 
     protocolos.forEach((p) -> result.add(new DocumentoDTO(p)));
 
@@ -470,8 +453,8 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     return gerarDtoKeyMap(protocolo, documentos);
   }
 
-  public DtoKeyMap gerarDocumentosSelecionados(Protocolo protocolo, Boolean subItens) {
-    return gerarDtoKeyMap(protocolo, gerarListaDTO(protocolo, subItens));
+  public DtoKeyMap gerarDocumentosSelecionados(Protocolo protocolo, Boolean onlyDocs) {
+    return gerarDtoKeyMap(protocolo, gerarListaDTO(protocolo, onlyDocs));
   }
 
   public Protocolo enviarProtocolo(final Protocolo protocolo) throws ProtocoloBusinessException {
@@ -580,6 +563,7 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     Integer totalRegistros = 0;
     Integer totalDocumentosManuais = 0;
     Integer totalEvolucaoAnotacao = 0;
+    Integer totalDocumentosProntuarios = 0;
 
     for (ItemProtocolo item : protocolo.getItens()) {
       DocumentoProtocolo documento = item.getDocumento();
@@ -610,6 +594,10 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
             totalDocumentos++;
             totalEvolucaoAnotacao++;
             break;
+          case DOCUMENTO_PRONTUARIO:
+            totalDocumentos++;
+            totalDocumentosProntuarios++;
+            break;
           case DOC_MANUAL_EVOLUCAO:
           case DOC_MANUAL_PRESCRICAO:
           case DOC_MANUAL_EVOLUCAO_ANOTACAO:
@@ -639,10 +627,21 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
         totalRegistros += resultFilho[5];
         totalDocumentosManuais += resultFilho[6];
         totalEvolucaoAnotacao += resultFilho[7];
+        totalDocumentosProntuarios += resultFilho[8];
       }
 
     }
-    return new Integer[]{totalDocumentos, totalPrescricoes, totalEvolucoes, totalFolha, totalDescricoes, totalRegistros, totalDocumentosManuais, totalEvolucaoAnotacao};
+    return new Integer[]{
+        totalDocumentos,
+        totalPrescricoes,
+        totalEvolucoes,
+        totalFolha,
+        totalDescricoes,
+        totalRegistros,
+        totalDocumentosManuais,
+        totalEvolucaoAnotacao,
+        totalDocumentosProntuarios
+    };
   }
 
   public Protocolo buscarDadosRascunho(Protocolo protocolo) {
@@ -676,12 +675,10 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     }
   }
 
-
   public Set<RegFaturamento> inferirContasInitialize(Protocolo protocolo) {
     Protocolo att = initializeLists(protocolo);
     return inferirContas(att);
   }
-
 
   public Set<RegFaturamento> inferirContas(Protocolo att) {
     Date[] range = new Date[2];

@@ -1,11 +1,14 @@
 package br.com.vah.protocolo.dto;
 
 import br.com.vah.protocolo.constants.TipoDocumentoEnum;
+import br.com.vah.protocolo.entities.dbamv.Atendimento;
+import br.com.vah.protocolo.entities.dbamv.RegFaturamento;
 import br.com.vah.protocolo.entities.usrdbvah.DocumentoProtocolo;
 import br.com.vah.protocolo.entities.usrdbvah.ItemProtocolo;
 import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class DocumentoDTO {
@@ -53,27 +56,42 @@ public class DocumentoDTO {
     this.codigo = String.valueOf(documento.getCodigo());
     this.tipo = documento.getTipo();
     this.descricao = documento.getDescricao();
+    if (this.descricao == null) {
+      this.descricao = documento.getTipo().getLabel();
+    }
     this.conselho = documento.getConselho();
     this.prestador = documento.getPrestador();
     this.dataHoraCriacao = documento.getDataHoraCriacao();
     this.dataHoraImpressao = documento.getDataHoraImpressao();
-    this.consPrestConv = String.format("%s - %s", this.conselho, this.prestador);
+    if (this.conselho != null && this.prestador != null) {
+      this.consPrestConv = String.format("%s - %s", this.conselho, this.prestador);
+    } else {
+      this.consPrestConv = "N/A";
+    }
+
   }
 
   public DocumentoDTO(DocumentoProtocolo documento) {
     setFields(documento);
   }
 
-  public void setFields(Protocolo protocoloFilho) {
-    this.filho = protocoloFilho;
-    this.codigo = String.valueOf(protocoloFilho.getId());
+  public void setFields(Protocolo filho) {
+    this.filho = filho;
+    this.codigo = String.valueOf(filho.getId());
     this.tipo = TipoDocumentoEnum.PROTOCOLO;
-    this.descricao = protocoloFilho.getContaFaturamento() == null ? "-" : String.valueOf(protocoloFilho.getContaFaturamento().getId());
+    RegFaturamento conta = filho.getContaFaturamento();
+    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy HH:mm");
+    this.descricao = conta == null ? "Remessa" : String.format("%d - (%s à %s)", conta.getId(), sdf.format(conta.getInicio()), sdf.format(conta.getFim()));
     this.conselho = "-";
     this.prestador = "-";
-    this.dataHoraCriacao = protocoloFilho.getDataEnvio();
-    this.dataHoraImpressao = protocoloFilho.getDataEnvio();
-    this.consPrestConv = "Protocolo";
+    this.dataHoraCriacao = filho.getDataEnvio();
+    this.dataHoraImpressao = filho.getDataEnvio();
+    Atendimento atendimento = filho.getAtendimento();
+    if (atendimento != null) {
+      this.consPrestConv = String.format("%s - %d - %s", atendimento.getConvenio().getTitle(), atendimento.getId(), atendimento.getPaciente().getName());
+    } else {
+      this.consPrestConv = "Remessa";
+    }
   }
 
   public DocumentoDTO(Protocolo protocolo) {

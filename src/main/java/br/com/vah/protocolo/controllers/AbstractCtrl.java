@@ -249,12 +249,12 @@ public abstract class AbstractCtrl<T extends BaseEntity> implements Serializable
   }
 
   protected void initLazyModel(AbstractSrv<T> service, String... relations) {
-    setLazyModel(new GenericLazyDataModel<T>(service));
+    setLazyModel(new GenericLazyDataModel<>(service));
     if (relations != null && relations.length > 0) {
       getLazyModel().getSearchParams().addRelations(relations);
     }
     getLazyModel().getSearchParams().setOrderBy(getSearchField());
-    getLazyModel().getSearchParams().setAsc(true);
+    getLazyModel().getSearchParams().setAsc(false);
   }
 
   /*

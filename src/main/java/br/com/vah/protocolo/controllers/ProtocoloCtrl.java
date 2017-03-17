@@ -84,6 +84,10 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   private Integer totalDocumentosManuais;
 
+  private Integer totalEvolucaoAnotacao;
+
+  private Integer totalDocumentosProntuarios;
+
   private EstadosProtocoloEnum acaoComentario;
 
   private Boolean renderComentariosDlg = false;
@@ -192,7 +196,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
   public void visualizarDoc(DocumentoDTO dto) {
     Protocolo att = service.initializeLists(dto.getFilho());
     protocoloToVisualize = att;
-    documentosToVisualize = service.gerarDocumentosSelecionados(att, false);
+    documentosToVisualize = service.gerarDocumentosSelecionados(att, att.getOrigem().getNivel() == 0);
   }
 
   public void closeReceberDlg() {
@@ -215,7 +219,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   public void preOpenDocumentosDlg(Protocolo protocolo) {
     Protocolo att = service.initializeLists(protocolo);
-    documentosSelecionados = service.gerarDocumentosSelecionados(att, false);
+    documentosSelecionados = service.gerarDocumentosSelecionados(att, protocolo.getOrigem().getNivel() == 0);
     renderDocumentosDlg = true;
     setItem(att);
   }
@@ -252,13 +256,21 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
   }
 
   public void recuperarDadosRascunho() {
-    Protocolo rascunho = service.buscarDadosRascunho(getItem());
-    if (rascunho == null) {
-      if (session.getSetor() != null) {
-        getItem().setOrigem(session.getSetor());
+    if (getItem().getId() == null) {
+      Protocolo rascunho = service.buscarDadosRascunho(getItem());
+      if (rascunho == null) {
+        if (session.getSetor() != null) {
+          getItem().setOrigem(session.getSetor());
+        }
+      } else {
+        setItem(service.initializeLists(rascunho));
       }
     } else {
-      setItem(service.initializeLists(rascunho));
+      Protocolo newProtocolo = createNewItem();
+      newProtocolo.setOrigem(getItem().getOrigem());
+      newProtocolo.setOrigem(getItem().getDestino());
+      newProtocolo.setAtendimento(getItem().getAtendimento());
+      setItem(newProtocolo);
     }
     prepareDocumentos();
   }
@@ -310,6 +322,8 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     totalDescricoes = totais[4];
     totalRegistros = totais[5];
     totalDocumentosManuais = totais[6];
+    totalEvolucaoAnotacao = totais[7];
+    totalDocumentosProntuarios = totais[8];
     contas = new ArrayList<>(service.inferirContas(getItem()));
   }
 
@@ -662,5 +676,13 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   public TipoDocumentoEnum[] getTiposDocManual() {
     return tiposDocManual;
+  }
+
+  public Integer getTotalEvolucaoAnotacao() {
+    return totalEvolucaoAnotacao;
+  }
+
+  public Integer getTotalDocumentosProntuarios() {
+    return totalDocumentosProntuarios;
   }
 }

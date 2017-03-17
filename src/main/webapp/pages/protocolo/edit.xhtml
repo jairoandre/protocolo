@@ -81,7 +81,7 @@
                                   styleClass="client-input"
                                   placeholder="Número/Nome paciente">
                 <p:ajax event="itemSelect" listener="#{protocoloCtrl.recuperarDadosRascunho}"
-                        process="@this" update="docSearchResult carregarDocsBtn"/>
+                        process="@this" update="@form"/>
                 <p:column width="75">
                   #{item.id}
                 </p:column>
@@ -170,7 +170,8 @@
                             <p:column headerText="Cód." sortBy="#{doc.codigo}" width="50" styleClass="left-align">
                               <h:outputText value="#{doc.codigo}"/>
                             </p:column>
-                            <p:column headerText="Descrição/Conta" sortBy="#{doc.descricao}" styleClass="left-align ellipsis-text" width="300">
+                            <p:column headerText="Descrição/Conta" sortBy="#{doc.descricao}"
+                                      styleClass="left-align ellipsis-text" width="300">
                               <h:panelGroup rendered="#{doc.tipo eq 'PROTOCOLO'}">
                                 <p:commandButton icon="fa fa-eye" value="#{doc.descricao}"
                                                  action="#{protocoloCtrl.visualizarDoc(doc)}"
@@ -185,7 +186,7 @@
                                              index="#{idx}"/>
                               </h:panelGroup>
                             </p:column>
-                            <p:column headerText="Conselho/Prestador/Convênio" sortBy="#{doc.consPrestConv}"
+                            <p:column headerText="#{protocoloCtrl.item.origem.nivel eq 0 ? 'Conselho/Prestador' : 'Convênio/Atendimento'}" sortBy="#{doc.consPrestConv}"
                                       styleClass="left-align ellipsis-text">
                               <h:outputText id="consPrestConvNaoSelec" value="#{doc.consPrestConv}"/>
                               <vah:toolTip id="consPrestConvNaoSelecTool" for="#{p:component('consPrestConvNaoSelec')}"
@@ -195,16 +196,16 @@
                             <p:column headerText="Criação" sortBy="#{doc.dataHoraCriacao}" styleClass="left-align"
                                       width="125">
                               <h:outputText value="#{doc.dataHoraCriacao}">
-                                <f:convertDateTime pattern="dd/MM/yyyy HH:mm" locale="pt_BR" timeZone="GMT-03:00"/>
+                                <f:convertDateTime pattern="dd/MM/yy HH:mm" locale="pt_BR" timeZone="GMT-03:00"/>
                               </h:outputText>
                             </p:column>
                             <p:column headerText="Impressão" sortBy="#{doc.dataHoraImpressao}" styleClass="left-align"
                                       width="125">
                               <h:outputText value="#{doc.dataHoraImpressao}">
-                                <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
+                                <f:convertDateTime pattern="dd/MM/yy HH:mm:ss"/>
                               </h:outputText>
                             </p:column>
-                            <p:column headerText="Tipo" sortBy="#{doc.tipo}" styleClass="left-align" width="150">
+                            <p:column headerText="Tipo" sortBy="#{doc.tipo}" styleClass="left-align ellipsis-text" width="150">
                               <h:outputText value="#{doc.tipo.label}"/>
                             </p:column>
                           </p:dataTable>
@@ -288,11 +289,11 @@
                                                  process="@this" update="#{p:component('documentosDlgPnl')}"/>
                               </h:panelGroup>
                             </p:column>
-                            <p:column headerText="Conselho/Prestador/Convênio" sortBy="#{doc.prestador}"
+                            <p:column headerText="#{protocoloCtrl.item.origem.nivel eq 0 ? 'Conselho/Prestador' : 'Convênio/Atendimento'}" sortBy="#{doc.consPrestConv}"
                                       styleClass="left-align ellipsis-text">
-                              <h:outputText id="docIncluConsPrest" value="#{doc.prestador}"/>
+                              <h:outputText id="docIncluConsPrest" value="#{doc.consPrestConv}"/>
                               <vah:toolTip id="docIncluConsPrestLabel" for="#{p:component('docIncluConsPrest')}"
-                                           value="#{doc.prestador}"
+                                           value="#{doc.consPrestConv}"
                                            index="#{idx}"/>
                             </p:column>
                             <p:column headerText="Criação" sortBy="#{doc.dataHoraCriacao}"
@@ -308,7 +309,7 @@
                               </h:outputText>
                             </p:column>
                             <p:column headerText="Tipo" sortBy="#{doc.tipo.label}"
-                                      styleClass="left-align" width="150">
+                                      styleClass="left-align ellipsis-text" width="150">
                               <h:outputText value="#{doc.tipo.label}"/>
                             </p:column>
                           </p:dataTable>
@@ -388,24 +389,30 @@
                 <p:fieldset legend="Sumário" styleClass="margin-top" rendered="#{protocoloCtrl.showSumario}">
                   <h:panelGrid columns="4" style="padding: 5px;">
                     <h:outputLabel value="Total documentos:" styleClass="lance-label"/>
-                    <h:outputText value="#{protocoloCtrl.totalDocumentos}" style="font-size: 18px; padding: 0 20px;"/>
+                    <h:outputText value="#{protocoloCtrl.totalDocumentos}" styleClass="protocolo-documento--COUNT"/>
                     <h:outputLabel value="Conta: " styleClass="lance-label"/>
-                    <h:outputText id="contaSumPnl" style="font-size: 18px; padding: 0 20px;"
+                    <h:outputText id="contaSumPnl" styleClass="protocolo-documento--COUNT"
                                   value="#{protocoloCtrl.item.contaFaturamento eq null ? 'N/A' : protocoloCtrl.item.contaFaturamento.id}"/>
                     <h:outputLabel value="Prescrições:" styleClass="lance-label"/>
                     <h:outputText value="#{protocoloCtrl.totalPrescricoes}"
-                                  style="font-size: 18px; padding: 0 20px;"/>
+                                  styleClass="protocolo-documento--COUNT"/>
                     <h:outputLabel value="Evoluções:" styleClass="lance-label"/>
-                    <h:outputText value="#{protocoloCtrl.totalEvolucoes}" style="font-size: 18px; padding: 0 20px;"/>
+                    <h:outputText value="#{protocoloCtrl.totalEvolucoes}" styleClass="protocolo-documento--COUNT"/>
                     <h:outputLabel value="Folhas Anestésicas:" styleClass="lance-label"/>
-                    <h:outputText value="#{protocoloCtrl.totalFolha}" style="font-size: 18px; padding: 0 20px;"/>
+                    <h:outputText value="#{protocoloCtrl.totalFolha}" styleClass="protocolo-documento--COUNT"/>
                     <h:outputLabel value="Descrições Cirúrgicas:" styleClass="lance-label"/>
-                    <h:outputText value="#{protocoloCtrl.totalDescricoes}" style="font-size: 18px; padding: 0 20px;"/>
+                    <h:outputText value="#{protocoloCtrl.totalDescricoes}" styleClass="protocolo-documento--COUNT"/>
                     <h:outputLabel value="Registros:" styleClass="lance-label"/>
-                    <h:outputText value="#{protocoloCtrl.totalRegistros}" style="font-size: 18px; padding: 0 20px;"/>
+                    <h:outputText value="#{protocoloCtrl.totalRegistros}" styleClass="protocolo-documento--COUNT"/>
                     <h:outputLabel value="Documentos manuais:" styleClass="lance-label"/>
                     <h:outputText value="#{protocoloCtrl.totalDocumentosManuais}"
-                                  style="font-size: 18px; padding: 0 20px;"/>
+                                  styleClass="protocolo-documento--COUNT"/>
+                    <h:outputLabel value="Evoluções/Anotações:" styleClass="lance-label"/>
+                    <h:outputText value="#{protocoloCtrl.totalEvolucaoAnotacao}"
+                                  styleClass="protocolo-documento--COUNT"/>
+                    <h:outputLabel value="Documentos Prontuários:" styleClass="lance-label"/>
+                    <h:outputText value="#{protocoloCtrl.totalDocumentosProntuarios}"
+                                  styleClass="protocolo-documento--COUNT"/>
                   </h:panelGrid>
                 </p:fieldset>
               </h:panelGroup>
@@ -473,7 +480,9 @@
                   <vah:toolTip id="docDlgDescTool" for="#{p:component('docDlgDesc')}" value="#{doc.descricao}"
                                index="#{idx}"/>
                 </p:column>
-                <p:column headerText="Conselho/Prestador" sortBy="#{doc.consPrestConv}" styleClass="left-align ellipsis-text" width="225">
+                <p:column headerText="#{protocoloCtrl.item.origem.nivel eq 0 ? 'Conselho/Prestador' : 'Convênio/Atendimento'}"
+                          sortBy="#{doc.consPrestConv}"
+                          styleClass="left-align ellipsis-text" width="225">
                   <h:outputText id="prestVis" value="#{doc.consPrestConv}"/>
                   <vah:toolTip id="prestVisTooltip" for="#{p:component('prestVis')}" value="#{doc.consPrestConv}"
                                index="#{idx}"/>
@@ -488,7 +497,7 @@
                     <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
                   </h:outputText>
                 </p:column>
-                <p:column headerText="Tipo" width="150" styleClass="left-align">
+                <p:column headerText="Tipo" width="150" styleClass="left-align ellipsis-text">
                   <h:outputText value="#{doc.tipo.label}"/>
                 </p:column>
               </p:dataTable>
@@ -525,7 +534,8 @@
               <p:outputLabel value="Código *" styleClass="lance-label"/>
               <p:inputText id="docCodigo" value="#{protocoloCtrl.docManualToAdd.codigo}" required="true" size="30"/>
               <p:outputLabel value="Criação *" styleClass="lance-label"/>
-              <p:calendar id="docManualDate" value="#{protocoloCtrl.docManualToAdd.dataHoraCriacao}" pattern="dd/MM/yyyy"
+              <p:calendar id="docManualDate" value="#{protocoloCtrl.docManualToAdd.dataHoraCriacao}"
+                          pattern="dd/MM/yyyy"
                           required="true" timeZone="GMT-03:00" mask="true" locale="pt_BR"/>
               <p:outputLabel value="Impressão *" styleClass="lance-label"/>
               <p:calendar id="docManualImpressao" value="#{protocoloCtrl.docManualToAdd.dataHoraImpressao}"

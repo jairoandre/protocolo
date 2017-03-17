@@ -10,16 +10,16 @@ import java.util.Date;
  * Created by Jairoportela on 16/03/2017.
  */
 @Entity
-@Table(name = "TB_NPTC_DOCUMENTO", schema = "USRDBVAH")
+@Table(name = "TB_NPTC_DOCUMENTO_PROTOCOLO", schema = "USRDBVAH")
 public class DocumentoProtocolo extends BaseEntity {
 
   @Id
-  @SequenceGenerator(name = "seqProtocolo", sequenceName = "SEQ_NPTC_PROTOCOLO", schema = "USRDBVAH", allocationSize = 1)
-  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqProtocolo")
+  @SequenceGenerator(name = "seqDocProtocolo", sequenceName = "SEQ_NPTC_DOCUMENTO_PROTOCOLO", schema = "USRDBVAH", allocationSize = 1)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqDocProtocolo")
   @Column(name = "ID")
   private Long id;
 
-  @Column(name = "CD_ITEM_PRONTUARIO")
+  @Column(name = "CD_ITEM_PRONTUARIO", nullable = false)
   private Long codigo;
 
   @Column(name = "CD_TIPO")
