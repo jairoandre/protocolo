@@ -1,0 +1,113 @@
+<ui:composition template="/templates/layout.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+  <ui:define name="content">
+    <h:form id="form">
+      <p:panel>
+
+        <f:facet name="header">
+          <h:outputText value="Contas Protocoladas "/>
+          <h:panelGroup id="filtersHeaderPnl">
+            <ui:repeat value="#{caixaEntradaCtrl.fieldsMap}" var="filtro">
+              <p:commandButton value="#{caixaEntradaCtrl.interpolarTextoMapFiltros(filtro)}" icon="fa fa-ban"
+                               action="#{caixaEntradaCtrl.removeFilterItem(filtro)}"
+                               escape="false"
+                               styleClass="margin-left" ajax="true" process="@this"
+                               rendered="#{filtro ne 'SETOR' or empty sessionController.setor}"
+                               update="#{p:component('resultPnl')} #{p:component('filtersHeaderPnl')} #{p:component('conveniosPnl')}"/>
+            </ui:repeat>
+          </h:panelGroup>
+        </f:facet>
+
+        <h:panelGroup id="filtersPnl">
+          <h:panelGrid columns="2">
+            <p:outputLabel value="Vinculados"/>
+            <p:selectBooleanCheckbox id="vinculados" value="#{caixaEntradaCtrl.vinculados}"
+            />
+            <p:outputLabel value="Setor" rendered="#{empty sessionController.setor}"/>
+            <p:autoComplete
+              id="setor"
+              value="#{caixaEntradaCtrl.setor}"
+              completeMethod="#{setorProtocoloCtrl.completeMethod}"
+              inputStyle="width: 200px;"
+              queryDelay="150"
+              converter="#{setorProtocoloConverter}"
+              var="item"
+              itemValue="#{item}"
+              itemLabel="#{item.title}"
+              onclick="selectContent(this)"
+              onfocus="selectContent(this)"
+              placeholder="Setor..."
+              rendered="#{empty sessionController.setor}">
+              <p:column>
+                #{item.title}
+              </p:column>
+            </p:autoComplete>
+            <p:outputLabel value="Contas"/>
+            <p:inputText id="contas"
+                         value="#{caixaEntradaCtrl.contas}"
+                         placeholder="Contas separadas por ';'"
+                         onclick="selectContent(this)"
+                         onfocus="selectContent(this)"
+                         style="width: 300px;"/>
+            <p:outputLabel value="Convênios"/>
+            <p:autoComplete id="convenio" value="#{caixaEntradaCtrl.convenio}"
+                            queryDelay="150"
+                            var="item"
+                            itemValue="#{item}"
+                            itemLabel="#{item.title}"
+                            onclick="this.setSelectionRange(0, this.value.length)"
+                            converter="#{convenioConverter}"
+                            inputStyleClass="lance-input"
+                            completeMethod="#{convenioCtrl.completeMethod}"
+                            placeholder="Convênios...">
+              <p:ajax event="itemSelect" listener="#{caixaEntradaCtrl.adicionarConvenio}"
+                      process="@this" update="conveniosPnl @this"/>
+              <p:column>
+                #{item.title}
+              </p:column>
+            </p:autoComplete>
+          </h:panelGrid>
+          <h:panelGroup id="conveniosPnl" layout="block">
+            <ui:repeat value="#{caixaEntradaCtrl.convenios}" var="conv">
+              <p:commandButton action="#{caixaEntradaCtrl.removerConvenio(conv)}" value="#{conv.title}"
+                               process="@this" update="#{p:component('conveniosPnl')}"
+                               icon="fa fa-ban"/>
+            </ui:repeat>
+          </h:panelGroup>
+
+          <p:commandButton id="searchBtn" value="Buscar"
+                           action="#{caixaEntradaCtrl.prepareSearch}"
+                           icon="fa fa-search"
+                           ajax="true"
+                           process="filtersPnl"
+                           update="resultPnl filtersHeaderPnl"
+                           title="Buscar Contas"
+                           style="margin-top: 10px;"/>
+        </h:panelGroup>
+
+        <h:panelGroup id="resultPnl" layout="block" style="margin-top: 10px;">
+          <p:dataTable id="dataTable" value="#{caixaEntradaCtrl.lazyModel}" var="item"
+                       paginator="true" emptyMessage="Sem registros" styleClass="table-left-header"
+                       paginatorPosition="bottom" rows="25" rowKey="index" rowIndexVar="indexVar"
+                       paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                       lazy="true" rowsPerPageTemplate="25,50,100">
+            <p:column headerText="Conta" width="150" styleClass="left-align">
+              <h:outputText value="#{item.contaFaturamento.id}"/>
+            </p:column>
+            <p:column headerText="Atendimento" width="125" styleClass="left-align">
+              <h:outputText value="#{item.atendimento.id}"/>
+            </p:column>
+            <p:column headerText="Paciente" styleClass="left-align">
+              <h:outputText value="#{item.atendimento.paciente.name}"/>
+            </p:column>
+          </p:dataTable>
+        </h:panelGroup>
+
+      </p:panel>
+    </h:form>
+  </ui:define>
+</ui:composition>

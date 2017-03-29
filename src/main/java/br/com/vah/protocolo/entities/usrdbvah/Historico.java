@@ -1,5 +1,6 @@
 package br.com.vah.protocolo.entities.usrdbvah;
 
+import br.com.vah.protocolo.constants.AcaoHistoricoEnum;
 import br.com.vah.protocolo.constants.EstadosProtocoloEnum;
 import br.com.vah.protocolo.entities.BaseEntity;
 
@@ -26,23 +27,31 @@ public class Historico extends BaseEntity{
   @JoinColumn(name = "ID_PROTOCOLO")
   private Protocolo protocolo;
 
+  @ManyToOne
+  @JoinColumn(name = "ID_SETOR_ORIGEM")
+  private SetorProtocolo origem;
+
+  @ManyToOne
+  @JoinColumn(name = "ID_SETOR_DESTINO")
+  private SetorProtocolo destino;
+
   @Column(name = "DT_ALTERACAO")
   private Date data;
 
-  @Column(name = "CD_STATUS", nullable = false)
+  @Column(name = "CD_ACAO", nullable = false)
   @Enumerated(EnumType.ORDINAL)
-  private EstadosProtocoloEnum estado;
+  private AcaoHistoricoEnum acao;
 
 
   public Historico() {
     this.data = new Date();
   }
 
-  public Historico(User autor, Protocolo protocolo, EstadosProtocoloEnum estado) {
+  public Historico(User autor, Protocolo protocolo, AcaoHistoricoEnum acao) {
     this();
     this.autor = autor;
     this.protocolo = protocolo;
-    this.estado = estado;
+    this.acao = acao;
   }
 
   @Override
@@ -71,6 +80,22 @@ public class Historico extends BaseEntity{
     this.protocolo = protocolo;
   }
 
+  public SetorProtocolo getOrigem() {
+    return origem;
+  }
+
+  public void setOrigem(SetorProtocolo origem) {
+    this.origem = origem;
+  }
+
+  public SetorProtocolo getDestino() {
+    return destino;
+  }
+
+  public void setDestino(SetorProtocolo destino) {
+    this.destino = destino;
+  }
+
   public Date getData() {
     return data;
   }
@@ -79,12 +104,12 @@ public class Historico extends BaseEntity{
     this.data = data;
   }
 
-  public EstadosProtocoloEnum getEstado() {
-    return estado;
+  public AcaoHistoricoEnum getAcao() {
+    return acao;
   }
 
-  public void setEstado(EstadosProtocoloEnum estado) {
-    this.estado = estado;
+  public void setAcao(AcaoHistoricoEnum acao) {
+    this.acao = acao;
   }
 
   @Override

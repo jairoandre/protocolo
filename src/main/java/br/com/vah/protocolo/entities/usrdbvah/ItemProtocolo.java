@@ -1,12 +1,7 @@
 package br.com.vah.protocolo.entities.usrdbvah;
 
-import br.com.vah.protocolo.constants.TipoDocumentoEnum;
-import br.com.vah.protocolo.dto.DocumentoDTO;
-import br.com.vah.protocolo.entities.dbamv.*;
-
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Date;
 
 /**
  * Created by jairoportela on 05/07/2016.
@@ -38,6 +33,10 @@ public class ItemProtocolo implements Serializable {
   @JoinColumn(name = "ID_PROTOCOLO_FILHO")
   private Protocolo filho;
 
+  @ManyToOne
+  @JoinColumn(name = "ID_CAIXA_ENTRADA")
+  private CaixaEntrada caixa;
+
   public Long getId() {
     return id;
   }
@@ -68,5 +67,13 @@ public class ItemProtocolo implements Serializable {
 
   public void setFilho(Protocolo filho) {
     this.filho = filho;
+  }
+
+  public CaixaEntrada getCaixa() {
+    return caixa;
+  }
+
+  public void setCaixa(CaixaEntrada caixa) {
+    this.caixa = caixa;
   }
 }

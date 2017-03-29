@@ -1,52 +1,91 @@
 package br.com.vah.protocolo.util;
 
+import br.com.vah.protocolo.constants.TipoDocumentoEnum;
 import br.com.vah.protocolo.dto.DocumentoDTO;
 
 import java.io.Serializable;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
  * Created by jairoportela on 24/06/2016.
  */
 public class DtoKeyMap implements Serializable {
-
   private Map<String, List<DocumentoDTO>> map = new HashMap<>();
-  private List<Map.Entry<String, List<DocumentoDTO>>> list;
 
-  public DtoKeyMap() {
-    map = new HashMap<>();
-  }
+  private Map<String, DocumentoDTO> dtoMap = new HashMap<>();
 
-  public List<Map.Entry<String, List<DocumentoDTO>>> getList() {
+  private DtoKeyEntryList list = new DtoKeyEntryList();
+
+  public DtoKeyEntryList getList() {
     return list;
   }
 
-  private SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-
-  private int compareKeys(Map.Entry<String, List<DocumentoDTO>> o1, Map.Entry<String, List<DocumentoDTO>> o2)  {
-    try {
-      Date d1 = sdf.parse(o1.getKey());
-      Date d2 = sdf.parse(o2.getKey());
-      return d1.compareTo(d2);
-    } catch (ParseException pe) {
-      return 0;
-    }
+  private int compareKeys(DtoKeyEntry o1, DtoKeyEntry o2) {
+    return o1.getEntry().getKey().compareTo(o2.getEntry().getKey());
   }
 
   public void put(String key, List<DocumentoDTO> value) {
+    remove("Sem documentos");
     map.put(key, value);
-    list = new ArrayList<>(map.entrySet());
+    list = new DtoKeyEntryList(map.entrySet());
     Collections.sort(list, (o1, o2) -> compareKeys(o1, o2));
+  }
+
+  public void clearSelecteds() {
+    list.forEach((item) -> item.getSelecteds().clear());
+  }
+
+  public Integer getCountSelecteds() {
+    if (list.isEmpty()) {
+      return 0;
+    } else {
+      return list.stream().map(DtoKeyEntry::getSelectedSize).reduce(0, (a, b) -> a + b);
+    }
+  }
+
+  public Integer getTotalSize() {
+    if (list.isEmpty()) {
+      return 0;
+    } else {
+      return list.stream().map(DtoKeyEntry::getListSize).reduce(0, (a, b) -> a + b);
+    }
+
+  }
+
+  public void remove(String key) {
+    map.remove(key);
+  }
+
+  public static String textoGrupo(TipoDocumentoEnum tipo) {
+    switch (tipo) {
+      case PRESCRICAO:
+      case EVOLUCAO:
+        return "Prescrição/Evolução";
+      case DOC_MANUAL_EVOLUCAO:
+      case DOC_MANUAL_PRESCRICAO:
+      case DOC_MANUAL_EVOLUCAO_ANOTACAO:
+      case DOC_MANUAL_DESCRICAO_CIRURGICA:
+      case DOC_MANUAL_FOLHA_ANESTESICA:
+      case DOC_MANUAL_HDA:
+      case DOC_MANUAL_EVOLUCAO_ENFERMAGEM:
+      case DOC_MANUAL_EXAME_FISICO_EVOLUCAO_ENFERMAGEM:
+      case DOC_MANUAL_REGISTRO_SINAIS_VITAIS_PS:
+      case DOC_MANUAL_CLASSIFICACAO_RISCO:
+      case DOC_MANUAL_FOLHA_CLASSIFICACAO:
+      case DOC_MANUAL_SADT:
+      case DOC_MANUAL_AUTORIZACAO_PS:
+        return "Documento Manual";
+      default:
+        return tipo.getLabel();
+    }
   }
 
   public List<DocumentoDTO> getSelecionados() {
     List<DocumentoDTO> selecionados = new ArrayList<>();
     if (list != null) {
-      list.forEach((docEntry) -> {
-        if (docEntry.getValue() != null) {
-          docEntry.getValue().forEach((doc) -> {
+      list.forEach((dtoKeyEntry) -> {
+        if (dtoKeyEntry.getEntry().getValue() != null) {
+          dtoKeyEntry.getEntry().getValue().forEach((doc) -> {
             if (doc.getSelected()) {
               selecionados.add(doc);
             }
@@ -57,9 +96,13 @@ public class DtoKeyMap implements Serializable {
     return selecionados;
   }
 
+  private String rowKey(DocumentoDTO dto) {
+    return String.format("%d%s", dto.getCodigo(), dto.getTipo());
+  }
+
   public void addDto(DocumentoDTO dto) {
-    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-    String key = sdf.format(dto.getDataHoraCriacao());
+    String key = textoGrupo(dto.getTipo());
+    dtoMap.put(rowKey(dto), dto);
     List<DocumentoDTO> listaDoc = this.get(key);
     if (listaDoc == null) {
       listaDoc = new ArrayList<>();
@@ -67,7 +110,7 @@ public class DtoKeyMap implements Serializable {
     }
     listaDoc.add(dto);
     Collections.sort(listaDoc, (o1, o2) -> o1.getDataHoraCriacao().compareTo(o2.getDataHoraCriacao()));
-    list = new ArrayList<>(map.entrySet());
+    list = new DtoKeyEntryList(map.entrySet());
     Collections.sort(list, (o1, o2) -> compareKeys(o1, o2));
   }
 
@@ -76,13 +119,13 @@ public class DtoKeyMap implements Serializable {
     if (list != null) {
       list.forEach((docEntry) -> {
         List<DocumentoDTO> notSelecteds = new ArrayList<>();
-        docEntry.getValue().forEach((item) -> {
+        docEntry.getEntry().getValue().forEach((item) -> {
           if (!item.getSelected()) {
             notSelecteds.add(item);
           }
         });
         if (!notSelecteds.isEmpty()) {
-          notSelectedMap.put(docEntry.getKey(), notSelecteds);
+          notSelectedMap.put(docEntry.getEntry().getKey(), notSelecteds);
         }
       });
     }
@@ -92,4 +135,5 @@ public class DtoKeyMap implements Serializable {
   public List<DocumentoDTO> get(String key) {
     return map.get(key);
   }
+
 }

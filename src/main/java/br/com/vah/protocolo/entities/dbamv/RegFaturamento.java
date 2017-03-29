@@ -14,6 +14,12 @@ import java.util.Date;
 @Table(name = "REG_FAT", schema = "DBAMV")
 public class RegFaturamento extends BaseEntity {
 
+  public RegFaturamento() {}
+
+  public RegFaturamento(Long id) {
+    this.id = id;
+  }
+
   @Id
   @Column(name = "CD_REG_FAT")
   private Long id;

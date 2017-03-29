@@ -1,7 +1,5 @@
 package br.com.vah.protocolo.constants;
 
-import br.com.vah.protocolo.entities.dbamv.Atendimento;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;

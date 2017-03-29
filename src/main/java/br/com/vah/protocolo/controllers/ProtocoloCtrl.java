@@ -10,8 +10,12 @@ import br.com.vah.protocolo.exceptions.ProtocoloPersistException;
 import br.com.vah.protocolo.service.AbstractSrv;
 import br.com.vah.protocolo.service.AtendimentoSrv;
 import br.com.vah.protocolo.service.ProtocoloSrv;
+import br.com.vah.protocolo.util.DtoKeyEntry;
+import br.com.vah.protocolo.util.DtoKeyEntryList;
 import br.com.vah.protocolo.util.DtoKeyMap;
 import br.com.vah.protocolo.util.ViewUtils;
+import org.primefaces.event.SelectEvent;
+import org.primefaces.event.UnselectEvent;
 
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
@@ -62,11 +66,11 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   private String comentario;
 
-  private DtoKeyMap documentosNaoSelecionados;
+  private DtoKeyMap documentosNaoSelecionados = new DtoKeyMap();
 
-  private DtoKeyMap documentosSelecionados;
+  private DtoKeyMap documentosSelecionados = new DtoKeyMap();
 
-  private DtoKeyMap documentosToVisualize;
+  private DtoKeyMap documentosToVisualize = new DtoKeyMap();
 
   private Boolean showSumario;
 
@@ -105,6 +109,10 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
   private Convenio convenio;
 
   private DocumentoProtocolo docManualToAdd;
+
+  private List<CaixaEntrada> caixasVinculadas = new ArrayList<>();
+
+  private List<CaixaEntrada> caixasRemovidas = new ArrayList<>();
 
   @PostConstruct
   public void init() {
@@ -156,7 +164,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   public void changeOrigem() {
     getItem().getItens().clear();
-    documentosNaoSelecionados = null;
+    documentosNaoSelecionados = new DtoKeyMap();
     contarDocumentos();
   }
 
@@ -173,16 +181,13 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     prepareSearch();
   }
 
-  public void saveAddingHistory(EstadosProtocoloEnum acao) {
-    getItem().setEstado(acao);
-    getItem().setDataResposta(new Date());
-    service.addHistorico(getItem(), session.getUser(), acao);
-    doSave();
+  public void saveAddingHistory(AcaoHistoricoEnum acao) {
+    setItem(service.salvarProtocolo(getItem(), session.getUser(), acao, caixasVinculadas, caixasRemovidas));
   }
 
   public void receber() {
     renderReceberDlg = false;
-    saveAddingHistory(EstadosProtocoloEnum.RECEBIDO);
+    saveAddingHistory(AcaoHistoricoEnum.RECEBIMENTO);
     setItem(createNewItem());
   }
 
@@ -196,7 +201,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
   public void visualizarDoc(DocumentoDTO dto) {
     Protocolo att = service.initializeLists(dto.getFilho());
     protocoloToVisualize = att;
-    documentosToVisualize = service.gerarDocumentosSelecionados(att, att.getOrigem().getNivel() == 0);
+    documentosToVisualize = service.gerarDocumentosSelecionados(att, SetorNivelEnum.SECRETARIA.equals(getItem().getOrigem().getNivel()));
   }
 
   public void closeReceberDlg() {
@@ -219,7 +224,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   public void preOpenDocumentosDlg(Protocolo protocolo) {
     Protocolo att = service.initializeLists(protocolo);
-    documentosSelecionados = service.gerarDocumentosSelecionados(att, protocolo.getOrigem().getNivel() == 0);
+    documentosSelecionados = service.gerarDocumentosSelecionados(att, SetorNivelEnum.SECRETARIA.equals(protocolo.getOrigem().getNivel()));
     renderDocumentosDlg = true;
     setItem(att);
   }
@@ -288,9 +293,9 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     newComment.setData(new Date());
     getItem().getComentarios().add(newComment);
     if (EstadosProtocoloEnum.RECUSADO.equals(acaoComentario)) {
-      saveAddingHistory(EstadosProtocoloEnum.RECUSADO);
+      saveAddingHistory(AcaoHistoricoEnum.RECUSA);
     } else {
-      saveAddingHistory(getItem().getEstado());
+      saveAddingHistory(null);
     }
   }
 
@@ -301,8 +306,12 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   public void searchDocumentos() {
     if (getItem().getOrigem() != null) {
-      documentosNaoSelecionados =
-          service.buscarDocumentosNaoSelecionados(getItem(), inicioDate, terminoDate, convenio, listaContas);
+      try {
+        documentosNaoSelecionados =
+            service.buscarDocumentosNaoSelecionados(getItem(), inicioDate, terminoDate, convenio, listaContas);
+      } catch (ProtocoloBusinessException e) {
+        addMsg(FacesMessage.SEVERITY_WARN, e.getMessage());
+      }
     }
   }
 
@@ -337,8 +346,8 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   public void enviarProtocolo() {
     try {
-      service.addHistorico(getItem(), session.getUser(), EstadosProtocoloEnum.ENVIADO);
-      service.enviarProtocolo(getItem());
+      Protocolo protocolo = service.enviarProtocolo(getItem(), session.getUser(), caixasVinculadas, caixasRemovidas);
+      setItem(service.initializeLists(protocolo));
       addMsg(new FacesMessage(FacesMessage.SEVERITY_INFO, "Informação", "Protocolo enviado com sucesso."), false);
     } catch (ProtocoloBusinessException pbe) {
       addMsg(new FacesMessage(FacesMessage.SEVERITY_WARN, "Atenção", pbe.getMessage()), false);
@@ -346,11 +355,15 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
   }
 
   public void removeDoc(DocumentoDTO doc) {
+    CaixaEntrada caixa = doc.getCaixa();
+    if (doc.getCaixa() != null) {
+      caixasVinculadas.remove(caixa);
+      caixasRemovidas.add(caixa);
+    }
     getItem().getItens().remove(doc.getItemProtocolo());
     if (documentosNaoSelecionados != null) {
       documentosNaoSelecionados.addDto(doc);
     }
-    prepareDocumentos();
   }
 
   @Override
@@ -382,18 +395,39 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     }
   }
 
+  public void deleteSelectVinculados() {
+    if (documentosSelecionados != null) {
+      List<DocumentoDTO> dtos = new ArrayList<>();
+      documentosSelecionados.getSelecionados().forEach((dto) -> {
+        dtos.add(dto);
+      });
+      if (!dtos.isEmpty()) {
+        dtos.forEach((dto) -> removeDoc(dto));
+        prepareDocumentos();
+      }
+    }
+  }
+
   public void vincularDocumentos() {
     if (documentosNaoSelecionados != null) {
-      documentosNaoSelecionados.getSelecionados().forEach((dto) -> service.addIfNoExists(getItem(), dto));
+      documentosNaoSelecionados.getSelecionados().forEach((dto) -> {
+        CaixaEntrada caixa = dto.getCaixa();
+        if (caixa != null) {
+          caixasVinculadas.add(caixa);
+          caixasRemovidas.remove(caixa);
+        }
+        service.addIfNoExists(getItem(), dto);
+      });
       documentosNaoSelecionados = documentosNaoSelecionados.getNotSelectedMap();
       prepareDocumentos();
+      documentosNaoSelecionados.clearSelecteds();
     }
   }
 
   public void salvarParcial() {
     try {
-      setItem(service.salvarParcial(getItem(), session.getUser()));
-      setItem(service.initializeLists(getItem()));
+      Protocolo protocolo = service.salvarProtocolo(getItem(), session.getUser(), null, caixasVinculadas, caixasRemovidas);
+      setItem(service.initializeLists(protocolo));
       addMsg(new FacesMessage(FacesMessage.SEVERITY_INFO, "Sucesso", String.format("Rascunho salvo protocolo nº <b>%s</b>.", getItem().getId())), true);
     } catch (ProtocoloPersistException ppe) {
       addMsg(new FacesMessage(FacesMessage.SEVERITY_WARN, "Atenção", String.format("Erro durante a persistência de dados.")), true);
@@ -432,14 +466,73 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     }
   }
 
-  public void selecionarTodosRecebimento() {
-    for (Map.Entry<String, List<DocumentoDTO>> docEntry : documentosSelecionados.getList()) {
-      if (docEntry.getValue() != null) {
-        for (DocumentoDTO doc : docEntry.getValue()) {
+  public void selectRow(SelectEvent evt, DtoKeyMap keyMap) {
+    DocumentoDTO dto = (DocumentoDTO) evt.getObject();
+    if (dto.getSelected()) {
+      String key = DtoKeyMap.textoGrupo(dto.getTipo());
+      DtoKeyEntryList list = keyMap.getList();
+      for (DtoKeyEntry entry : list) {
+        if (key.equals(entry.getEntry().getKey())) {
+          entry.getSelecteds().remove(dto);
+          break;
+        }
+      }
+      dto.setSelected(false);
+    } else {
+      dto.setSelected(true);
+    }
+  }
+
+  public void selectRowRecebimento(SelectEvent evt) {
+    selectRow(evt, documentosSelecionados);
+  }
+
+  public void selectRowVinculacao(SelectEvent evt) {
+    selectRow(evt, documentosNaoSelecionados);
+  }
+
+  public void unselectRow(UnselectEvent evt) {
+    DocumentoDTO dto = (DocumentoDTO) evt.getObject();
+    dto.setSelected(false);
+  }
+
+  private void selectAll(DtoKeyMap keyMap) {
+    keyMap.getList().forEach((docEntry) -> {
+      docEntry.getSelecteds().clear();
+      if (docEntry.getEntry().getValue() != null) {
+        for (DocumentoDTO doc : docEntry.getEntry().getValue()) {
+          docEntry.getSelecteds().add(doc);
           doc.setSelected(true);
         }
       }
-    }
+    });
+  }
+
+  public void selectAllRecebimento() {
+    selectAll(documentosSelecionados);
+  }
+
+  public void selectAllVinculacao() {
+    selectAll(documentosNaoSelecionados);
+  }
+
+  private void unselectAll(DtoKeyMap keyMap) {
+    keyMap.getList().forEach((docEntry) -> {
+      docEntry.getSelecteds().clear();
+      if (docEntry.getEntry().getValue() != null) {
+        for (DocumentoDTO doc : docEntry.getEntry().getValue()) {
+          doc.setSelected(false);
+        }
+      }
+    });
+  }
+
+  public void unselectAllRecebimento() {
+    unselectAll(documentosSelecionados);
+  }
+
+  public void unselectAllVinculacao() {
+    unselectAll(documentosNaoSelecionados);
   }
 
   public void removeFilterItem(ProtocoloFieldEnum filtro) {
@@ -633,9 +726,9 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   public Boolean getRegistrarRecebBtnDisabled() {
     if (documentosSelecionados != null) {
-      for (Map.Entry<String, List<DocumentoDTO>> docEntry : documentosSelecionados.getList()) {
-        if (docEntry.getValue() != null) {
-          for (DocumentoDTO doc : docEntry.getValue()) {
+      for (DtoKeyEntry docEntry : documentosSelecionados.getList()) {
+        if (docEntry.getEntry().getValue() != null) {
+          for (DocumentoDTO doc : docEntry.getEntry().getValue()) {
             if (!doc.getSelected()) {
               return true;
             }
@@ -644,10 +737,6 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
       }
     }
     return false;
-  }
-
-  public void selecionarTodosDocumentos() {
-    documentosNaoSelecionados.getList().forEach((item) -> item.getValue().forEach((value) -> value.setSelected(true)));
   }
 
   public String getListaContas() {

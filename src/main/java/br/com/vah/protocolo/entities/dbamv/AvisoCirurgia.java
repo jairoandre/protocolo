@@ -21,7 +21,7 @@ public class AvisoCirurgia extends BaseEntity {
   private Atendimento atendimento;
 
   @Column(name = "TP_SITUACAO")
-  private String tipo;
+  private String situacao;
 
   @Column(name = "DT_INICIO_CIRURGIA")
   private Date inicioCirurgia;
@@ -29,6 +29,9 @@ public class AvisoCirurgia extends BaseEntity {
   @ManyToOne
   @JoinColumn(name = "CD_SAL_CIR")
   private SalaCirurgia salaCirurgia;
+
+  @Transient
+  private Date dataReferencia;
 
   public Long getId() {
     return id;
@@ -46,12 +49,12 @@ public class AvisoCirurgia extends BaseEntity {
     this.atendimento = atendimento;
   }
 
-  public String getTipo() {
-    return tipo;
+  public String getSituacao() {
+    return situacao;
   }
 
-  public void setTipo(String tipo) {
-    this.tipo = tipo;
+  public void setSituacao(String situacao) {
+    this.situacao = situacao;
   }
 
   public Date getInicioCirurgia() {
@@ -68,6 +71,14 @@ public class AvisoCirurgia extends BaseEntity {
 
   public void setSalaCirurgia(SalaCirurgia salaCirugia) {
     this.salaCirurgia = salaCirugia;
+  }
+
+  public Date getDataReferencia() {
+    return dataReferencia;
+  }
+
+  public void setDataReferencia(Date dataReferencia) {
+    this.dataReferencia = dataReferencia;
   }
 
   @Override

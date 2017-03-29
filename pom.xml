@@ -152,7 +152,7 @@
     <javaee-web-api-version>7.0</javaee-web-api-version>
     <javax-faces-api-version>2.2</javax-faces-api-version>
     <primefaces-version>5.3</primefaces-version>
-    <primefaces-themes-artifact>redmond</primefaces-themes-artifact>
+    <primefaces-themes-artifact>all-themes</primefaces-themes-artifact>
     <primefaces-themes-version>1.0.10</primefaces-themes-version>
     <commons-fileupload-version>1.3</commons-fileupload-version>
     <netbeans.hint.deploy.server>gfv3ee6</netbeans.hint.deploy.server>

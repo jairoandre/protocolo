@@ -334,10 +334,6 @@ input.ui-state-disabled {
   font-size: 13px !important;
 }
 
-.ui-datatable tr.ui-datatable-even:hover, .ui-datatable tr.ui-datatable-odd:hover {
-  background: #f7ffc6;
-}
-
 .ui-chkbox-label {
   font-size: 12px;
   line-height: 15px;

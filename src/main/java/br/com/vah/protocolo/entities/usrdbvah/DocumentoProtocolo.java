@@ -22,6 +22,9 @@ public class DocumentoProtocolo extends BaseEntity {
   @Column(name = "CD_ITEM_PRONTUARIO", nullable = false)
   private Long codigo;
 
+  @Column(name = "CD_ATENDIMENTO")
+  private Long atendimento;
+
   @Column(name = "CD_TIPO")
   @Enumerated(EnumType.ORDINAL)
   private TipoDocumentoEnum tipo;
@@ -34,6 +37,9 @@ public class DocumentoProtocolo extends BaseEntity {
 
   @Column(name = "NM_PRESTADOR")
   private String prestador;
+
+  @Column(name = "DT_REFERENCIA")
+  private Date dataReferencia;
 
   @Column(name = "DT_HORA_CRIACAO")
   private Date dataHoraCriacao;
@@ -49,7 +55,6 @@ public class DocumentoProtocolo extends BaseEntity {
   @Override
   public void setId(Long id) {
     this.id = id;
-
   }
 
   public Long getCodigo() {
@@ -58,6 +63,14 @@ public class DocumentoProtocolo extends BaseEntity {
 
   public void setCodigo(Long codigo) {
     this.codigo = codigo;
+  }
+
+  public Long getAtendimento() {
+    return atendimento;
+  }
+
+  public void setAtendimento(Long atendimento) {
+    this.atendimento = atendimento;
   }
 
   public TipoDocumentoEnum getTipo() {
@@ -86,6 +99,14 @@ public class DocumentoProtocolo extends BaseEntity {
 
   public String getPrestador() {
     return prestador;
+  }
+
+  public Date getDataReferencia() {
+    return dataReferencia;
+  }
+
+  public void setDataReferencia(Date dataReferencia) {
+    this.dataReferencia = dataReferencia;
   }
 
   public void setPrestador(String prestador) {

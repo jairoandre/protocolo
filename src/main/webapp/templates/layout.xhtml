@@ -45,6 +45,9 @@
     <ui:insert name="content"/>
   </h:panelGroup>
   <script type="text/javascript">
+    function selectContent(elem) {
+      elem.setSelectionRange(0, elem.value.length);
+    }
     function openLoading() {
       PF('changePage').show();
     }

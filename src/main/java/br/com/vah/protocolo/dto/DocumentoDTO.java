@@ -1,13 +1,12 @@
 package br.com.vah.protocolo.dto;
 
 import br.com.vah.protocolo.constants.TipoDocumentoEnum;
-import br.com.vah.protocolo.entities.dbamv.Atendimento;
-import br.com.vah.protocolo.entities.dbamv.RegFaturamento;
+import br.com.vah.protocolo.entities.dbamv.*;
+import br.com.vah.protocolo.entities.usrdbvah.CaixaEntrada;
 import br.com.vah.protocolo.entities.usrdbvah.DocumentoProtocolo;
 import br.com.vah.protocolo.entities.usrdbvah.ItemProtocolo;
 import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 
-import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -16,44 +15,99 @@ public class DocumentoDTO {
   private Protocolo protocolo;
   private TipoDocumentoEnum tipo;
   private String descricao;
-  private String codigo;
+  private Long codigo;
   private String conselho;
   private String prestador;
   private String consPrestConv;
+  private Date dataReferencia;
   private Date dataHoraCriacao;
   private Date dataHoraImpressao;
   private DocumentoProtocolo documento;
   private Protocolo filho;
   private ItemProtocolo itemProtocolo;
+  private CaixaEntrada caixa;
 
   private Boolean selected = false;
 
-  public void setFields(Object[] row) {
-    this.codigo = row[0] == null ? "" : row[0].toString();
-    this.tipo = row[1] == null ? null : TipoDocumentoEnum.getByTitle(row[1].toString());
-    this.descricao = row[2] == null ? "" : row[2].toString();
-    this.conselho = row[3] == null ? "" : row[3].toString();
-    this.prestador = row[4] == null ? "" : row[4].toString();
-    this.dataHoraCriacao = (Date) row[5];
-    this.dataHoraImpressao = (Date) row[6];
-    this.consPrestConv = String.format("%s - %s", this.conselho, this.prestador);
+  public void createDocumento() {
     this.documento = new DocumentoProtocolo();
-    this.documento.setCodigo(((BigDecimal) row[0]).longValue());
+    this.documento.setCodigo(codigo);
     this.documento.setTipo(tipo);
     this.documento.setDescricao(descricao);
     this.documento.setConselho(conselho);
     this.documento.setPrestador(prestador);
+    this.documento.setDataReferencia(dataReferencia);
     this.documento.setDataHoraCriacao(dataHoraCriacao);
     this.documento.setDataHoraImpressao(dataHoraImpressao);
   }
 
-  public DocumentoDTO(Object[] row) {
-    setFields(row);
+  public DocumentoDTO(PrescricaoMedica prescricao, Boolean isPresc) {
+    this.codigo = prescricao.getId();
+    this.tipo = isPresc ? TipoDocumentoEnum.PRESCRICAO : TipoDocumentoEnum.EVOLUCAO;
+    this.descricao = this.tipo.getLabel();
+    this.dataReferencia = prescricao.getDataReferencia();
+    Prestador prestador = prescricao.getPrestador();
+    if (prestador == null) {
+      this.conselho = "N/A";
+      this.prestador = "N/A";
+    } else {
+      this.conselho = prestador.getConselho().getNome();
+      this.prestador = prestador.getNome();
+    }
+    this.dataHoraCriacao = prescricao.getDataHoraCriacao();
+    this.dataHoraImpressao = prescricao.getDataHoraImpressao();
+    this.consPrestConv = String.format("%s - %s", this.conselho, this.prestador);
+    createDocumento();
+  }
+
+  public DocumentoDTO(AvisoCirurgia aviso) {
+    this.codigo = aviso.getId();
+    this.tipo = TipoDocumentoEnum.DESCRICAO_CIRURGICA;
+    this.descricao = aviso.getSituacao();
+    this.conselho = "N/A";
+    this.prestador = "N/A";
+    this.dataReferencia = aviso.getDataReferencia();
+    this.dataHoraCriacao = aviso.getInicioCirurgia();
+    this.dataHoraImpressao = aviso.getInicioCirurgia();
+    this.consPrestConv = String.format("%s - %s", this.conselho, this.prestador);
+    createDocumento();
+  }
+
+  public DocumentoDTO(RegistroDocumento registro) {
+    this.codigo = registro.getId();
+    this.tipo = TipoDocumentoEnum.REGISTRO_DOCUMENTO;
+    this.descricao = registro.getDocumento().getDescricao();
+    this.conselho = registro.getNomeUsuario();
+    this.prestador = "N/A";
+    this.dataReferencia = registro.getDataReferencia();
+    this.dataHoraCriacao = registro.getDataRegistro();
+    this.dataHoraImpressao = registro.getDataRegistro();
+    this.consPrestConv = String.format("%s - %s", this.conselho, this.prestador);
+    createDocumento();
+  }
+
+  public DocumentoDTO(EvolucaoEnfermagem evolucao) {
+    this.codigo = evolucao.getId();
+    this.tipo = TipoDocumentoEnum.EVOLUCAO_ENFERMAGEM;
+    this.descricao = evolucao.getDescricao();
+    Prestador prestador = evolucao.getPrestador();
+    if (prestador == null) {
+      this.prestador = "N/A";
+      this.conselho = "N/A";
+    } else {
+      this.conselho = prestador.getConselho().getNome();
+      this.prestador = prestador.getNome();
+    }
+    this.dataReferencia = evolucao.getDataReferencia();
+    this.dataHoraCriacao = evolucao.getHora();
+    this.dataHoraImpressao = evolucao.getDataImpressao();
+    this.consPrestConv = String.format("%s - %s", this.conselho, this.prestador);
+    createDocumento();
   }
 
   public void setFields(DocumentoProtocolo documento) {
     this.documento = documento;
-    this.codigo = String.valueOf(documento.getCodigo());
+    this.codigo = documento.getCodigo();
     this.tipo = documento.getTipo();
     this.descricao = documento.getDescricao();
     if (this.descricao == null) {
@@ -61,6 +115,7 @@ public class DocumentoDTO {
     }
     this.conselho = documento.getConselho();
     this.prestador = documento.getPrestador();
+    this.dataReferencia = documento.getDataReferencia();
     this.dataHoraCriacao = documento.getDataHoraCriacao();
     this.dataHoraImpressao = documento.getDataHoraImpressao();
     if (this.conselho != null && this.prestador != null) {
@@ -71,13 +126,9 @@ public class DocumentoDTO {
 
   }
 
-  public DocumentoDTO(DocumentoProtocolo documento) {
-    setFields(documento);
-  }
-
   public void setFields(Protocolo filho) {
     this.filho = filho;
-    this.codigo = String.valueOf(filho.getId());
+    this.codigo = filho.getId();
     this.tipo = TipoDocumentoEnum.PROTOCOLO;
     RegFaturamento conta = filho.getContaFaturamento();
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy HH:mm");
@@ -94,8 +145,18 @@ public class DocumentoDTO {
     }
   }
 
-  public DocumentoDTO(Protocolo protocolo) {
-    setFields(protocolo);
+  public void setFields(CaixaEntrada caixa) {
+    Protocolo protocolo = caixa.getProtocolo();
+    if (protocolo != null) {
+      this.setFields(caixa.getProtocolo());
+    } else {
+      this.setFields(caixa.getDocumento());
+    }
+    this.setCaixa(caixa);
+  }
+
+  public DocumentoDTO(CaixaEntrada caixa) {
+    setFields(caixa);
   }
 
   public DocumentoDTO(ItemProtocolo item) {
@@ -116,6 +177,7 @@ public class DocumentoDTO {
     itemProtocolo.setProtocolo(protocolo);
     itemProtocolo.setDocumento(documento);
     itemProtocolo.setFilho(filho);
+    itemProtocolo.setCaixa(caixa);
     return itemProtocolo;
   }
 
@@ -127,11 +189,11 @@ public class DocumentoDTO {
     this.protocolo = protocolo;
   }
 
-  public String getCodigo() {
+  public Long getCodigo() {
     return codigo;
   }
 
-  public void setCodigo(String codigo) {
+  public void setCodigo(Long codigo) {
     this.codigo = codigo;
   }
 
@@ -141,6 +203,14 @@ public class DocumentoDTO {
 
   public void setPrestador(String prestador) {
     this.prestador = prestador;
+  }
+
+  public Date getDataReferencia() {
+    return dataReferencia;
+  }
+
+  public void setDataReferencia(Date dataReferencia) {
+    this.dataReferencia = dataReferencia;
   }
 
   public Date getDataHoraCriacao() {
@@ -211,11 +281,26 @@ public class DocumentoDTO {
     this.itemProtocolo = itemProtocolo;
   }
 
+  public CaixaEntrada getCaixa() {
+    return caixa;
+  }
+
+  public void setCaixa(CaixaEntrada caixa) {
+    this.caixa = caixa;
+  }
+
   public Boolean getSelected() {
     return selected;
   }
 
   public void setSelected(Boolean selected) {
     this.selected = selected;
+  }
+
+  public String getRowKey() {
+    if (codigo != null && tipo != null) {
+      return String.format("%d%s", codigo, tipo);
+    }
+    return "";
   }
 }

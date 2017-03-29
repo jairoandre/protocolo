@@ -43,6 +43,9 @@ public class PrescricaoMedica extends BaseEntity {
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "DT_VALIDADE")
 	private Date dataValidade;
+
+	@Column(name = "DT_REFERENCIA")
+	private Date dataReferencia;
 	
 	@Column(name = "TP_PRE_MED")
 	private String tipoPrescricao;
@@ -103,6 +106,14 @@ public class PrescricaoMedica extends BaseEntity {
 
 	public Date getDataValidade() {
 		return dataValidade;
+	}
+
+	public Date getDataReferencia() {
+		return dataReferencia;
+	}
+
+	public void setDataReferencia(Date dataReferencia) {
+		this.dataReferencia = dataReferencia;
 	}
 
 	public void setDataValidade(Date dataValidade) {

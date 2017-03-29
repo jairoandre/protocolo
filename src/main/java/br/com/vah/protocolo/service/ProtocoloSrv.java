@@ -1,7 +1,9 @@
 package br.com.vah.protocolo.service;
 
 
+import br.com.vah.protocolo.constants.AcaoHistoricoEnum;
 import br.com.vah.protocolo.constants.EstadosProtocoloEnum;
+import br.com.vah.protocolo.constants.SetorNivelEnum;
 import br.com.vah.protocolo.constants.TipoDocumentoEnum;
 import br.com.vah.protocolo.dto.DocumentoDTO;
 import br.com.vah.protocolo.entities.dbamv.*;
@@ -9,17 +11,19 @@ import br.com.vah.protocolo.entities.usrdbvah.*;
 import br.com.vah.protocolo.exceptions.ProtocoloBusinessException;
 import br.com.vah.protocolo.reports.ReportLoader;
 import br.com.vah.protocolo.reports.ReportTotalPorSetor;
-import br.com.vah.protocolo.util.DateUtility;
 import br.com.vah.protocolo.util.DtoKeyMap;
 import br.com.vah.protocolo.util.PaginatedSearchParam;
-import org.hibernate.*;
-import org.hibernate.criterion.*;
+import org.hibernate.Criteria;
+import org.hibernate.FetchMode;
+import org.hibernate.Session;
+import org.hibernate.criterion.Disjunction;
+import org.hibernate.criterion.MatchMode;
+import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
 import org.primefaces.model.StreamedContent;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -56,6 +60,14 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
   private
   @Inject
   EvolucaoEnfermagemSrv evolucaoEnfermagemSrv;
+
+  private
+  @Inject
+  CaixaEntradaSrv caixaSrv;
+
+  private
+  @Inject
+  ValidadeSrv validadeSrv;
 
   public ProtocoloSrv() {
     super(Protocolo.class);
@@ -144,11 +156,13 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
 
   }
 
-  public Protocolo addHistorico(Protocolo protocolo, User user, EstadosProtocoloEnum acao) {
+  public Protocolo addHistorico(Protocolo protocolo, User user, SetorProtocolo origem, SetorProtocolo destino, AcaoHistoricoEnum acao) {
     if (user != null) {
       Historico historico = new Historico();
       historico.setAutor(user);
-      historico.setEstado(acao);
+      historico.setOrigem(origem);
+      historico.setDestino(destino);
+      historico.setAcao(acao);
       historico.setProtocolo(protocolo);
       if (protocolo.getHistorico() == null) {
         protocolo.setHistorico(new ArrayList<>());
@@ -158,13 +172,12 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     return protocolo;
   }
 
-  public Protocolo salvarParcial(Protocolo protocolo, User user) {
-
-    addHistorico(protocolo, user, protocolo.getEstado());
-
-    return this.update(protocolo);
-  }
-
+  /**
+   * Criteria default
+   *
+   * @param params
+   * @return
+   */
   public Criteria createCriteria(PaginatedSearchParam params) {
     Session session = getEm().unwrap(Session.class);
     Criteria criteria = session.createCriteria(Protocolo.class);
@@ -220,10 +233,10 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     return dtos;
   }
 
-  private DtoKeyMap gerarDtoKeyMap(Protocolo protocolo, List<DocumentoDTO> documentos) {
-    DtoKeyMap dtoKeyMap = new DtoKeyMap();
 
-    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+
+  private DtoKeyMap gerarDtoKeyMap(List<DocumentoDTO> documentos) {
+    DtoKeyMap dtoKeyMap = new DtoKeyMap();
 
     if (documentos.isEmpty()) {
       dtoKeyMap.put("Sem documentos", null);
@@ -231,26 +244,9 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
 
     for (DocumentoDTO documento : documentos) {
 
-      Date keyData = documento.getDataHoraCriacao();
+      TipoDocumentoEnum tipo = documento.getTipo();
 
-      if (false && !TipoDocumentoEnum.PRESCRICAO.equals(documento.getTipo())) {
-        ConfiguracaoSetor config = getConfiguracaoSetor(protocolo);
-
-        if (config != null) {
-          Calendar configHour = Calendar.getInstance();
-          configHour.setTime(config.getHoraInicioPreMed());
-          Integer hourConfig = configHour.get(Calendar.HOUR_OF_DAY);
-          Calendar keyDataCld = Calendar.getInstance();
-          keyDataCld.setTime(keyData);
-          Integer hourKeyData = keyDataCld.get(Calendar.HOUR_OF_DAY);
-          if (hourKeyData < hourConfig) {
-            keyDataCld.add(Calendar.DAY_OF_MONTH, -1);
-          }
-          keyData = keyDataCld.getTime();
-        }
-      }
-
-      String key = sdf.format(keyData);
+      String key = DtoKeyMap.textoGrupo(tipo);
 
       List<DocumentoDTO> listaDoc = dtoKeyMap.get(key);
 
@@ -263,18 +259,6 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     }
 
     return dtoKeyMap;
-  }
-
-  public ConfiguracaoSetor getConfiguracaoSetor(Protocolo protocolo) {
-    if (protocolo.getOrigem().getSetorMV() != null) {
-      Criteria criteria = getSession().createCriteria(ConfiguracaoSetor.class);
-      criteria.add(Restrictions.eq("id", protocolo.getOrigem().getSetorMV().getId()));
-      List<ConfiguracaoSetor> configs = criteria.list();
-      if (!configs.isEmpty()) {
-        return configs.iterator().next();
-      }
-    }
-    return null;
   }
 
   public Boolean documentoIguais(DocumentoDTO dto, ItemProtocolo itemProtocolo) {
@@ -312,63 +296,6 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
 
   }
 
-  private List<Protocolo> protocolosAptosParaEnvio(Protocolo protocolo, Convenio convenio, String listaContas) {
-    Criteria criteria = getSession().createCriteria(Protocolo.class, "pro");
-    if (protocolo.getAtendimento() != null) {
-      criteria.add(Restrictions.eq("atendimento", protocolo.getAtendimento()));
-    }
-    criteria.add(Restrictions.eq("estado", EstadosProtocoloEnum.RECEBIDO));
-    criteria.add(Restrictions.eq("destino", protocolo.getOrigem()));
-    criteria.add(Restrictions.eq("reenviado", false));
-
-
-    if (convenio != null && protocolo.getOrigem().getNivel() < 2) {
-      criteria.createCriteria("atendimento", "atd").add(Restrictions.eq("atd.convenio", convenio));
-    }
-
-    List<Long> ids = new ArrayList<>();
-
-    if (listaContas != null && !listaContas.isEmpty()) {
-      String[] contas = listaContas.split(";");
-
-      for (int i = 0, len = contas.length; i < len; i++) {
-        try {
-          Long l = Long.parseLong(contas[i]);
-          ids.add(l);
-        } catch (NumberFormatException nfe) {
-          System.out.println("Erro de conversão silenciado.");
-        }
-      }
-      Disjunction disj = Restrictions.disjunction();
-      disj.add(Restrictions.in("contaFaturamento.id", ids));
-      disj.add(Restrictions.isNull("contaFaturamento"));
-      criteria.add(disj);
-    }
-
-    // Remove itens já protocolados.
-    DetachedCriteria dt = DetachedCriteria.forClass(ItemProtocolo.class, "i");
-    criteria.add(Subqueries.notExists(dt.setProjection(Projections.id()).add(Restrictions.eqProperty("pro.id", "i.filho.id"))));
-
-    List<Protocolo> rawResult = criteria.list();
-
-    if (protocolo.getOrigem().getNivel() == 2) {
-      final List<Protocolo> contas = new ArrayList<>();
-      rawResult.forEach((prot) ->
-        prot.getItens().forEach((it) -> {
-          Protocolo filho = it.getFilho();
-          Boolean checkIds = ids.isEmpty() || filho.getContaFaturamento() == null || (ids.contains(filho.getContaFaturamento().getId()));
-          Boolean checkConvenio = convenio == null || filho.getAtendimento() == null || filho.getAtendimento().getConvenio().equals(convenio);
-          if (checkIds && checkConvenio) {
-            contas.add(it.getFilho());
-          }
-        })
-      );
-      return contas;
-    }
-
-    return rawResult;
-  }
-
   public void addIfNoExists(Protocolo protocolo, DocumentoDTO dto) {
     ItemProtocolo newItem = dto.criarItemProtocolo();
     newItem.setProtocolo(protocolo);
@@ -397,46 +324,76 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     return false;
   }
 
-  private List<DocumentoDTO> buscarDocumentosView(Protocolo protocolo, Date begin, Date end, Convenio convenio, String listaContas) {
+  private Map<String, Object> buscarDocumentos(Protocolo protocolo, Date begin, Date end, Convenio convenio, String listaContas) {
 
     final List<DocumentoDTO> result = new ArrayList<>();
+    Map<String, Object> resultMap = new HashMap<>();
 
-    if (protocolo.getOrigem().getNivel() == 0) {
-      String sql = "SELECT " +
-          "VW.COD_ITEM_PRONTUARIO, " +
-          "VW.TIPO_ITEM_PRONTUARIO, " +
-          "VW.NOME_DOCUMENTO, " +
-          "VW.CD_CONSELHO_PROF, " +
-          "VW.MN_PROFISSIONAL, " +
-          "VW.DH_CRIACAO, " +
-          "VW.DH_IMPRESSAO " +
-          "FROM DBAMV.VDIC_ATEND_PRONT_PRESC_ATU VW " +
-          "LEFT JOIN DBAMV.UNID_INT U ON U.CD_UNID_INT = VW.CD_UNID_INT " +
-          "WHERE CD_ATENDIMENTO = :CD_ATENDIMENTO AND " +
-          "U.CD_SETOR = :CD_SETOR " +
-          ((begin != null && end != null) ? "AND VW.DT_REFERENCIA BETWEEN :DT_BEGIN AND :DT_END" : "");
+    SetorNivelEnum nivelOrigem = protocolo.getOrigem().getNivel();
 
-      Session session = getSession();
-      SQLQuery query = session.createSQLQuery(sql);
-      query.setParameter("CD_ATENDIMENTO", protocolo.getAtendimento().getId());
-      query.setParameter("CD_SETOR", protocolo.getOrigem().getSetorMV().getId());
-      if (begin != null && end != null) {
-        query.setParameter("DT_BEGIN", begin);
-        query.setParameter("DT_END", end);
+    if (SetorNivelEnum.SECRETARIA.equals(nivelOrigem)) {
+
+      final List<PrescricaoMedica> prescricoes = new ArrayList<>();
+      final List<AvisoCirurgia> avisos = new ArrayList<>();
+      final List<RegistroDocumento> registros = new ArrayList<>();
+      final List<EvolucaoEnfermagem> evolucoes = new ArrayList<>();
+
+      List<Object[]> datas = validadeSrv.recuperarValidades(protocolo, begin, end);
+
+      if (datas.size() > 0) {
+        resultMap.put("periodo", datas);
       }
-      List<Object[]> rows = query.list();
+
+      datas.forEach((range) -> {
+        prescricoes.addAll(prescricaoMedicaSrv.consultarPrescricoes(protocolo, (Date) range[0], (Date) range[1], (Date) range[3]));
+        // TODO: Colocar checagem de folhas anestésicas (Tabelas PRESTADOR_AVISO, ATI_MED, PRESTADOR e CIRURGIA_AVISO)
+        /*
+        SELECT DISTINCT 'X'
+                          FROM DBAMV.PRESTADOR_AVISO PRESTADOR_AVISO,
+                               DBAMV.ATI_MED         ATI_MED,
+                               DBAMV.PRESTADOR       PRESTADOR,
+                               DBAMV.CIRURGIA_AVISO  CIRURGIA_AVISO
+                         WHERE (PRESTADOR_AVISO.CD_PRESTADOR = PRESTADOR.CD_PRESTADOR AND
+                               PRESTADOR_AVISO.CD_ATI_MED = ATI_MED.CD_ATI_MED AND
+                               TP_FUNCAO = 'N' AND
+                               CIRURGIA_AVISO.CD_AVISO_CIRURGIA = PRESTADOR_AVISO.CD_AVISO_CIRURGIA AND
+                               CIRURGIA_AVISO.CD_CIRURGIA = PRESTADOR_AVISO.CD_CIRURGIA) AND
+                               CIRURGIA_AVISO.CD_AVISO_CIRURGIA = c.cd_aviso_cirurgia
+         */
+        Date inicioValidade = (Date) range[0];
+        Date fimValidade = (Date) range[1];
+        Date referencia = (Date) range[3];
+        avisos.addAll(avisoCirurgiaSrv.consultarAvisos(protocolo, inicioValidade, fimValidade, referencia));
+        registros.addAll(registroDocumentoSrv.consultarRegistros(protocolo, inicioValidade, fimValidade, referencia));
+        evolucoes.addAll(evolucaoEnfermagemSrv.consultarEvolucoesEnfermagem(protocolo, inicioValidade, fimValidade, referencia));
+      });
 
       final List<DocumentoDTO> rawResult = new ArrayList<>();
 
-      rows.forEach((row) -> rawResult.add(new DocumentoDTO(row)));
+      prescricoes.forEach((prescricao) -> {
+        // Tem itens de prescrição?
+        if (!prescricao.getItems().isEmpty()) {
+          rawResult.add(new DocumentoDTO(prescricao, true));
+        }
+
+        if (prescricaoMedicaSrv.hasEvolucao(prescricao)) {
+          rawResult.add(new DocumentoDTO(prescricao, false));
+        }
+      });
+
+      avisos.forEach((a) -> rawResult.add(new DocumentoDTO(a)));
+      registros.forEach((r) -> rawResult.add(new DocumentoDTO(r)));
+      evolucoes.forEach((e) -> rawResult.add(new DocumentoDTO(e)));
 
       result.addAll(rawResult.stream().filter((dto) -> !jaProtocolado(dto)).collect(Collectors.toList()));
 
     }
 
-    List<Protocolo> protocolos = protocolosAptosParaEnvio(protocolo, convenio, listaContas);
+    // Busque itens na caixa de entrada (documentos repassados, protocolos recebidos)
 
-    protocolos.forEach((p) -> result.add(new DocumentoDTO(p)));
+    List<CaixaEntrada> caixaEntrada = caixaSrv.getItensCaixaEntrada(protocolo, convenio, listaContas);
+
+    caixaEntrada.forEach((c) -> result.add(new DocumentoDTO(c)));
 
     List<DocumentoDTO> dtos = result;
 
@@ -444,43 +401,94 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
       dtos = removeIfExists(dtos, itemProtocolo);
     }
 
-    return dtos;
+    resultMap.put("items", dtos);
+
+    return resultMap;
   }
 
-  public DtoKeyMap buscarDocumentosNaoSelecionados(Protocolo protocolo, Date inicio, Date fim, Convenio convenio, String listaContas) {
-    //fim = DateUtility.lastHour(fim);
-    List<DocumentoDTO> documentos = buscarDocumentosView(protocolo, inicio, fim, convenio, listaContas);
-    return gerarDtoKeyMap(protocolo, documentos);
+  public DtoKeyMap buscarDocumentosNaoSelecionados(Protocolo protocolo, Date begin, Date end, Convenio convenio, String listaContas) throws ProtocoloBusinessException {
+    if (begin == null) {
+      return null;
+    } else {
+      Calendar beginCld = Calendar.getInstance();
+      beginCld.setTime(begin);
+      beginCld.add(Calendar.DAY_OF_MONTH, -1);
+      Calendar endCld = Calendar.getInstance();
+      if (end == null) {
+        endCld.setTime(begin);
+        endCld.add(Calendar.DAY_OF_MONTH, 2);
+      } else {
+        if (begin.after(end)) {
+          throw new ProtocoloBusinessException("Período de busca inválido.");
+        }
+        endCld.setTime(end);
+      }
+      Map<String, Object> resultado = buscarDocumentos(protocolo, beginCld.getTime(), endCld.getTime(), convenio, listaContas);
+      List<DocumentoDTO> documentos = (List<DocumentoDTO>) resultado.get("items");
+      return gerarDtoKeyMap(documentos);
+    }
+
   }
 
   public DtoKeyMap gerarDocumentosSelecionados(Protocolo protocolo, Boolean onlyDocs) {
-    return gerarDtoKeyMap(protocolo, gerarListaDTO(protocolo, onlyDocs));
+    return gerarDtoKeyMap(gerarListaDTO(protocolo, onlyDocs));
   }
 
-  public Protocolo enviarProtocolo(final Protocolo protocolo) throws ProtocoloBusinessException {
+  public Protocolo enviarProtocolo(final Protocolo protocolo, User user, List<CaixaEntrada> caixasVinculadas, List<CaixaEntrada> caixasRemovidas) throws ProtocoloBusinessException {
 
-    if (protocolo.getOrigem() == null) {
+    SetorProtocolo origem = protocolo.getOrigem();
+    SetorProtocolo destino = protocolo.getDestino();
+
+    if (origem == null) {
       throw new ProtocoloBusinessException("Protocolo sem origem definido.");
     }
 
-    if (protocolo.getDestino() == null) {
+    if (destino == null) {
       throw new ProtocoloBusinessException("Protocolo sem destino definido.");
     }
 
-    if (protocolo.getOrigem().equals(protocolo.getDestino())) {
+    if (origem.equals(destino)) {
       throw new ProtocoloBusinessException("Destino e origem iguais.");
     }
 
-    if (protocolo.getOrigem().getNivel() == 0) {
+    SetorNivelEnum nivelOrigem = origem.getNivel();
+    SetorNivelEnum nivelDestino = destino.getNivel();
+
+    if (SetorNivelEnum.SECRETARIA.equals(nivelOrigem)) {
       if (protocolo.getContaFaturamento() == null) {
         throw new ProtocoloBusinessException("Por favor, indique a conta desta movimentação.");
       }
     }
 
-    // ENVIO DO FATURAMENTO
-    if (protocolo.getOrigem().getNivel() == 1) {
+    // Verifique se há documentos pendentes caso a origem do envio seja uma secretaria
+    if (SetorNivelEnum.SECRETARIA.equals(nivelDestino)) {
+      if (!SetorNivelEnum.SECRETARIA.equals(nivelOrigem) && !SetorNivelEnum.ENVIOS.equals(nivelDestino)) {
+        throw new ProtocoloBusinessException("Movimentação para secretaria não permitida");
+      }
+      RegFaturamento conta = protocolo.getContaFaturamento();
+      if (conta != null) {
+        List<CaixaEntrada> candidatos = caixaSrv.busqueDocumentosNaoVinculados(protocolo.getAtendimento(), origem);
+        final List<CaixaEntrada> seraoEnviados = new ArrayList<>();
+        protocolo.getItens().forEach((item) -> {
+          CaixaEntrada seraEnviado = item.getCaixa();
+          if (seraEnviado != null && seraEnviado.getId() != null) {
+            candidatos.forEach((candidato) -> {
+              if (seraEnviado.getId().equals(candidato.getId())) {
+                seraoEnviados.add(candidato);
+              }
+            });
+          }
+        });
+        if (candidatos.size() > seraoEnviados.size()) {
+         throw new ProtocoloBusinessException("O envio não foi realizado, pois existem documentos que devem ser incluídos.");
+        }
+      }
+    }
 
-      if (protocolo.getDestino().getNivel() == 0) {
+    // ENVIO A PARTIR DO FATURAMENTO
+    if (SetorNivelEnum.FATURAMENTO_CENTRAL.equals(nivelOrigem)) {
+      // Se o destino for uma secretaria, verifica se há mais de uma conta referenciada no protocolo
+      if (SetorNivelEnum.SECRETARIA.equals(nivelDestino)) {
         final Set<RegFaturamento> contaSet = new HashSet<>();
         protocolo.getItens().forEach((it) -> {
           Protocolo filho = it.getFilho();
@@ -488,8 +496,6 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
             if (filho.getContaFaturamento() != null) {
               contaSet.add(filho.getContaFaturamento());
             }
-            // Seta o pai do envio
-            filho.setPai(protocolo);
           }
         });
         if (contaSet.size() > 1) {
@@ -499,56 +505,13 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
         }
       }
 
-      if (protocolo.getDestino().getNivel() == 2) {
+      if (!SetorNivelEnum.SECRETARIA.equals(nivelDestino)) {
         // TODO: Alguma condição especial?
       }
     }
 
-    // Envio a partir do "ENVIOS" - Verifica a necessidade de setar flag que indica que todos os documentos de um protocolo foram enviados.
-    if (protocolo.getOrigem().getNivel() == 2) {
-      Map<Protocolo, Integer> countMap = new HashMap<>();
-      Set<ItemProtocolo> itens = protocolo.getItens();
-      if (itens == null && itens.isEmpty() && protocolo.getId() != null) {
-        Protocolo attProtocolo = find(protocolo.getId());
-        itens = attProtocolo.getItens();
-        Set<Protocolo> pais = new HashSet<>();
-        itens.forEach((filho) -> {
-          Protocolo protocoloFilho = filho.getFilho();
-          if (protocoloFilho != null && protocoloFilho.getPai() != null) {
-            Protocolo pai = protocoloFilho.getPai();
-            if (!pais.contains(pai)) {
-              pais.add(pai);
-              pai.setReenviado(false);
-              update(pai);
-            }
-          }
-        });
-      }
-      // Itens incluídos
-      for (ItemProtocolo item : protocolo.getItens()) {
-        Protocolo filho = item.getFilho();
-        if (filho != null && filho.getPai() != null) {
-          Protocolo pai = filho.getPai();
-          Integer count = countMap.get(pai);
-          if (count == null) {
-            count = 0;
-          }
-          countMap.put(pai, count + 1);
-        }
-      }
-      // Se todos os protocolos filhos foram enviados, marque o protocolo pai como "reenviado" para não ser mostrado novamente
-      // na busca de documentos
-      countMap.forEach((pai, count) -> {
-        pai.setReenviado(pai.getItens().size() == count);
-        // Atualize  o pai
-        update(pai);
-      });
-    }
-
     if (EstadosProtocoloEnum.RASCUNHO.equals(protocolo.getEstado()) || EstadosProtocoloEnum.RECUSADO.equals(protocolo.getEstado())) {
-      protocolo.setEstado(EstadosProtocoloEnum.ENVIADO);
-      protocolo.setDataEnvio(new Date());
-      return update(protocolo);
+      return salvarProtocolo(protocolo, user, AcaoHistoricoEnum.MOVIMENTO, caixasVinculadas, caixasRemovidas);
     } else {
       throw new ProtocoloBusinessException("Apenas rascunhos, protocolos recusados ou novos protocolos podem ser enviados.");
     }
@@ -694,6 +657,112 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     });
     contas.addAll(regFaturamentoSrv.obterContas(att, range));
     return contas;
+  }
+
+  public EstadosProtocoloEnum getEstadoPorAcao(AcaoHistoricoEnum acao) {
+    switch (acao) {
+      case CRIACAO:
+        return EstadosProtocoloEnum.RASCUNHO;
+      case MOVIMENTO:
+        return EstadosProtocoloEnum.ENVIADO;
+      case RECEBIMENTO:
+        return EstadosProtocoloEnum.RECEBIDO;
+      case CORRECAO:
+        return EstadosProtocoloEnum.CORRIGIDO;
+      case RECUSA:
+        return EstadosProtocoloEnum.RECUSADO;
+      case ARQUIVAMENTO:
+        return EstadosProtocoloEnum.ARQUIVADO;
+      default:
+        return EstadosProtocoloEnum.RASCUNHO;
+    }
+  }
+
+  public Protocolo salvarProtocolo(
+      Protocolo protocolo,
+      User user,
+      AcaoHistoricoEnum acao,
+      List<CaixaEntrada> caixasVinculadas,
+      List<CaixaEntrada> caixasRemovidas) {
+
+    SetorProtocolo origem = protocolo.getOrigem();
+    SetorProtocolo destino = protocolo.getDestino();
+
+    if (protocolo.getId() == null) {
+      addHistorico(protocolo, user, origem, destino, AcaoHistoricoEnum.CRIACAO);
+    }
+
+    if (acao != null) {
+      addHistorico(protocolo, user, origem, destino, acao);
+      protocolo.setEstado(getEstadoPorAcao(acao));
+    }
+
+    /**
+     * MOVIMENTO DE PROTOCOLOS
+     */
+
+    if (AcaoHistoricoEnum.MOVIMENTO.equals(acao)) {
+      protocolo.setEstado(EstadosProtocoloEnum.ENVIADO);
+      protocolo.setDataResposta(new Date());
+    }
+
+    /**
+     * RECEBIMENTO DE PROTOCOLOS
+     */
+
+    // No recebimento, cria itens na caixa de entrada.
+    if (AcaoHistoricoEnum.RECEBIMENTO.equals(acao)) {
+      protocolo.setDataResposta(new Date());
+      SetorNivelEnum nivelOrigem = protocolo.getOrigem().getNivel();
+      SetorNivelEnum nivelDestino = protocolo.getDestino().getNivel();
+
+      if (SetorNivelEnum.SECRETARIA.equals(nivelOrigem)) {
+        if (!SetorNivelEnum.SECRETARIA.equals(nivelDestino)) {
+          // se estiver enviando para um setor de um nível acima (exemplo: Faturamento, Envios), crie somente um item na caixa de entrada.
+          caixaSrv.create(caixaSrv.criarCaixa(protocolo));
+        } else {
+          // Se estiver transferindo para outra secretaria, crie itens de caixa para cada documento.
+          protocolo.getItens().forEach((filho) -> caixaSrv.create(caixaSrv.criarCaixa(protocolo, filho.getDocumento())));
+        }
+
+      } else {
+        // Cria um item de caixa pra o protocolo recebido
+        protocolo.getItens().forEach((item) -> {
+          CaixaEntrada caixa = caixaSrv.criarCaixa(item.getFilho());
+          // Altera a origem e o destino para coincidir com o protocolo que está sendo recebido.
+          // Isto é necessário, pois o método "criarCaixa" utiliza origem/destino do protocolo passado como parâmetro.
+          caixa.setOrigem(protocolo.getOrigem());
+          caixa.setDestino(protocolo.getDestino());
+          caixaSrv.create(caixa);
+        });
+      }
+    }
+
+    /**
+     * Atualiza o estados dos itens da caixa de entrada
+     */
+
+    caixasVinculadas.forEach((caixa) -> {
+      caixa.setVinculado(true);
+      caixaSrv.update(caixa);
+    });
+
+    caixasRemovidas.forEach((caixa) -> {
+      caixa.setVinculado(false);
+      caixaSrv.update(caixa);
+    });
+
+    if (protocolo.getId() == null) {
+      // Re attach documentos
+      protocolo.getItens().forEach((it) -> {
+        if (it.getDocumento() != null && it.getDocumento().getId() != null) {
+          it.setDocumento(getEm().find(DocumentoProtocolo.class, it.getDocumento().getId()));
+        }
+      });
+      return create(protocolo);
+    } else {
+      return update(protocolo);
+    }
   }
 
 }

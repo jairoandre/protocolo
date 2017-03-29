@@ -24,6 +24,10 @@ public class Prestador extends BaseEntity {
   @Column(name = "NM_PRESTADOR")
   private String nome;
 
+  @ManyToOne
+  @JoinColumn(name = "CD_CONSELHO")
+  private Conselho conselho;
+
   @Override
   public Long getId() {
     return id;
@@ -40,6 +44,14 @@ public class Prestador extends BaseEntity {
 
   public void setNome(String nome) {
     this.nome = nome;
+  }
+
+  public Conselho getConselho() {
+    return conselho;
+  }
+
+  public void setConselho(Conselho conselho) {
+    this.conselho = conselho;
   }
 
   @Override

@@ -44,6 +44,10 @@ public class EvolucaoEnfermagem extends BaseEntity {
   @Column(name = "DT_IMPRESSAO")
   private Date dataImpressao;
 
+  @Transient
+  private Date dataReferencia;
+
+
   @Override
   public Long getId() {
     return id;
@@ -108,6 +112,14 @@ public class EvolucaoEnfermagem extends BaseEntity {
 
   public void setDataImpressao(Date dataImpressao) {
     this.dataImpressao = dataImpressao;
+  }
+
+  public Date getDataReferencia() {
+    return dataReferencia;
+  }
+
+  public void setDataReferencia(Date dataReferencia) {
+    this.dataReferencia = dataReferencia;
   }
 
   @Override

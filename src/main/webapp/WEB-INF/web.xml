@@ -5,7 +5,7 @@
   <display-name>guiabi</display-name>
   <context-param>
     <param-name>primefaces.THEME</param-name>
-    <param-value>redmond</param-value>
+    <param-value>hot-sneaks</param-value>
   </context-param>
   <context-param>
     <param-name>javax.faces.INTERPRET_EMPTY_STRING_SUBMITTED_VALUES_AS_NULL</param-name>

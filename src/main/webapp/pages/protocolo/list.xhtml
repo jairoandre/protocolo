@@ -307,7 +307,7 @@
                     rendered="#{protocoloCtrl.renderHistoricoDlg}"
                     modal="true"
                     position="top"
-                    width="500">
+                    width="750">
             <f:facet name="header">
               <h:outputText value="Histórico - Protocolo nº #{protocoloCtrl.item.id}"/>
             </f:facet>
@@ -317,8 +317,8 @@
               <p:column headerText="Usuário" width="100" styleClass="left-align">
                 <h:outputText value="#{hist.autor.login}"/>
               </p:column>
-              <p:column headerText="Ação" width="100" styleClass="left-align">
-                <h:outputText value="#{hist.estado.label}"/>
+              <p:column headerText="Ação" styleClass="left-align">
+                <h:outputText value="#{hist.acao.textoFormatado(hist)}" escape="false"/>
               </p:column>
               <p:column headerText="Data" width="100" styleClass="left-align">
                 <h:outputText value="#{hist.data}">
@@ -392,22 +392,28 @@
                          widgetVar="docsTab"
                          value="#{protocoloCtrl.documentosSelecionados.list}"
                          onTabChange="updateTooltips();"
-                         var="docEntry"
+                         var="item"
                          rendered="#{not empty protocoloCtrl.documentosSelecionados.list}">
-                <p:tab title="#{docEntry.key}">
-                  <p:dataTable id="docTable" value="#{docEntry.value}" var="doc"
+                <p:tab title="#{item.entry.key}">
+                  <p:dataTable id="docTable" value="#{item.entry.value}" var="doc"
                                emptyMessage="Sem documentos selecionados"
-                               rowStyleClass="#{doc.selected ? 'selected-bg' : ''}"
-                               paginator="true" rows="10" paginatorPosition="bottom"
+                               filteredValue="#{item.filtereds}"
+                               selection="#{item.selecteds}"
+                               selectionMode="multiple"
+                               rowSelectMode="checkbox"
+                               rowKey="#{doc.rowKey}"
+                               paginator="true"
+                               rows="10"
+                               paginatorPosition="bottom"
                                sortBy="#{doc.dataHoraCriacao}" rowIndexVar="idx">
-                    <p:column width="20" style="text-align: center;">
-                      <p:selectBooleanCheckbox value="#{doc.selected}" style="cursor: pointer;">
-                        <p:ajax event="change"
-                                process="docTable"
-                                update="docTable #{p:component('registrarRecebBtn')}"/>
-                      </p:selectBooleanCheckbox>
-                    </p:column>
-                    <p:column headerText="Cód." sortBy="#{doc.codigo}" width="50" styleClass="left-align">
+                    <p:ajax event="filter" process="@this"/>
+                    <p:ajax event="rowSelect" listener="#{protocoloCtrl.selectRowRecebimento}" process="@this" update="@this #{p:component('registrarRecebBtn')}" />
+                    <p:ajax event="rowUnselect" listener="#{protocoloCtrl.unselectRow}" process="@this" update="@this #{p:component('registrarRecebBtn')}" />
+                    <p:column headerText="Cód." sortBy="#{doc.codigo}"
+                              width="175"
+                              styleClass="left-align" filterBy="#{doc.codigo}"
+                              filterStyle="display: inline-block;"
+                              filterMatchMode="contains">
                       <h:outputText value="#{doc.codigo}"/>
                     </p:column>
                     <p:column headerText="Descrição" sortBy="#{doc.descricao}" styleClass="left-align ellipsis-text" width="200">
@@ -415,25 +421,22 @@
                       <vah:toolTip id="recebDescriTooltip" for="#{p:component('recebDescri')}" value="#{doc.descricao}"
                                    index="#{idx}"/>
                     </p:column>
-                    <p:column headerText="#{doc.protocolo.origem.nivel eq 0 ? 'Conselho/Prestador' : 'Convênio/Atendimento'}"
+                    <p:column headerText="#{doc.protocolo.origem.nivel eq 'SECRETARIA' ? 'Conselho/Prestador' : 'Convênio/Atendimento'}"
                               sortBy="#{doc.consPresConv}"
-                              styleClass="left-align ellipsis-text" width="150">
+                              styleClass="left-align ellipsis-text">
                       <h:outputText id="prest" value="#{doc.consPrestConv}"/>
                       <vah:toolTip id="prestTooltip" for="#{p:component('prest')}" value="#{doc.consPrestConv}"
                                    index="#{idx}"/>
                     </p:column>
-                    <p:column headerText="Criação" sortBy="#{doc.dataHoraCriacao}" styleClass="left-align" width="85">
+                    <p:column headerText="Criação" sortBy="#{doc.dataHoraCriacao}" styleClass="left-align" width="90">
                       <h:outputText value="#{doc.dataHoraCriacao}">
-                        <f:convertDateTime pattern="dd/MM/yy HH:mm:ss"/>
+                        <f:convertDateTime pattern="dd/MM/yy HH:mm"/>
                       </h:outputText>
                     </p:column>
-                    <p:column headerText="Impressão" sortBy="#{doc.dataHoraImpressao}" styleClass="left-align" width="85">
+                    <p:column headerText="Impressão" sortBy="#{doc.dataHoraImpressao}" styleClass="left-align" width="90">
                       <h:outputText value="#{doc.dataHoraImpressao}">
-                        <f:convertDateTime pattern="dd/MM/yy HH:mm:ss"/>
+                        <f:convertDateTime pattern="dd/MM/yy HH:mm"/>
                       </h:outputText>
-                    </p:column>
-                    <p:column headerText="Tipo" sortBy="#{doc.tipo}" width="100" styleClass="left-align ellipsis-text">
-                      <h:outputText value="#{doc.tipo.label}"/>
                     </p:column>
                   </p:dataTable>
                 </p:tab>
@@ -452,9 +455,16 @@
                                update="tablePnl receberDlgPnl"
                                action="#{protocoloCtrl.receber}"/>
               <p:commandButton value="Selecionar Todos"
-                               action="#{protocoloCtrl.selecionarTodosRecebimento}"
+                               action="#{protocoloCtrl.selectAllRecebimento}"
                                ajax="true"
                                icon="fa fa-check-square-o"
+                               style="margin-left: 5px;"
+                               process="@this"
+                               update="docsTab registrarRecebBtn"/>
+              <p:commandButton value="Desmarcar Todos"
+                               action="#{protocoloCtrl.unselectAllRecebimento}"
+                               ajax="true"
+                               icon="fa fa-square-o"
                                style="margin-left: 5px;"
                                process="@this"
                                update="docsTab registrarRecebBtn"/>
@@ -485,11 +495,11 @@
             </f:facet>
 
             <p:tabView value="#{protocoloCtrl.documentosSelecionados.list}"
-                       var="docEntry"
+                       var="item"
                        onTabChange="updateTooltips()"
                        rendered="#{not empty protocoloCtrl.documentosSelecionados.list}">
-              <p:tab title="#{docEntry.key}">
-                <p:dataTable value="#{docEntry.value}" var="doc"
+              <p:tab title="#{item.entry.key}">
+                <p:dataTable value="#{item.entry.value}" var="doc"
                              emptyMessage="Sem documentos"
                              sortBy="#{doc.dataHoraCriacao}" rowIndexVar="idx">
 
@@ -501,20 +511,25 @@
                     <vah:toolTip id="docDescriTooltip" for="#{p:component('docDescri')}" value="#{doc.descricao}"
                                  index="#{idx}"/>
                   </p:column>
-                  <p:column headerText="#{doc.protocolo.origem.nivel eq 0 ? 'Conselho/Prestador' : 'Convênio/Atendimento'}"
+                  <p:column headerText="#{doc.protocolo.origem.nivel eq 'SECRETARIA' ? 'Conselho/Prestador' : 'Convênio/Atendimento'}"
                             styleClass="left-align ellipsis-text" width="250">
                     <h:outputText id="prestVis" value="#{doc.consPrestConv}"/>
                     <vah:toolTip id="prestVisTooltip" for="#{p:component('prestVis')}" value="#{doc.consPrestConv}"
                                  index="#{idx}"/>
                   </p:column>
+                  <p:column headerText="Referência" styleClass="left-align" width="85">
+                    <h:outputText value="#{doc.dataReferencia}">
+                      <f:convertDateTime pattern="dd/MM/yy" locale="pt_BR"/>
+                    </h:outputText>
+                  </p:column>
                   <p:column headerText="Criação" styleClass="left-align" width="100">
                     <h:outputText value="#{doc.dataHoraCriacao}">
-                      <f:convertDateTime pattern="dd/MM/yy HH:mm:ss"/>
+                      <f:convertDateTime pattern="dd/MM/yy HH:mm:ss" locale="pt_BR" timeZone="GMT-03:00"/>
                     </h:outputText>
                   </p:column>
                   <p:column headerText="Impressão" styleClass="left-align" width="100">
                     <h:outputText value="#{doc.dataHoraImpressao}">
-                      <f:convertDateTime pattern="dd/MM/yy HH:mm:ss"/>
+                      <f:convertDateTime pattern="dd/MM/yy HH:mm:ss" locale="pt_BR" timeZone="GMT-03:00"/>
                     </h:outputText>
                   </p:column>
                   <p:column headerText="Tipo" width="100" styleClass="left-align ellipsis-text">

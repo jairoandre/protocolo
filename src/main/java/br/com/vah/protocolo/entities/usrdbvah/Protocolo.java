@@ -47,10 +47,6 @@ public class Protocolo extends BaseEntity {
   @JoinColumn(name = "CD_SETOR_DESTINO")
   private SetorProtocolo destino;
 
-  @ManyToOne
-  @JoinColumn(name = "ID_PROTOCOLO_PAI")
-  private Protocolo pai;
-
   @OneToMany(mappedBy = "protocolo", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<ItemProtocolo> itens = new LinkedHashSet<>();
 
@@ -120,14 +116,6 @@ public class Protocolo extends BaseEntity {
 
   public void setDestino(SetorProtocolo destino) {
     this.destino = destino;
-  }
-
-  public Protocolo getPai() {
-    return pai;
-  }
-
-  public void setPai(Protocolo pai) {
-    this.pai = pai;
   }
 
   public Set<ItemProtocolo> getItens() {

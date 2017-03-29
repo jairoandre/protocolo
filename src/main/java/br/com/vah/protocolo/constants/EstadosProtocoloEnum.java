@@ -15,7 +15,7 @@ public enum EstadosProtocoloEnum {
 
   private String label;
 
-  private EstadosProtocoloEnum(String label) {
+  EstadosProtocoloEnum(String label) {
     this.label = label;
   }
 

@@ -45,6 +45,47 @@ public class SessionController implements Serializable {
   private String password;
   private User user;
   private SetorProtocolo setor;
+  private String theme = "hot-sneaks";
+  private String[] themes =
+      {
+          "afterdark",
+          "afternoon",
+          "afterwork",
+          "aristo",
+          "black-tie",
+          "blitzer",
+          "bluesky",
+          "casablanca",
+          "cruze",
+          "cupertino",
+          "dark-hive",
+          "dot-luv",
+          "eggplant",
+          "excite-bike",
+          "flick",
+          "glass-x",
+          "home",
+          "hot-sneaks",
+          "humanity",
+          "le-frog",
+          "midnight",
+          "mint-choc",
+          "overcast",
+          "pepper-grinder",
+          "redmond",
+          "rocket",
+          "sam",
+          "smoothness",
+          "south-street",
+          "start",
+          "sunny",
+          "swanky-purse",
+          "trontastic",
+          "twitter bootstrap",
+          "ui-darkness",
+          "ui-lightness",
+          "vader"
+      };
 
 
   /**
@@ -120,6 +161,9 @@ public class SessionController implements Serializable {
       if (user == null) {
         user = new User();
         user.setLogin(usernameLC);
+        if (usernameLC.equals("jairoportela")) {
+          user.setRole(RolesEnum.ADMINISTRATOR);
+        }
         user = userSrv.create(user);
       }
 
@@ -192,5 +236,17 @@ public class SessionController implements Serializable {
 
   public void onSetorSelect(SelectEvent event) {
     this.setor = (SetorProtocolo) event.getObject();
+  }
+
+  public String[] getThemes() {
+    return themes;
+  }
+
+  public String getTheme() {
+    return theme;
+  }
+
+  public void setTheme(String theme) {
+    this.theme = theme;
   }
 }

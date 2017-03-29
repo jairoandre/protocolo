@@ -1,5 +1,6 @@
 package br.com.vah.protocolo.entities.usrdbvah;
 
+import br.com.vah.protocolo.constants.SetorNivelEnum;
 import br.com.vah.protocolo.entities.BaseEntity;
 import br.com.vah.protocolo.entities.dbamv.Setor;
 
@@ -21,8 +22,9 @@ public class SetorProtocolo extends BaseEntity {
   @Column(name = "NM_SETOR")
   private String title;
 
+  @Enumerated(EnumType.ORDINAL)
   @Column(name = "CD_NIVEL")
-  private Integer nivel;
+  private SetorNivelEnum nivel;
 
   @ManyToOne
   @JoinColumn(name = "CD_SETOR_MV")
@@ -47,11 +49,11 @@ public class SetorProtocolo extends BaseEntity {
     this.title = title;
   }
 
-  public Integer getNivel() {
+  public SetorNivelEnum getNivel() {
     return nivel;
   }
 
-  public void setNivel(Integer nivel) {
+  public void setNivel(SetorNivelEnum nivel) {
     this.nivel = nivel;
   }
 

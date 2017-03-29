@@ -1,8 +1,8 @@
 package br.com.vah.protocolo.service;
 
+import br.com.vah.protocolo.constants.TipoDocumentoEnum;
 import br.com.vah.protocolo.entities.dbamv.EvolucaoEnfermagem;
-import br.com.vah.protocolo.entities.dbamv.RegistroDocumento;
-import br.com.vah.protocolo.entities.usrdbvah.ItemProtocolo;
+import br.com.vah.protocolo.entities.usrdbvah.DocumentoProtocolo;
 import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 import org.hibernate.Criteria;
 import org.hibernate.SQLQuery;
@@ -25,7 +25,7 @@ public class EvolucaoEnfermagemSrv extends AbstractSrv<EvolucaoEnfermagem> {
   }
 
   @SuppressWarnings("unchecked")
-  public List<EvolucaoEnfermagem> consultarEvolucoesEnfermagem(Protocolo protocolo, Date inicio, Date fim) {
+  public List<EvolucaoEnfermagem> consultarEvolucoesEnfermagem(Protocolo protocolo, Date inicio, Date fim, Date referencia) {
 
     Session session = getEm().unwrap(Session.class);
 
@@ -33,13 +33,20 @@ public class EvolucaoEnfermagemSrv extends AbstractSrv<EvolucaoEnfermagem> {
 
     criteria.add(Restrictions.eq("atendimento", protocolo.getAtendimento()));
 
-    criteria.add(Restrictions.between("dataImpressao", inicio, fim));
+    criteria.add(Restrictions.between("hora", inicio, fim));
 
     // Remove itens já protocolados.
-    DetachedCriteria dt = DetachedCriteria.forClass(ItemProtocolo.class, "i");
-    criteria.add(Subqueries.notExists(dt.setProjection(Projections.id()).add(Restrictions.eqProperty("evo.id", "i.evolucaoEnfermagem.id"))));
+    DetachedCriteria dt = DetachedCriteria.forClass(DocumentoProtocolo.class, "dp");
+    dt.setProjection(Projections.id());
+    dt.add(Restrictions.eqProperty("evo.id", "dp.codigo"));
+    dt.add(Restrictions.eq("dp.tipo", TipoDocumentoEnum.REGISTRO_DOCUMENTO));
+    criteria.add(Subqueries.notExists(dt));
 
-    return criteria.list();
+    List<EvolucaoEnfermagem> evolucoes = criteria.list();
+
+    evolucoes.forEach((evolucao) -> evolucao.setDataReferencia(referencia));
+
+    return evolucoes;
   }
 
   public String getDescricao(EvolucaoEnfermagem evolucao) {

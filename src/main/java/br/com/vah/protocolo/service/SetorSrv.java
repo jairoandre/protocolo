@@ -21,7 +21,7 @@ public class SetorSrv extends AbstractSrv<Setor> {
   public Criteria createCriteria(PaginatedSearchParam params) {
     Criteria criteria = super.createCriteria(params);
     criteria.add(Restrictions.eq("multiEmpresa", 1));
-    criteria.add(Restrictions.eq("grupoCusto", 2));
+    // criteria.add(Restrictions.eq("grupoCusto", 2));
     return criteria;
   }
 }

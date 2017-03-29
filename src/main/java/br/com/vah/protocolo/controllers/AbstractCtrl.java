@@ -142,6 +142,10 @@ public abstract class AbstractCtrl<T extends BaseEntity> implements Serializable
     this.editing = false;
   }
 
+  public void addMsg(FacesMessage.Severity severity, String msg) {
+    addMsg(new FacesMessage(msg), false);
+  }
+
   public void addMsg(FacesMessage msg, boolean flash) {
     FacesContext ctx = FacesContext.getCurrentInstance();
     ctx.addMessage(null, msg);
@@ -204,6 +208,10 @@ public abstract class AbstractCtrl<T extends BaseEntity> implements Serializable
 
   public void setSearchParam(String property, Object value) {
     getLazyModel().getSearchParams().getParams().put(property, value);
+  }
+
+  public void removeFromSearchParams(String property) {
+    getLazyModel().getSearchParams().getParams().remove(property);
   }
 
   /**

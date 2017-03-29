@@ -37,6 +37,9 @@ public class RegistroDocumento extends BaseEntity {
   @Column(name = "NM_USUARIO")
   private String nomeUsuario;
 
+  @Transient
+  private Date dataReferencia;
+
   public Long getId() {
     return id;
   }
@@ -91,6 +94,14 @@ public class RegistroDocumento extends BaseEntity {
 
   public void setNomeUsuario(String nomeUsuario) {
     this.nomeUsuario = nomeUsuario;
+  }
+
+  public Date getDataReferencia() {
+    return dataReferencia;
+  }
+
+  public void setDataReferencia(Date dataReferencia) {
+    this.dataReferencia = dataReferencia;
   }
 
   @Override
