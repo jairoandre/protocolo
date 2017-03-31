@@ -114,6 +114,8 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   private List<CaixaEntrada> caixasRemovidas = new ArrayList<>();
 
+  private RegFaturamento contaRegFat;
+
   @PostConstruct
   public void init() {
     logger.info(this.getClass().getSimpleName() + " created");
@@ -162,17 +164,29 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     prepareSearch();
   }
 
+  public Boolean isSecretaria() {
+    SetorProtocolo origem = getItem().getOrigem();
+    if (origem == null) {
+      return false;
+    } else {
+      return SetorNivelEnum.SECRETARIA.equals(origem.getNivel());
+    }
+
+  }
+
   public void changeOrigem() {
     getItem().getItens().clear();
     documentosNaoSelecionados = new DtoKeyMap();
-    contarDocumentos();
+    if (isSecretaria()) {
+      contarDocumentos();
+    }
   }
 
-  public void definirContaFaturamento(RegFaturamento conta) {
-    if (conta.equals(getItem().getContaFaturamento())) {
+  public void definirContaFaturamento() {
+    if (contaRegFat.equals(getItem().getContaFaturamento())) {
       getItem().setContaFaturamento(null);
     } else {
-      getItem().setContaFaturamento(conta);
+      getItem().setContaFaturamento(contaRegFat);
     }
   }
 
@@ -281,7 +295,9 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
   }
 
   public void prepareDocumentos() {
-    contarDocumentos();
+    if (isSecretaria()) {
+      contarDocumentos();
+    }
     documentosSelecionados = service.gerarDocumentosSelecionados(getItem(), false);
   }
 
@@ -334,6 +350,11 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     totalEvolucaoAnotacao = totais[7];
     totalDocumentosProntuarios = totais[8];
     contas = new ArrayList<>(service.inferirContas(getItem()));
+    if (contas.size() == 1) {
+      getItem().setContaFaturamento(contas.iterator().next());
+    } else {
+      getItem().setContaFaturamento(null);
+    }
   }
 
   public String getEditTitle() {
@@ -773,5 +794,13 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   public Integer getTotalDocumentosProntuarios() {
     return totalDocumentosProntuarios;
+  }
+
+  public RegFaturamento getContaRegFat() {
+    return contaRegFat;
+  }
+
+  public void setContaRegFat(RegFaturamento contaRegFat) {
+    this.contaRegFat = contaRegFat;
   }
 }

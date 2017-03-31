@@ -194,6 +194,7 @@
                                        filteredValue="#{item.filtereds}"
                                        selection="#{item.selecteds}"
                                        selectionMode="multiple"
+                                       disabledSelection="#{not protocoloCtrl.editing}"
                                        rowSelectMode="checkbox"
                                        rowKey="#{doc.rowKey}"
                                        paginator="true"
@@ -210,28 +211,34 @@
                                     update="@this #{p:component('naoVinculadosCount')}"/>
                             <p:columnGroup type="header">
                               <p:row>
+                                <p:column width="20"/>
                                 <p:column id="codNaoRelac" width="175"
+                                          headerText="Cód."
                                           sortBy="#{doc.codigo}"
                                           styleClass="left-align" filterBy="#{doc.codigo}"
                                           filterStyle="display: inline-block;"
-                                          filterMatchMode="contains">
-                                  <h:outputText value="Código"/>
-                                </p:column>
+                                          filterMatchMode="contains"/>
                                 <p:column id="descNaoRelac" headerText="Descrição/Conta"
                                           sortBy="#{doc.descricao}"
                                           styleClass="left-align ellipsis-text" width="300"/>
                                 <p:column id="consPrestConvNaoRelac"
-                                  headerText="#{protocoloCtrl.item.origem.nivel eq 'SECRETARIA' ? 'Conselho/Prestador' : 'Convênio/Atendimento'}"
-                                  sortBy="#{doc.consPrestConv}"
-                                  styleClass="left-align ellipsis-text"/>
-                                <p:column id="referenciaNaoRelac" headerText="Referência" sortBy="#{doc.dataReferencia}" styleClass="left-align" width="90"/>
-                                <p:column id="criacaoNaoRelac" headerText="Criação" sortBy="#{doc.dataHoraCriacao}" styleClass="left-align"
-                                          width="90"/>
-                                <p:column id="impressaoNaoRelac" headerText="Impressão" sortBy="#{doc.dataHoraImpressao}"
+                                          headerText="#{protocoloCtrl.item.origem.nivel eq 'SECRETARIA' ? 'Conselho/Prestador' : 'Convênio/Atendimento'}"
+                                          sortBy="#{doc.consPrestConv}"
+                                          styleClass="left-align ellipsis-text"/>
+                                <p:column id="referenciaNaoRelac" headerText="Referência" sortBy="#{doc.dataReferencia}"
+                                          rendered="#{protocoloCtrl.isSecretaria()}" styleClass="left-align" width="90"/>
+                                <p:column id="criacaoNaoRelac" headerText="#{protocoloCtrl.isSecretaria() ? 'Criação' : 'Resposta'}" sortBy="#{doc.dataHoraCriacao}"
                                           styleClass="left-align"
+                                          width="90"/>
+                                <p:column id="impressaoNaoRelac" headerText="Impressão"
+                                          sortBy="#{doc.dataHoraImpressao}"
+                                          rendered="#{protocoloCtrl.isSecretaria()}" styleClass="left-align"
                                           width="90"/>
                               </p:row>
                             </p:columnGroup>
+                            <p:column style="text-align: center;">
+                              <h:panelGroup styleClass="fa #{doc.selected ? 'fa-check-square-o' : 'fa-square-o'}"/>
+                            </p:column>
                             <p:column>
                               <h:outputText value="#{doc.codigo}"/>
                             </p:column>
@@ -250,13 +257,13 @@
                                              index="#{idx}"/>
                               </h:panelGroup>
                             </p:column>
-                            <p:column>
+                            <p:column styleClass="ellipsis-text">
                               <h:outputText id="consPrestConvNaoSelec" value="#{doc.consPrestConv}"/>
                               <vah:toolTip id="consPrestConvNaoSelecTool" for="#{p:component('consPrestConvNaoSelec')}"
                                            value="#{doc.consPrestConv}"
                                            index="#{idx}"/>
                             </p:column>
-                            <p:column>
+                            <p:column rendered="#{protocoloCtrl.isSecretaria()}">
                               <h:outputText value="#{doc.dataReferencia}">
                                 <f:convertDateTime pattern="dd/MM/yy" locale="pt_BR"/>
                               </h:outputText>
@@ -266,7 +273,7 @@
                                 <f:convertDateTime pattern="dd/MM/yy HH:mm" locale="pt_BR" timeZone="GMT-03:00"/>
                               </h:outputText>
                             </p:column>
-                            <p:column>
+                            <p:column rendered="#{protocoloCtrl.isSecretaria()}">
                               <h:outputText value="#{doc.dataHoraImpressao}">
                                 <f:convertDateTime pattern="dd/MM/yy HH:mm" locale="pt_BR" timeZone="GMT-03:00"/>
                               </h:outputText>
@@ -338,6 +345,7 @@
                                        filteredValue="#{item.filtereds}"
                                        selection="#{item.selecteds}"
                                        selectionMode="multiple"
+                                       disabledSelection="#{not protocoloCtrl.editing or not (protocoloCtrl.item.estado eq 'RASCUNHO' or protocoloCtrl.item.estado eq 'RECUSADO')}"
                                        rowSelectMode="checkbox"
                                        rowKey="#{doc.rowKey}"
                                        paginator="true"
@@ -348,13 +356,16 @@
                             <p:ajax event="rowSelect"
                                     listener="#{protocoloCtrl.selectRowRecebimento}"
                                     process="@this"
-                                    update="@this"/>
+                                    update="@this"
+                                    rendered="#{protocoloCtrl.editing}"/>
                             <p:ajax event="rowUnselect"
                                     listener="#{protocoloCtrl.unselectRow}"
                                     process="@this"
-                                    update="@this"/>
+                                    update="@this"
+                                    rendered="#{protocoloCtrl.editing}"/>
                             <p:columnGroup type="header">
                               <p:row>
+                                <p:column width="20" rendered="#{protocoloCtrl.editing and (protocoloCtrl.item.estado eq 'RASCUNHO' or protocoloCtrl.item.estado eq 'RECUSADO')}"/>
                                 <p:column headerText="Cód." width="175"
                                           sortBy="#{doc.codigo}"
                                           styleClass="left-align" filterBy="#{doc.codigo}"
@@ -362,18 +373,20 @@
                                           filterMatchMode="contains"/>
                                 <p:column headerText="Descrição/Conta"
                                           styleClass="left-align ellipsis-text" width="300"/>
-                                <p:column
-                                  headerText="#{protocoloCtrl.item.origem.nivel eq 'SECRETARIA' ? 'Conselho/Prestador' : 'Convênio/Atendimento'}"
+                                <p:column headerText="#{protocoloCtrl.item.origem.nivel eq 'SECRETARIA' ? 'Conselho/Prestador' : 'Convênio/Atendimento'}"
                                   sortBy="#{doc.consPrestConv}"
                                   styleClass="left-align ellipsis-text"/>
-                                <p:column headerText="Referência" styleClass="left-align" width="90"/>
-                                <p:column headerText="Criação" sortBy="#{doc.dataHoraCriacao}" styleClass="left-align"
+                                <p:column headerText="Referência" rendered="#{protocoloCtrl.isSecretaria()}" styleClass="left-align" width="90"/>
+                                <p:column headerText="#{protocoloCtrl.isSecretaria() ? 'Criação' : 'Resposta'}" sortBy="#{doc.dataHoraCriacao}" styleClass="left-align"
                                           width="90"/>
-                                <p:column headerText="Impressão" sortBy="#{doc.dataHoraImpressao}"
+                                <p:column headerText="Impressão" rendered="#{protocoloCtrl.isSecretaria()}" sortBy="#{doc.dataHoraImpressao}"
                                           styleClass="left-align"
                                           width="90"/>
                               </p:row>
                             </p:columnGroup>
+                            <p:column style="text-align: center;" rendered="#{protocoloCtrl.editing and (protocoloCtrl.item.estado eq 'RASCUNHO' or protocoloCtrl.item.estado eq 'RECUSADO')}">
+                              <h:panelGroup styleClass="fa #{doc.selected ? 'fa-check-square-o' : 'fa-square-o'}"/>
+                            </p:column>
                             <p:column>
                               <h:outputText value="#{doc.codigo}"/>
                             </p:column>
@@ -398,7 +411,7 @@
                                            value="#{doc.consPrestConv}"
                                            index="#{idx}"/>
                             </p:column>
-                            <p:column>
+                            <p:column rendered="#{protocoloCtrl.isSecretaria()}">
                               <h:outputText value="#{doc.dataReferencia}">
                                 <f:convertDateTime pattern="dd/MM/yy" locale="pt_BR"/>
                               </h:outputText>
@@ -408,7 +421,7 @@
                                 <f:convertDateTime pattern="dd/MM/yy HH:mm" locale="pt_BR" timeZone="GMT-03:00"/>
                               </h:outputText>
                             </p:column>
-                            <p:column>
+                            <p:column rendered="#{protocoloCtrl.isSecretaria()}">
                               <h:outputText value="#{doc.dataHoraImpressao}">
                                 <f:convertDateTime pattern="dd/MM/yy HH:mm" locale="pt_BR" timeZone="GMT-03:00"/>
                               </h:outputText>
@@ -450,34 +463,44 @@
               <!-- CONTAS RELACIONADAS -->
               <h:panelGroup id="contasRelacionadasPnl">
                 <p:panel header="Contas Relacionadas" styleClass="margin-top"
-                         rendered="#{not empty protocoloCtrl.contas}">
+                         rendered="#{not empty protocoloCtrl.contas and protocoloCtrl.item.origem.nivel eq 'SECRETARIA'}">
                   <p:dataTable id="contasTable" value="#{protocoloCtrl.contas}" var="conta"
                                rowStyleClass="#{conta eq protocoloCtrl.item.contaFaturamento ? 'selected-bg' : ''}"
+                               rowKey="#{conta.id}"
+                               selectionMode="single"
+                               disabledSelection="#{not protocoloCtrl.editing}"
+                               selection="#{protocoloCtrl.contaRegFat}"
                                emptyMessage="Sem contas relacionadas" styleClass="margin-top">
-                    <p:column width="25" style="text-align: center;"
-                              rendered="#{protocoloCtrl.editing and
+                    <p:ajax event="rowSelect"
+                            listener="#{protocoloCtrl.definirContaFaturamento}"
+                            process="@this"
+                            update="@this contasTable #{p:component('contaSumPnl')}"
+                            rendered="#{protocoloCtrl.editing and
                                   (not empty protocoloCtrl.item.origem and protocoloCtrl.item.origem.nivel eq 'SECRETARIA') and
                                   (protocoloCtrl.item.estado eq 'RASCUNHO' or
-                                   protocoloCtrl.item.estado eq 'RECUSADO')}">
-                      <h:panelGroup styleClass="ui-menubutton">
-                        <p:commandButton action="#{protocoloCtrl.definirContaFaturamento(conta)}"
-                                         icon="fa #{protocoloCtrl.item.contaFaturamento eq conta ? 'fa-check-square-o' : 'fa-square-o'}"
-                                         ajax="true" process="@this"
-                                         update="contasTable #{p:component('contaSumPnl')}"/>
-                      </h:panelGroup>
+                                   protocoloCtrl.item.estado eq 'RECUSADO')}"/>
+                    <p:ajax event="rowUnselect"
+                            listener="#{protocoloCtrl.definirContaFaturamento}"
+                            process="@this"
+                            update="@this contasTable #{p:component('contaSumPnl')}"
+                            rendered="#{protocoloCtrl.editing and
+                                  (not empty protocoloCtrl.item.origem and protocoloCtrl.item.origem.nivel eq 'SECRETARIA') and
+                                  (protocoloCtrl.item.estado eq 'RASCUNHO' or
+                                   protocoloCtrl.item.estado eq 'RECUSADO')}"/>
+                    <p:column style="text-align: center;" width="20">
+                      <h:panelGroup
+                        styleClass="fa #{conta eq protocoloCtrl.item.contaFaturamento ? 'fa-check' : 'fa-circle-o'}"/>
                     </p:column>
                     <p:column headerText="Nº Conta" styleClass="left-align">
                       <h:outputText
                         value="#{conta.id} #{conta eq protocoloCtrl.item.contaFaturamento ? '(Selecionado)' : ''}"/>
                     </p:column>
-                    <p:column headerText="Início" width="100"
-                              styleClass="left-align #{conta eq protocoloCtrl.item.contaFaturamento ? 'selected-bg' : ''}">
+                    <p:column headerText="Início" width="100" styleClass="left-align">
                       <h:outputText value="#{conta.inicio}">
                         <f:convertDateTime pattern="dd/MM/yyyy HH:mm" locale="pt_BR"/>
                       </h:outputText>
                     </p:column>
-                    <p:column headerText="Fim" width="100"
-                              styleClass="left-align #{conta eq protocoloCtrl.item.contaFaturamento ? 'selected-bg' : ''}">
+                    <p:column headerText="Fim" width="100" styleClass="left-align">
                       <h:outputText value="#{conta.fim}">
                         <f:convertDateTime pattern="dd/MM/yyyy HH:mm" locale="pt_BR" timeZone="GMT-03:00"/>
                       </h:outputText>
@@ -488,7 +511,6 @@
               <!-- END CONTAS RELACIONADAS -->
               <!-- COMENTARIOS -->
               <h:panelGroup id="comentariosPnl" layout="block">
-                #{protocoloCtrl.item.id}
                 <p:panel header="Comentários" styleClass="margin-top" rendered="#{not empty protocoloCtrl.item.id}">
                   <p:dataTable id="comentariosTable" value="#{protocoloCtrl.item.comentarios}" var="c"
                                emptyMessage="Sem comentários" sortBy="#{c.data}"
@@ -519,7 +541,7 @@
 
             <!-- SUMÁRIO -->
             <h:panelGroup id="sumarioPnl">
-              <h:panelGroup rendered="#{not empty protocoloCtrl.item.itens}">
+              <h:panelGroup rendered="#{protocoloCtrl.isSecretaria() and not empty protocoloCtrl.item.itens}">
                 <p:panel header="Sumário" styleClass="margin-top" rendered="#{protocoloCtrl.showSumario}">
                   <h:panelGrid columns="4" style="padding: 5px;">
                     <h:outputLabel value="Total documentos:" styleClass="lance-label"/>

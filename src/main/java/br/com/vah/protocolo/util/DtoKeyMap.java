@@ -109,6 +109,7 @@ public class DtoKeyMap implements Serializable {
       this.put(key, listaDoc);
     }
     listaDoc.add(dto);
+    dto.setSelected(false);
     Collections.sort(listaDoc, (o1, o2) -> o1.getDataHoraCriacao().compareTo(o2.getDataHoraCriacao()));
     list = new DtoKeyEntryList(map.entrySet());
     Collections.sort(list, (o1, o2) -> compareKeys(o1, o2));

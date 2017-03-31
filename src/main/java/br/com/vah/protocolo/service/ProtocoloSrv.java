@@ -407,27 +407,32 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
   }
 
   public DtoKeyMap buscarDocumentosNaoSelecionados(Protocolo protocolo, Date begin, Date end, Convenio convenio, String listaContas) throws ProtocoloBusinessException {
-    if (begin == null) {
-      return null;
-    } else {
-      Calendar beginCld = Calendar.getInstance();
-      beginCld.setTime(begin);
-      beginCld.add(Calendar.DAY_OF_MONTH, -1);
-      Calendar endCld = Calendar.getInstance();
-      if (end == null) {
-        endCld.setTime(begin);
-        endCld.add(Calendar.DAY_OF_MONTH, 2);
+    if (SetorNivelEnum.SECRETARIA.equals(protocolo.getOrigem().getNivel())) {
+      if (begin == null) {
+        return new DtoKeyMap();
       } else {
-        if (begin.after(end)) {
-          throw new ProtocoloBusinessException("Período de busca inválido.");
+        Calendar beginCld = Calendar.getInstance();
+        beginCld.setTime(begin);
+        beginCld.add(Calendar.DAY_OF_MONTH, -1);
+        Calendar endCld = Calendar.getInstance();
+        if (end == null) {
+          endCld.setTime(begin);
+          endCld.add(Calendar.DAY_OF_MONTH, 2);
+        } else {
+          if (begin.after(end)) {
+            throw new ProtocoloBusinessException("Período de busca inválido.");
+          }
+          endCld.setTime(end);
         }
-        endCld.setTime(end);
+        Map<String, Object> resultado = buscarDocumentos(protocolo, beginCld.getTime(), endCld.getTime(), convenio, listaContas);
+        List<DocumentoDTO> documentos = (List<DocumentoDTO>) resultado.get("items");
+        return gerarDtoKeyMap(documentos);
       }
-      Map<String, Object> resultado = buscarDocumentos(protocolo, beginCld.getTime(), endCld.getTime(), convenio, listaContas);
+    } else {
+      Map<String, Object> resultado = buscarDocumentos(protocolo, null, null, convenio, listaContas);
       List<DocumentoDTO> documentos = (List<DocumentoDTO>) resultado.get("items");
       return gerarDtoKeyMap(documentos);
     }
-
   }
 
   public DtoKeyMap gerarDocumentosSelecionados(Protocolo protocolo, Boolean onlyDocs) {
@@ -509,6 +514,8 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
         // TODO: Alguma condição especial?
       }
     }
+
+    protocolo.setDataEnvio(new Date());
 
     if (EstadosProtocoloEnum.RASCUNHO.equals(protocolo.getEstado()) || EstadosProtocoloEnum.RECUSADO.equals(protocolo.getEstado())) {
       return salvarProtocolo(protocolo, user, AcaoHistoricoEnum.MOVIMENTO, caixasVinculadas, caixasRemovidas);

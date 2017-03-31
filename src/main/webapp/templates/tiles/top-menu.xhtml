@@ -20,19 +20,23 @@
       <p:menuitem value="Movimentações"
                   action="/pages/protocolo/list.xhtml?faces-redirect=true" ajax="false"
                   icon="fa fa-file" onclick="PF('changePage').show()"/>
-      <p:menuitem value="Contas"
-                  action="/pages/caixaEntrada/list.xhtml?faces-redirect=true" ajax="false"
-                  icon="fa fa-files-o" onclick="PF('changePage').show()"/>
+      <p:submenu icon="fa fa-search" label="Consultas">
+        <p:menuitem value="Contas"
+                    action="/pages/caixaEntrada/list.xhtml?faces-redirect=true" ajax="false"
+                    icon="fa fa-files-o" onclick="PF('changePage').show()"/>
+      </p:submenu>
+
       <f:facet name="options">
 
         <h:panelGroup style="margin-top: 3px;" layout="block">
           <p:themeSwitcher value="#{sessionController.theme}" effect="fade" rendered="#{false}">
-            <f:selectItem itemLabel="Choose Theme" itemValue="" />
-            <f:selectItems value="#{sessionController.themes}" var="theme" itemLabel="#{theme}" itemValue="#{theme}" />
+            <f:selectItem itemLabel="Choose Theme" itemValue=""/>
+            <f:selectItems value="#{sessionController.themes}" var="theme" itemLabel="#{theme}" itemValue="#{theme}"/>
           </p:themeSwitcher>
           <p:commandButton value="#{sessionController.setor.title}"
                            action="/selecionarSetor.xhtml?faces-redirect=true" ajax="false"
-                           icon="fa fa-hospital-o" rendered="#{sessionController.setor != null}" onstart="PF('changePage').show()"/>
+                           icon="fa fa-hospital-o" rendered="#{sessionController.setor != null}"
+                           onstart="PF('changePage').show()"/>
           <p:commandButton value="#{sessionController.username}"
                            action="/selecionarSetor.xhtml?faces-redirect=true" ajax="false"
                            style="margin-left: 5px;"

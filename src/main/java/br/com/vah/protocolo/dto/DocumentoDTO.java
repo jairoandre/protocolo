@@ -135,7 +135,7 @@ public class DocumentoDTO {
     this.descricao = conta == null ? "Remessa" : String.format("%d - (%s à %s)", conta.getId(), sdf.format(conta.getInicio()), sdf.format(conta.getFim()));
     this.conselho = "-";
     this.prestador = "-";
-    this.dataHoraCriacao = filho.getDataEnvio();
+    this.dataHoraCriacao = filho.getDataResposta();
     this.dataHoraImpressao = filho.getDataEnvio();
     Atendimento atendimento = filho.getAtendimento();
     if (atendimento != null) {
