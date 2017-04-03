@@ -79,6 +79,15 @@ public class CaixaEntradaSrv extends AbstractSrv<CaixaEntrada> {
     return crit.list();
   }
 
+  public List<CaixaEntrada> buscarDocumentosPendentes(Map<String, Object> params) {
+    Criteria crit = getSession().createCriteria(CaixaEntrada.class);
+    SetorProtocolo same = new SetorProtocolo();
+    same.setId(11l); // Hardcoded ID do SAME
+    crit.add(Restrictions.eq("destino", same));
+    crit.add(Restrictions.eq("vinculado", false));
+    return crit.list();
+  }
+
 
   public List<CaixaEntrada> getItensCaixaEntrada(Protocolo protocolo, Convenio convenio, String listaContas) {
     Criteria criteria = getSession().createCriteria(CaixaEntrada.class);

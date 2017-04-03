@@ -35,6 +35,8 @@ public class EvolucaoEnfermagemSrv extends AbstractSrv<EvolucaoEnfermagem> {
 
     criteria.add(Restrictions.between("hora", inicio, fim));
 
+    criteria.add(Restrictions.isNotNull("dataImpressao"));
+
     // Remove itens já protocolados.
     DetachedCriteria dt = DetachedCriteria.forClass(DocumentoProtocolo.class, "dp");
     dt.setProjection(Projections.id());

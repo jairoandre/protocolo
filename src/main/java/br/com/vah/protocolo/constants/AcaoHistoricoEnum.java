@@ -10,8 +10,8 @@ import br.com.vah.protocolo.entities.usrdbvah.User;
 public enum AcaoHistoricoEnum {
   CRIACAO("Criado por <b>%s</b>"),
   MOVIMENTO("Movimentado por <b>%s</b>: de <b>%s</b> para <b>%s</b>"),
-  RECEBIMENTO("Recebido por <b>%s</b>"),
-  RECUSA("Recusado por <b>%s</b>"),
+  RECEBIMENTO("Recebido por <b>%s</b> no setor <b>%s</b>"),
+  RECUSA("Recusado por <b>%s</b> no setor <b>%s</b>"),
   CORRECAO("Corrigido por <b>%s</b>"),
   ARQUIVAMENTO("Arquivado por <b>%s</b>");
 
@@ -22,20 +22,21 @@ public enum AcaoHistoricoEnum {
   }
 
   public String textoFormatado(Historico historico) {
+    User autor = historico.getAutor();
+    SetorProtocolo origem = historico.getOrigem();
+    SetorProtocolo destino = historico.getDestino();
     switch (this) {
       case MOVIMENTO:
-        SetorProtocolo origem = historico.getOrigem();
-        SetorProtocolo destino = historico.getDestino();
         if (origem != null && destino != null) {
-          User autor = historico.getAutor();
           return String.format(label, autor.getTitle() == null ? autor.getLogin() : autor.getTitle(), origem.getTitle(), destino.getTitle());
         } else {
           return "";
         }
+      case RECEBIMENTO:
+      case RECUSA:
+        return String.format(label, autor.getTitle() == null ? autor.getLogin() : autor.getTitle(), destino.getTitle());
       default:
-        User autor = historico.getAutor();
         return String.format(label, autor.getTitle() == null ? autor.getLogin() : autor.getTitle());
-
     }
   }
 

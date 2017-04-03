@@ -1,0 +1,66 @@
+<ui:composition template="/templates/layout.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:vah="http://java.sun.com/jsf/composite/vah"
+                xmlns:uivah="http://vah.com.br/vah"
+                xmlns:p="http://primefaces.org/ui">
+  <ui:define name="metadata">
+    <f:metadata>
+      <f:viewParam name="id" value="#{salaCtrl.id}"/>
+      <f:viewAction action="#{salaCtrl.onLoad}"/>
+    </f:metadata>
+  </ui:define>
+  <ui:define name="content">
+    <h:form id="form">
+
+      <vah:editForm id="salaPnl" controller="#{salaCtrl}"
+                    columns="3">
+
+        <uivah:inputText id="name" label="Nome"
+                         value="#{salaCtrl.item.titulo}"/>
+
+        <f:facet name="other">
+          <p:panel header="Armários">
+            <p:commandButton id="novoArmario" value="Novo Armário" action="#{salaCtrl.novoArmario}"
+                             process="@this armarios"
+                             update="armarios" rendered="#{salaCtrl.editing}"/>
+            <h:panelGroup id="armarios" layout="block" styleClass="margin-top">
+              <p:dataTable id="armariosTable" value="#{salaCtrl.item.armarios}" var="armario"
+                           emptyMessage="Sem armários">
+                <p:column headerText="Título" styleClass="left-align">
+                  <h:outputText value="#{armario.titulo}" rendered="#{not armario.editing}"/>
+                  <p:inputText value="#{armario.titulo}" rendered="#{armario.editing}"/>
+                </p:column>
+                <p:column headerText="Colunas" width="50" styleClass="left-align">
+                  <h:outputText value="#{armario.colunas}" rendered="#{not armario.editing}"/>
+                  <p:inputText value="#{armario.colunas}" style="width: 15px;" maxlength="3" rendered="#{armario.editing}"/>
+                </p:column>
+                <p:column headerText="Linhas" width="50" styleClass="left-align">
+                  <h:outputText value="#{armario.linhas}" rendered="#{not armario.editing}"/>
+                  <p:inputText value="#{armario.linhas}" style="width: 15px;" maxlength="3" rendered="#{armario.editing}"/>
+                </p:column>
+                <p:column headerText="Ações" rendered="#{salaCtrl.editing}" style="text-align: center;" width="100">
+                  <p:commandLink ajax="true" action="#{salaCtrl.confirmarArmario(armario)}" process="@this #{p:component('armarios')}"
+                                 update="#{p:component('armarios')}" rendered="#{armario.editing}">
+                    <span class="fa fa-check"/>
+                  </p:commandLink>
+                  <p:commandLink ajax="true" action="#{salaCtrl.removerArmario(armario)}" process="@this #{p:component('armarios')}"
+                                 update="#{p:component('armarios')}" rendered="#{not armario.editing}">
+                    <span class="fa fa-trash"/>
+                  </p:commandLink>
+                  <p:commandLink ajax="true" action="#{salaCtrl.editarArmario(armario)}" process="@this #{p:component('armarios')}"
+                                 update="#{p:component('armarios')}" styleClass="margin-left" rendered="#{not armario.editing}">
+                    <span class="fa fa-pencil"/>
+                  </p:commandLink>
+                </p:column>
+              </p:dataTable>
+            </h:panelGroup>
+          </p:panel>
+        </f:facet>
+
+      </vah:editForm>
+    </h:form>
+  </ui:define>
+</ui:composition>
