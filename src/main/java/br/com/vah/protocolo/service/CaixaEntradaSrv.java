@@ -1,25 +1,25 @@
 package br.com.vah.protocolo.service;
 
-import br.com.vah.protocolo.constants.CaixaEntradaFieldEnum;
-import br.com.vah.protocolo.entities.dbamv.Atendimento;
-import br.com.vah.protocolo.entities.dbamv.Convenio;
-import br.com.vah.protocolo.entities.dbamv.RegFaturamento;
-import br.com.vah.protocolo.entities.dbamv.Setor;
-import br.com.vah.protocolo.entities.usrdbvah.CaixaEntrada;
-import br.com.vah.protocolo.entities.usrdbvah.DocumentoProtocolo;
-import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
-import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
-import br.com.vah.protocolo.util.PaginatedSearchParam;
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Disjunction;
-import org.hibernate.criterion.Restrictions;
-
-import javax.ejb.Stateless;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import javax.ejb.Stateless;
+
+import org.hibernate.Criteria;
+import org.hibernate.criterion.Restrictions;
+
+import br.com.vah.protocolo.constants.CaixaEntradaFieldEnum;
+import br.com.vah.protocolo.entities.dbamv.Atendimento;
+import br.com.vah.protocolo.entities.dbamv.Convenio;
+import br.com.vah.protocolo.entities.dbamv.RegFaturamento;
+import br.com.vah.protocolo.entities.usrdbvah.CaixaEntrada;
+import br.com.vah.protocolo.entities.usrdbvah.DocumentoProtocolo;
+import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
+import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
+import br.com.vah.protocolo.util.PaginatedSearchParam;
 
 /**
  * Created by Jairoportela on 20/03/2017.

@@ -31,7 +31,10 @@ public class Atendimento extends BaseEntity {
 
   @Column(name = "DT_ALTA")
   private Date dataAlta;
-
+  
+  @Column(name = "TP_ATENDIMENTO")
+  private String tipo;
+  
   @Override
   public Long getId() {
     return id;
@@ -74,4 +77,12 @@ public class Atendimento extends BaseEntity {
   public String getLabelForSelectItem() {
     return String.format("%d - %s", id, paciente.getName());
   }
+
+public String getTipo() {
+	return tipo;
+}
+
+public void setTipo(String tipo) {
+	this.tipo = tipo;
+}
 }

@@ -1,19 +1,23 @@
 package br.com.vah.protocolo.filter;
 
 
-import br.com.vah.protocolo.constants.RolesEnum;
-import br.com.vah.protocolo.controllers.SessionController;
-import br.com.vah.protocolo.constants.RestrictViewsEnum;
-import br.com.vah.protocolo.entities.dbamv.Setor;
-import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
-import br.com.vah.protocolo.entities.usrdbvah.User;
-
+import java.io.IOException;
 
 import javax.inject.Inject;
-import javax.servlet.*;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+
+import br.com.vah.protocolo.constants.RestrictViewsEnum;
+import br.com.vah.protocolo.constants.RolesEnum;
+import br.com.vah.protocolo.controllers.SessionController;
+import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
+import br.com.vah.protocolo.entities.usrdbvah.User;
 
 /**
  * To prevent user from going back to Login page if the user already logged in
