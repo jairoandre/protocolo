@@ -1,0 +1,13 @@
+<ui:composition
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:f="http://java.sun.com/jsf/core"
+  xmlns:ui="http://java.sun.com/jsf/facelets">
+
+  <f:metadata>
+    <f:viewParam name="id" value="#{salaCtrl.id}" />
+    <f:viewAction action="#{salaCtrl.onLoadForDetail}" />
+  </f:metadata>
+
+  <ui:include src="edit.xhtml"/>
+
+</ui:composition>

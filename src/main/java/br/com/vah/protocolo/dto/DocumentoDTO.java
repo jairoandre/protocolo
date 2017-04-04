@@ -297,6 +297,10 @@ public class DocumentoDTO {
     this.selected = selected;
   }
 
+  public Integer getSelectedInteger() {
+    return selected ? 1 : 0;
+  }
+
   public String getRowKey() {
     if (codigo != null && tipo != null) {
       return String.format("%d%s", codigo, tipo);

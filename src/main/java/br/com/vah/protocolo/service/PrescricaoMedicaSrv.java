@@ -41,6 +41,7 @@ public class PrescricaoMedicaSrv extends AbstractSrv<PrescricaoMedica> {
     Criteria criteria = session.createCriteria(PrescricaoMedica.class, "pre");
 
     criteria.add(Restrictions.eq("atendimento", protocolo.getAtendimento()));
+    criteria.add(Restrictions.isNotNull("dataHoraImpressao"));
     criteria.setFetchMode("items", FetchMode.SELECT);
 
     Criteria subCriteria = criteria.createCriteria("unidade", "u", JoinType.LEFT_OUTER_JOIN);

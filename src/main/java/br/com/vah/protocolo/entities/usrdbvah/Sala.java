@@ -3,6 +3,7 @@ package br.com.vah.protocolo.entities.usrdbvah;
 import br.com.vah.protocolo.entities.BaseEntity;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -22,11 +23,11 @@ public class Sala extends BaseEntity {
   @Column(name = "NM_TITULO")
   private String titulo;
 
-  @OneToMany(mappedBy = "sala")
-  private List<Armario> armarios;
+  @OneToMany(mappedBy = "sala", cascade = CascadeType.ALL)
+  private List<Armario> armarios = new ArrayList<>();
 
   @Column(name = "DT_CRIACAO")
-  private Date criacao;
+  private Date criacao = new Date();
 
   public Long getId() {
     return id;

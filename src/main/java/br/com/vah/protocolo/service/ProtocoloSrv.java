@@ -657,7 +657,7 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
       DocumentoProtocolo documento = itemProtocolo.getDocumento();
       Protocolo filho = itemProtocolo.getFilho();
       if (documento != null) {
-        checkDates(documento.getDataHoraImpressao(), range);
+        checkDates(documento.getDataHoraCriacao(), range);
       } else if (filho != null) {
         contas.addAll(inferirContasInitialize(filho));
       }
@@ -701,6 +701,18 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
 
     if (acao != null) {
       addHistorico(protocolo, user, origem, destino, acao);
+      protocolo.setLocalizacao(origem.getTitle());
+      if (!SetorNivelEnum.SECRETARIA.equals(origem.getNivel())) {
+        protocolo.getItens().forEach((item) -> {
+          Protocolo filho = item.getFilho();
+          // Adiciona histório aos protocolos filhos
+          if (filho != null) {
+            Protocolo att = initializeLists(filho);
+            addHistorico(att, user, origem, destino, acao);
+            update(att);
+          }
+        });
+      }
       protocolo.setEstado(getEstadoPorAcao(acao));
     }
 
@@ -719,6 +731,7 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
 
     // No recebimento, cria itens na caixa de entrada.
     if (AcaoHistoricoEnum.RECEBIMENTO.equals(acao)) {
+      protocolo.setLocalizacao(destino.getTitle());
       protocolo.setDataResposta(new Date());
       SetorNivelEnum nivelOrigem = protocolo.getOrigem().getNivel();
       SetorNivelEnum nivelDestino = protocolo.getDestino().getNivel();

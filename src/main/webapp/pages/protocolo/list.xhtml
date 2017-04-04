@@ -153,6 +153,12 @@
                            for="#{p:component('destinoOutput')}"/>
             </p:column>
 
+            <p:column headerText="Localização" width="115" styleClass="left-align ellipsis-text">
+              <h:outputText id="localizacaoOutput" value="#{item.localizacao}" rendered="#{not empty item.localizacao}"/>
+              <vah:toolTip id="localizacaoTooltip" value="#{item.localizacao}" index="#{indexVar}"
+                           for="#{p:component('localizacaoOutput')}"/>
+            </p:column>
+
             <p:column headerText="Envio" width="75" sortBy="#{item.dataEnvio}" styleClass="left-align">
               <h:outputText id="envioOutput" value="#{item.dataEnvio}">
                 <f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="GMT-3"/>
@@ -316,7 +322,7 @@
                     rendered="#{protocoloCtrl.renderHistoricoDlg}"
                     modal="true"
                     position="top"
-                    width="750">
+                    width="800">
             <f:facet name="header">
               <h:outputText value="Histórico - Protocolo nº #{protocoloCtrl.item.id}"/>
             </f:facet>

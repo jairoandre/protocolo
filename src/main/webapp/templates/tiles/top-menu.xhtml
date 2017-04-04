@@ -9,17 +9,26 @@
       <p:menuitem action="/pages/index.xhtml?faces-redirect=true" onstart="PF('changePage').show()">
         <h:graphicImage library="img" name="favicon.png" height="15"/>
       </p:menuitem>
-      <p:menuitem value="Usuários"
-                  action="/pages/user/list.xhtml?faces-redirect=true" ajax="false"
-                  rendered="#{sessionController.isUserInRoles('ADMINISTRATOR')}"
-                  icon="fa fa-user" onclick="PF('changePage').show()"/>
-      <p:menuitem value="Setores"
-                  action="/pages/setor/list.xhtml?faces-redirect=true" ajax="false"
-                  rendered="#{sessionController.isUserInRoles('ADMINISTRATOR')}"
-                  icon="fa fa-user" onclick="PF('changePage').show()"/>
-      <p:menuitem value="Movimentações"
+      <p:submenu label="Cadastro" icon="fa fa-database">
+        <p:menuitem value="Usuários"
+                    action="/pages/user/list.xhtml?faces-redirect=true" ajax="false"
+                    rendered="#{sessionController.isUserInRoles('ADMINISTRATOR')}"
+                    icon="fa fa-user" onclick="PF('changePage').show()"/>
+        <p:menuitem value="Setores"
+                    action="/pages/setor/list.xhtml?faces-redirect=true" ajax="false"
+                    rendered="#{sessionController.isUserInRoles('ADMINISTRATOR')}"
+                    icon="fa fa-puzzle-piece" onclick="PF('changePage').show()"/>
+        <p:menuitem value="Salas"
+                    action="/pages/sala/list.xhtml?faces-redirect=true" ajax="false"
+                    icon="fa fa-hospital-o" onclick="PF('changePage').show()"/>
+      </p:submenu>
+
+      <p:menuitem value="Protocolo"
                   action="/pages/protocolo/list.xhtml?faces-redirect=true" ajax="false"
                   icon="fa fa-file" onclick="PF('changePage').show()"/>
+      <p:menuitem value="SAME"
+                  action="/pages/same/index.xhtml?faces-redirect=true" ajax="false"
+                  icon="fa fa-archive" onclick="PF('changePage').show()"/>
       <p:submenu icon="fa fa-search" label="Consultas">
         <p:menuitem value="Contas"
                     action="/pages/caixaEntrada/list.xhtml?faces-redirect=true" ajax="false"

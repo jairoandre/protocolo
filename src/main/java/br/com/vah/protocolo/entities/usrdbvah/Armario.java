@@ -30,13 +30,16 @@ public class Armario extends BaseEntity {
   private List<ItemArmario> itens;
 
   @Column(name = "DT_CRIACAO")
-  private Date criacao;
+  private Date criacao = new Date();
 
   @Column(name = "VL_COLUNAS")
   private Integer colunas;
 
   @Column(name = "VL_LINHAS")
   private Integer linhas;
+
+  @Transient
+  private Boolean editing;
 
   public Long getId() {
     return id;
@@ -92,6 +95,14 @@ public class Armario extends BaseEntity {
 
   public void setLinhas(Integer linhas) {
     this.linhas = linhas;
+  }
+
+  public Boolean getEditing() {
+    return editing;
+  }
+
+  public void setEditing(Boolean editing) {
+    this.editing = editing;
   }
 
   @Override
