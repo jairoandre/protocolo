@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import javax.ejb.Stateless;
+import javax.persistence.Query;
 
 import org.hibernate.Criteria;
 import org.hibernate.Session;
@@ -39,22 +40,21 @@ public class PacienteSrv extends AbstractSrv<Paciente> {
 		return paciente;
 	}
 
-	/*public Paciente initializeListsProtocolos(Long id) {
-		List<Protocolo> tempAtendimento = new ArrayList<>();
-		Protocolo protocolo = find(id);
-
-		new HashSet<>(paciente.getAtendimentos());
-
-		for (Protocolo atendimento : paciente.getAtendimentos()) {
-			if (atendimento.getTipo().equalsIgnoreCase("I")) {
-				tempAtendimento.add(atendimento);
-			}
-		}
-
-		paciente.setAtendimentos(tempAtendimento);
-
-		return paciente;
-	}*/
+	public String localizacaoProntuario(Long id) {
+		String localizacao = null;
+		Session session = getEm().unwrap(Session.class);
+		Query consulta = (Query) session.createSQLQuery("SELECT NPTC.NM_LOCALIZACAO FROM TB_NPTC_PROTOCOLO NPTC"
+				+ " WHERE NPTC.CD_ATENDIMENTO = "+id);
+		
+		localizacao = (String) consulta.getSingleResult();
+		
+		
+		
+		
+		
+		
+		return localizacao;
+	}
 
 	public Criteria createCriteria(PaginatedSearchParam params) {
 		Session session = getEm().unwrap(Session.class);

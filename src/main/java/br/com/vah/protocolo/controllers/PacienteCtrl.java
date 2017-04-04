@@ -12,6 +12,7 @@ import javax.inject.Named;
 
 import org.primefaces.event.SelectEvent;
 
+import br.com.vah.protocolo.entities.dbamv.Atendimento;
 import br.com.vah.protocolo.entities.dbamv.Paciente;
 import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
 import br.com.vah.protocolo.service.AbstractSrv;
@@ -66,8 +67,14 @@ public class PacienteCtrl extends AbstractCtrl<Paciente> {
 	}
 
 	public void onPacienteSelect() {
+		String local = null;
 		this.paciente = service.initializeListsAtendimentos(new Long(1));
-		//this.protocolos = service.initializeListsAtendimentos(this.paciente.getAtendimentos());
+		
+		for (Atendimento atendimento : this.paciente.getAtendimentos()){
+			
+			local = service.localizacaoProntuario(atendimento.getId());
+			System.out.println(local);
+		}
 	}
 
 	public Paciente getPaciente() {
