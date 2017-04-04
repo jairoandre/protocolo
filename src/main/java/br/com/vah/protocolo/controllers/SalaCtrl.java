@@ -1,19 +1,15 @@
 package br.com.vah.protocolo.controllers;
 
-import br.com.vah.protocolo.dto.DocumentoDTO;
-import br.com.vah.protocolo.entities.dbamv.ProFat;
 import br.com.vah.protocolo.entities.usrdbvah.Armario;
 import br.com.vah.protocolo.entities.usrdbvah.Sala;
 import br.com.vah.protocolo.service.AbstractSrv;
 import br.com.vah.protocolo.service.SalaSrv;
-import br.com.vah.protocolo.service.SetorSrv;
 
 import javax.annotation.PostConstruct;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.Date;
-import java.util.List;
 import java.util.logging.Logger;
 
 /**

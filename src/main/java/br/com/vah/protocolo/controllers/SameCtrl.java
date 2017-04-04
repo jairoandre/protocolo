@@ -4,8 +4,7 @@ import br.com.vah.protocolo.constants.SetorNivelEnum;
 import br.com.vah.protocolo.dto.DocumentoDTO;
 import br.com.vah.protocolo.entities.dbamv.Convenio;
 import br.com.vah.protocolo.entities.dbamv.Documento;
-import br.com.vah.protocolo.entities.usrdbvah.CaixaEntrada;
-import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
+import br.com.vah.protocolo.entities.usrdbvah.*;
 import br.com.vah.protocolo.service.CaixaEntradaSrv;
 import br.com.vah.protocolo.service.ProtocoloSrv;
 import br.com.vah.protocolo.util.DtoKeyEntry;
@@ -52,6 +51,25 @@ public class SameCtrl implements Serializable {
 
   private Convenio convenio;
 
+  private Boolean arquivarDlg;
+
+  private Integer tipoArquivamento;
+
+  private Caixa caixa;
+
+  private Armario armario;
+
+  private Envelope envelope;
+
+  private List<String> linhas;
+
+  private List<String> colunas;
+
+  private String linha;
+
+  private String coluna;
+
+
   public void navigate(Integer route) {
     this.route = route;
   }
@@ -61,6 +79,8 @@ public class SameCtrl implements Serializable {
     final List<DocumentoDTO> dtos = new ArrayList<>();
     naoVinculados.forEach((caixa) -> dtos.add(new DocumentoDTO(caixa)));
     pendentes = dtos;
+    selecteds = null;
+    filtereds = null;
   }
 
   public void pendentesSelectRow(SelectEvent evt) {
@@ -89,6 +109,59 @@ public class SameCtrl implements Serializable {
   public void closeDocumentosDlg() {
     protocoloToVisualize = null;
     documentosToVisualize = null;
+  }
+
+  public void changeArmario() {
+    linhas = null;
+    colunas = null;
+    linha = null;
+    coluna = null;
+    if (armario != null) {
+      linhas = new ArrayList<>();
+      colunas = new ArrayList<>();
+      for (int i = 1; i <= armario.getLinhas(); i++) {
+        linhas.add(String.format("%d", i));
+      }
+      int charConst = 65;
+      for (int j = 0; j <= armario.getColunas(); j++) {
+        int currChar = charConst + j;
+        if (currChar > 90) {
+          currChar = charConst;
+        }
+        colunas.add(Character.toString((char) currChar));
+      }
+    }
+  }
+
+  // PENDENTES
+
+  public void closeArquivarDlg() {
+    pendentesPreArquivar();
+    arquivarDlg = false;
+  }
+
+  public void pendentesPreArquivar() {
+    arquivarDlg = true;
+    tipoArquivamento = null;
+    caixa = null;
+    armario = null;
+    envelope = null;
+    linha = null;
+    coluna = null;
+  }
+
+  public void pendentesMarcarTodos() {
+    if (pendentes != null) {
+      pendentes.forEach((pendente) -> pendente.setSelected(true));
+      selecteds = pendentes;
+    }
+  }
+
+  public void pendentesDesmarcarTodos() {
+    if (pendentes != null) {
+      pendentes.forEach((pendente) -> pendente.setSelected(false));
+      selecteds = null;
+    }
   }
 
   // GETTERS AND SETTERS
@@ -155,5 +228,69 @@ public class SameCtrl implements Serializable {
 
   public void setConvenio(Convenio convenio) {
     this.convenio = convenio;
+  }
+
+  public Boolean getArquivarDlg() {
+    return arquivarDlg;
+  }
+
+  public void setArquivarDlg(Boolean arquivarDlg) {
+    this.arquivarDlg = arquivarDlg;
+  }
+
+  public Caixa getCaixa() {
+    return caixa;
+  }
+
+  public void setCaixa(Caixa caixa) {
+    this.caixa = caixa;
+  }
+
+  public Armario getArmario() {
+    return armario;
+  }
+
+  public void setArmario(Armario armario) {
+    this.armario = armario;
+  }
+
+  public Envelope getEnvelope() {
+    return envelope;
+  }
+
+  public void setEnvelope(Envelope envelope) {
+    this.envelope = envelope;
+  }
+
+  public String getLinha() {
+    return linha;
+  }
+
+  public void setLinha(String linha) {
+    this.linha = linha;
+  }
+
+  public String getColuna() {
+    return coluna;
+  }
+
+  public void setColuna(String coluna) {
+    this.coluna = coluna;
+  }
+
+  public Integer getTipoArquivamento() {
+    return tipoArquivamento;
+  }
+
+  public void setTipoArquivamento(Integer tipoArquivamento) {
+    this.tipoArquivamento = tipoArquivamento;
+  }
+
+  public List<String> getLinhas() {
+    return linhas;
+  }
+
+  public List<String> getColunas() {
+    return colunas;
   }
 }

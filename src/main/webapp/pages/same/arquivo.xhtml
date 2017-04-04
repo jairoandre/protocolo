@@ -9,7 +9,7 @@
         <f:facet name="header">
             <h:outputText value="Documentos Pendentes - "/>
             <h:outputText id="pendentesSelectCount"
-                          value="#{sameCtrl.pendentesSelectCount} selecionado(s)"/>
+                          value="#{sameCtrl.pendentesSelectCount} marcado(s)"/>
         </f:facet>
         <h:panelGroup id="pendentesSearchParams" layout="block" style="margin: 5px 0;">
             <h:panelGrid columns="3" rendered="#{protocoloCtrl.item.origem.nivel ne 'SECRETARIA'}">
@@ -51,11 +51,11 @@
                 <p:ajax event="rowSelect"
                         listener="#{sameCtrl.pendentesSelectRow}"
                         process="@this"
-                        update="@this #{p:component('pendentesSelectCount')}"/>
+                        update="@this #{p:component('pendentesSelectCount')} #{p:component('arquivoActionsPnl')}"/>
                 <p:ajax event="rowUnselect"
                         listener="#{sameCtrl.unselectRow}"
                         process="@this"
-                        update="@this #{p:component('pendentesSelectCount')}"/>
+                        update="@this #{p:component('pendentesSelectCount')} #{p:component('arquivoActionsPnl')}"/>
                 <p:columnGroup type="header">
                     <p:row>
                         <p:column width="20"/>
@@ -89,12 +89,84 @@
                                  index="#{idx}"/>
                 </p:column>
                 <p:column style="text-align: center;">
-                    <p:commandButton icon="fa fa-search" value="Qtd. Docs." ajax="true"/>
+                    <h:panelGroup>
+                        <p:commandButton icon="fa fa-search" value="Sumário" ajax="true"/>
+                    </h:panelGroup>
                 </p:column>
             </p:dataTable>
         </h:panelGroup>
-        <h:panelGroup id="arquivoActionsPnl">
-
+        <h:panelGroup id="arquivarDlgPnl" layout="block" style="margin: 5px 0;">
+            <p:panel id="arquivarDlg" header="Local de arquivamento">
+                <h:panelGrid id="arquivoDlgFields" columns="9">
+                    <p:outputLabel value="Tipo"/>
+                    <p:selectOneRadio value="#{sameCtrl.tipoArquivamento}">
+                        <p:ajax event="change" process="@this"
+                                update="arquivoDlgFields"/>
+                        <f:selectItem itemValue="0" itemLabel="Armário"/>
+                        <f:selectItem itemValue="1" itemLabel="Caixa"/>
+                    </p:selectOneRadio>
+                    <p:spacer width="20"/>
+                    <p:outputLabel value="#{sameCtrl.tipoArquivamento eq 0 ? 'Armário' : 'Caixa'}"
+                                   rendered="#{not empty sameCtrl.tipoArquivamento}"/>
+                    <p:autoComplete id="armarioDlg" value="#{sameCtrl.armario}"
+                                    widgetVar="armarioDlg"
+                                    queryDelay="150"
+                                    var="armario"
+                                    itemLabel="#{armario.labelForSelectItem}"
+                                    itemValue="#{armario}"
+                                    onclick="this.setSelectionRange(0, this.value.length)"
+                                    converter="#{armarioConverter}"
+                                    required="true"
+                                    inputStyleClass="lance-input"
+                                    completeMethod="#{armarioCtrl.completeMethod}"
+                                    placeholder="Armário/Sala"
+                                    rendered="#{sameCtrl.tipoArquivamento eq 0}">
+                        <p:ajax event="change" listener="#{sameCtrl.changeArmario}" process="@this"
+                                update="linhas colunas"/>
+                        <p:ajax event="itemSelect" listener="#{sameCtrl.changeArmario}" process="@this"
+                                update="linhas colunas"/>
+                        <p:column>
+                            <h:outputText value="#{armario.labelForSelectItem}"/>
+                        </p:column>
+                    </p:autoComplete>
+                    <p:outputLabel value="Linha" rendered="#{sameCtrl.tipoArquivamento eq 0}"/>
+                    <p:selectOneMenu id="linhas" value="#{sameCtrl.linha}" rendered="#{sameCtrl.tipoArquivamento eq 0}">
+                        <f:selectItems value="#{sameCtrl.linhas}" var="item" itemLabel="#{item}" itemValue="#{item}"/>
+                    </p:selectOneMenu>
+                    <p:outputLabel value="Coluna" rendered="#{sameCtrl.tipoArquivamento eq 0}"/>
+                    <p:selectOneMenu id="colunas" value="#{sameCtrl.coluna}" rendered="#{sameCtrl.tipoArquivamento eq 0}">
+                        <f:selectItems value="#{sameCtrl.colunas}" var="item" itemLabel="#{item}" itemValue="#{item}"/>
+                    </p:selectOneMenu>
+                    <p:autoComplete id="caixaDlg" value="#{sameCtrl.caixa}"
+                                    widgetVar="caixaDlg"
+                                    queryDelay="150"
+                                    var="caixa"
+                                    itemLabel="#{caixa.titulo}"
+                                    itemValue="#{caixa}"
+                                    onclick="this.setSelectionRange(0, this.value.length)"
+                                    converter="#{caixaConverter}"
+                                    required="true"
+                                    inputStyleClass="lance-input"
+                                    completeMethod="#{caixaCtrl.completeMethod}"
+                                    placeholder="Caixa"
+                                    rendered="#{sameCtrl.tipoArquivamento eq 1}">
+                        <p:column>
+                            <h:outputText value="#{caixa.titulo}"/>
+                        </p:column>
+                    </p:autoComplete>
+                </h:panelGrid>
+            </p:panel>
+        </h:panelGroup>
+        <h:panelGroup id="arquivoActionsPnl" layout="block">
+            <p:commandButton value="Arquivar Marcados" icon="fa fa-archive" action="#{sameCtrl.pendentesPreArquivar}"
+                             process="@this pendentesTablePnl" update="@this arquivarDlgPnl"
+                             disabled="#{empty sameCtrl.selecteds}"/>
+            <p:spacer width="5"/>
+            <p:commandButton value="Marcar Todos" icon="fa fa-check-square-o" action="#{sameCtrl.pendentesMarcarTodos}"
+                             process="@this" update="pendentesTablePnl arquivoActionsPnl"/>
+            <p:spacer width="5"/>
+            <p:commandButton value="Desmarcar Todos" icon="fa fa-square-o" action="#{sameCtrl.pendentesDesmarcarTodos}"
+                             process="@this" update="pendentesTablePnl arquivoActionsPnl"/>
         </h:panelGroup>
     </p:panel>
 
@@ -163,5 +235,6 @@
 
         </p:dialog>
     </h:panelGroup>
+
 
 </ui:composition>

@@ -748,6 +748,10 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
       } else {
         // Cria um item de caixa pra o protocolo recebido
         protocolo.getItens().forEach((item) -> {
+          Protocolo filho = find(item.getFilho().getId());
+          // Muda "indiretamente" a localização do protocolo filho.
+          filho.setLocalizacao(destino.getTitle());
+          update(filho);
           CaixaEntrada caixa = caixaSrv.criarCaixa(item.getFilho());
           // Altera a origem e o destino para coincidir com o protocolo que está sendo recebido.
           // Isto é necessário, pois o método "criarCaixa" utiliza origem/destino do protocolo passado como parâmetro.

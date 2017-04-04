@@ -29,6 +29,8 @@ public class DocumentoDTO {
 
   private Boolean selected = false;
 
+  public DocumentoDTO() {}
+
   public void createDocumento() {
     this.documento = new DocumentoProtocolo();
     this.documento.setCodigo(codigo);
