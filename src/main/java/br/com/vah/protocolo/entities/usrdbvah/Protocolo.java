@@ -68,6 +68,9 @@ public class Protocolo extends BaseEntity {
   @Column(name = "SN_ARQUIVADO")
   private Boolean arquivado = false;
 
+  @Column(name = "NM_LOCALIZACAO")
+  private String localizacao;
+
   @Override
   public Long getId() {
     return id;
@@ -172,6 +175,14 @@ public class Protocolo extends BaseEntity {
 
   public void setComentarios(List<Comentario> comentarios) {
     this.comentarios = comentarios;
+  }
+
+  public String getLocalizacao() {
+    return localizacao;
+  }
+
+  public void setLocalizacao(String localizacao) {
+    this.localizacao = localizacao;
   }
 
   @Override

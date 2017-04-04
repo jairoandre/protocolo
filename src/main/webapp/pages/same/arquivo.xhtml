@@ -69,8 +69,7 @@
                                   headerText="Convênio/Atendimento"
                                   sortBy="#{doc.consPrestConv}"
                                   styleClass="left-align ellipsis-text"/>
-                        <p:column id="pendenteSumario" headerText="Sumário" styleClass="left-align"
-                                  width="90"/>
+                        <p:column width="120"/>
                     </p:row>
                 </p:columnGroup>
                 <p:column style="text-align: center;">
@@ -90,9 +89,12 @@
                                  index="#{idx}"/>
                 </p:column>
                 <p:column style="text-align: center;">
-                    <p:commandLink styleClass="fa fa-check" ajax="true"/>
+                    <p:commandButton icon="fa fa-search" value="Qtd. Docs." ajax="true"/>
                 </p:column>
             </p:dataTable>
+        </h:panelGroup>
+        <h:panelGroup id="arquivoActionsPnl">
+
         </h:panelGroup>
     </p:panel>
 

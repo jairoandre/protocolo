@@ -165,6 +165,10 @@ a.action-link:HOVER, td.action-link a:HOVER {
   background-color: #C8DBFF;
 }
 
+.center-align {
+  text-align: center !important;
+}
+
 .left-align {
   text-align: left !important;
 }
