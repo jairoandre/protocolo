@@ -1,0 +1,248 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:uivah="http://vah.com.br/vah"
+                xmlns:vah="http://java.sun.com/jsf/composite/vah">
+    <h:panelGroup id="pendentesSearchParams" layout="block" style="margin: 5px 0;">
+        <h:panelGrid columns="3" rendered="#{protocoloCtrl.item.origem.nivel ne 'SECRETARIA'}">
+            <p:outputLabel value="Contas:" styleClass="lance-label"/>
+            <p:inputText id="listaContas" value="#{sameCtrl.listaContas}"
+                         placeholder="Contas separadas por ';'" style="width: 450px;"/>
+            <h:panelGroup/>
+            <uivah:autoComplete id="convenio" value="#{sameCtrl.convenio}" label="Convênio:"
+                                controller="#{convenioCtrl}" completeMethod="completeMethod"
+                                converter="#{convenioConverter}" itemLabel="labelForSelectItem"
+                                styleClass="client-input"
+                                placeholder="Convênio...">
+                <p:ajax event="itemSelect" listener="#{protocoloCtrl.recuperarDadosRascunho}"
+                        process="@this" update="@form"/>
+                <p:column width="75">
+                    #{item.id}
+                </p:column>
+                <p:column>
+                    #{item.title}
+                </p:column>
+            </uivah:autoComplete>
+        </h:panelGrid>
+        <p:commandButton id="pendentesSearchBtn" value="Buscar" action="#{sameCtrl.buscarPendentes}"
+                         process="pendentesSearchParams"
+                         update="pendentesTable"/>
+    </h:panelGroup>
+    <h:panelGroup id="pendentesTablePnl" layout="block" style="margin: 5px 0;">
+        <p:dataTable id="pendentesTable" value="#{sameCtrl.pendentes}"
+                     var="doc" rowKey="#{doc.rowKey}"
+                     rowSelectMode="checkbox"
+                     paginator="true"
+                     rows="20"
+                     paginatorPosition="bottom"
+                     sortBy="#{doc.dataHoraCriacao}" rowIndexVar="idx"
+                     emptyMessage="Busque por items"
+                     selectionMode="multiple"
+                     selection="#{sameCtrl.selecteds}"
+                     filteredValue="#{sameCtrl.filtereds}">
+            <f:facet name="header">
+                <h:panelGroup layout="block">
+                    <h:outputText value="Documentos Pendentes - "/>
+                    <h:outputText id="pendentesSelectCount"
+                                  value="#{sameCtrl.pendentesSelectCount} marcado(s)"/>
+                </h:panelGroup>
+            </f:facet>
+            <p:ajax event="rowSelect"
+                    listener="#{sameCtrl.pendentesSelectRow}"
+                    process="@this"
+                    update="@this pendentesSelectCount #{p:component('arquivoActionsPnl')}"/>
+            <p:ajax event="rowUnselect"
+                    listener="#{sameCtrl.unselectRow}"
+                    process="@this"
+                    update="@this pendentesSelectCount #{p:component('arquivoActionsPnl')}"/>
+            <p:columnGroup type="header">
+                <p:row>
+                    <p:column width="20"/>
+                    <p:column id="descNaoRelac" headerText="Conta"
+                              sortBy="#{doc.descricao}"
+                              filterBy="#{doc.descricao}"
+                              filterStyle="display: inline-block;"
+                              filterMatchMode="contains"
+                              styleClass="left-align ellipsis-text" width="300"/>
+                    <p:column id="consPrestConvNaoRelac"
+                              headerText="Convênio/Atendimento"
+                              sortBy="#{doc.consPrestConv}"
+                              styleClass="left-align ellipsis-text"/>
+                    <p:column width="120"/>
+                </p:row>
+            </p:columnGroup>
+            <p:column style="text-align: center;">
+                <h:panelGroup styleClass="fa #{doc.selected ? 'fa-check-square-o' : 'fa-square-o'}"/>
+            </p:column>
+            <p:column>
+                <p:commandButton icon="fa fa-eye" value="#{doc.descricao}"
+                                 action="#{sameCtrl.visualizarDoc(doc)}"
+                                 onclick="openLoading();"
+                                 oncomplete="closeLoading(); PF('documentosDlg').show();"
+                                 process="@this" update="#{p:component('documentosDlgPnl')}"/>
+            </p:column>
+            <p:column styleClass="ellipsis-text">
+                <h:outputText id="consPrestConvNaoSelec" value="#{doc.consPrestConv}"/>
+                <vah:toolTip id="consPrestConvNaoSelecTool" for="#{p:component('consPrestConvNaoSelec')}"
+                             value="#{doc.consPrestConv}"
+                             index="#{idx}"/>
+            </p:column>
+            <p:column style="text-align: center;">
+                <h:panelGroup>
+                    <p:commandButton icon="fa fa-search" value="Sumário" ajax="true"/>
+                </h:panelGroup>
+            </p:column>
+        </p:dataTable>
+    </h:panelGroup>
+    <h:panelGroup id="dadosArquivamentoPnl" layout="block" style="margin: 5px 0;">
+        <p:panel id="dadosArquivamento" header="Local de arquivamento">
+            <h:panelGrid id="arquivoDlgFields" columns="9">
+                <p:outputLabel value="Tipo" styleClass="lance-label"/>
+                <p:selectOneRadio value="#{sameCtrl.tipoArquivamento}">
+                    <p:ajax event="change" listener="#{sameCtrl.changeTipo}" process="@this"
+                            update="arquivoDlgFields"/>
+                    <f:selectItem itemValue="0" itemLabel="Armário"/>
+                    <f:selectItem itemValue="1" itemLabel="Caixa"/>
+                </p:selectOneRadio>
+                <p:spacer width="20"/>
+                <p:outputLabel value="#{sameCtrl.tipoArquivamento eq 0 ? 'Armário' : 'Caixa'}"
+                               rendered="#{not empty sameCtrl.tipoArquivamento}"
+                               styleClass="lance-label"/>
+                <p:autoComplete id="armarioDlg" value="#{sameCtrl.armario}"
+                                widgetVar="armarioDlg"
+                                queryDelay="150"
+                                var="armario"
+                                itemLabel="#{armario.labelForSelectItem}"
+                                itemValue="#{armario}"
+                                onclick="this.setSelectionRange(0, this.value.length)"
+                                converter="#{armarioConverter}"
+                                required="true"
+                                inputStyleClass="lance-input"
+                                completeMethod="#{armarioCtrl.completeMethod}"
+                                placeholder="Armário/Sala"
+                                rendered="#{sameCtrl.tipoArquivamento eq 0}">
+                    <p:ajax event="change" listener="#{sameCtrl.changeArmario}" process="@this"
+                            update="linhas colunas"/>
+                    <p:ajax event="itemSelect" listener="#{sameCtrl.changeArmario}" process="@this"
+                            update="linhas colunas"/>
+                    <p:column>
+                        <h:outputText value="#{armario.labelForSelectItem}"/>
+                    </p:column>
+                </p:autoComplete>
+                <p:outputLabel value="Linha" rendered="#{sameCtrl.tipoArquivamento eq 0}"
+                               styleClass="lance-label"/>
+                <p:selectOneMenu id="linhas" value="#{sameCtrl.linha}" rendered="#{sameCtrl.tipoArquivamento eq 0}">
+                    <f:selectItems value="#{sameCtrl.linhas}" var="item" itemLabel="#{item}" itemValue="#{item}"/>
+                </p:selectOneMenu>
+                <p:outputLabel value="Coluna" rendered="#{sameCtrl.tipoArquivamento eq 0}"
+                               styleClass="lance-label"/>
+                <p:selectOneMenu id="colunas" value="#{sameCtrl.coluna}" rendered="#{sameCtrl.tipoArquivamento eq 0}">
+                    <f:selectItems value="#{sameCtrl.colunas}" var="item" itemLabel="#{item}" itemValue="#{item}"/>
+                </p:selectOneMenu>
+                <p:autoComplete id="caixaDlg" value="#{sameCtrl.caixa}"
+                                widgetVar="caixaDlg"
+                                queryDelay="150"
+                                var="caixa"
+                                itemLabel="#{caixa.titulo}"
+                                itemValue="#{caixa}"
+                                onclick="this.setSelectionRange(0, this.value.length)"
+                                converter="#{caixaConverter}"
+                                required="true"
+                                inputStyleClass="lance-input"
+                                completeMethod="#{caixaCtrl.completeMethod}"
+                                placeholder="Caixa"
+                                rendered="#{sameCtrl.tipoArquivamento eq 1}">
+                    <p:ajax event="change" listener="#{sameCtrl.changeCaixa}" process="@this" update="envelopes"/>
+                    <p:ajax event="itemSelect" listener="#{sameCtrl.changeCaixa}" process="@this" update="envelopes"/>
+                    <p:column>
+                        <h:outputText value="#{caixa.titulo}"/>
+                    </p:column>
+                </p:autoComplete>
+                <p:outputLabel value="Envelope" rendered="#{sameCtrl.tipoArquivamento eq 1}"
+                               styleClass="lance-label"/>
+                <p:selectOneMenu id="envelopes" value="#{sameCtrl.envelope}"
+                                 rendered="#{sameCtrl.tipoArquivamento eq 1}" converter="#{envelopeConverter}">
+                    <f:selectItems value="#{sameCtrl.envelopes}" var="item" itemLabel="#{item.titulo}"
+                                   itemValue="#{item}"/>
+                </p:selectOneMenu>
+            </h:panelGrid>
+        </p:panel>
+    </h:panelGroup>
+    <h:panelGroup id="arquivoActionsPnl" layout="block">
+        <p:commandButton value="Arquivar Marcados" icon="fa fa-archive" action="#{sameCtrl.arquivarMarcados}"
+                         process="@this pendentesTablePnl dadosArquivamentoPnl" update="@this pendentesTablePnl dadosArquivamentoPnl"
+                         disabled="#{empty sameCtrl.selecteds}"/>
+        <p:spacer width="5"/>
+        <p:commandButton value="Marcar Todos" icon="fa fa-check-square-o" action="#{sameCtrl.pendentesMarcarTodos}"
+                         process="@this" update="pendentesTablePnl arquivoActionsPnl"/>
+        <p:spacer width="5"/>
+        <p:commandButton value="Desmarcar Todos" icon="fa fa-square-o" action="#{sameCtrl.pendentesDesmarcarTodos}"
+                         process="@this" update="pendentesTablePnl arquivoActionsPnl"/>
+    </h:panelGroup>
+    <h:panelGroup id="documentosDlgPnl">
+        <p:dialog id="documentosDlg"
+                  widgetVar="documentosDlg"
+                  modal="true"
+                  rendered="#{not empty sameCtrl.protocoloToVisualize}"
+                  width="1200">
+
+            <f:facet name="header">
+                <h:outputText value="Visualizar Documentos - Protocolo nº #{sameCtrl.protocoloToVisualize.id}"/>
+            </f:facet>
+
+            <p:tabView value="#{sameCtrl.documentosToVisualize.list}"
+                       var="item"
+                       onTabChange="updateTooltips();"
+                       rendered="#{not empty sameCtrl.documentosToVisualize.list}">
+                <p:tab title="#{item.entry.key}">
+                    <p:dataTable value="#{item.entry.value}" var="doc"
+                                 emptyMessage="Sem documentos"
+                                 paginator="true" rows="10" paginatorPosition="bottom"
+                                 sortBy="#{doc.dataHoraCriacao}" rowIndexVar="idx">
+
+                        <p:column headerText="Cód." width="50" styleClass="left-align">
+                            <h:outputText value="#{doc.codigo}"/>
+                        </p:column>
+                        <p:column headerText="Descrição" styleClass="left-align ellipsis-text" width="150">
+                            <h:outputText id="docDlgDesc" value="#{doc.descricao}"/>
+                            <vah:toolTip id="docDlgDescTool" for="#{p:component('docDlgDesc')}" value="#{doc.descricao}"
+                                         index="#{idx}"/>
+                        </p:column>
+                        <p:column
+                                headerText="#{protocoloCtrl.item.origem.nivel eq 'SECRETARIA' ? 'Conselho/Prestador' : 'Convênio/Atendimento'}"
+                                sortBy="#{doc.consPrestConv}"
+                                styleClass="left-align ellipsis-text" width="225">
+                            <h:outputText id="prestVis" value="#{doc.consPrestConv}"/>
+                            <vah:toolTip id="prestVisTooltip" for="#{p:component('prestVis')}"
+                                         value="#{doc.consPrestConv}"
+                                         index="#{idx}"/>
+                        </p:column>
+                        <p:column headerText="Criação" styleClass="left-align" width="90">
+                            <h:outputText value="#{doc.dataHoraCriacao}">
+                                <f:convertDateTime pattern="dd/MM/yy HH:mm" locale="pt_BR" timeZone="GMT-03:00"/>
+                            </h:outputText>
+                        </p:column>
+                        <p:column headerText="Impressão" styleClass="left-align" width="90">
+                            <h:outputText value="#{doc.dataHoraImpressao}">
+                                <f:convertDateTime pattern="dd/MM/yy HH:mm" locale="pt_BR" timeZone="GMT-03:00"/>
+                            </h:outputText>
+                        </p:column>
+                    </p:dataTable>
+                </p:tab>
+            </p:tabView>
+
+            <f:facet name="footer">
+                <p:commandButton id="closeDocumentosDlg"
+                                 value="Fechar"
+                                 ajax="true"
+                                 action="#{sameCtrl.closeDocumentosDlg}"
+                                 onclick="PF('documentosDlg').hide();"
+                                 process="@this"
+                                 update="#{p:component('documentosDlgPnl')}"/>
+            </f:facet>
+
+        </p:dialog>
+    </h:panelGroup>
+</ui:composition>

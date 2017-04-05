@@ -42,6 +42,9 @@ public class Historico extends BaseEntity{
   @Enumerated(EnumType.ORDINAL)
   private AcaoHistoricoEnum acao;
 
+  @Column(name = "NM_DESCRICAO")
+  private String descricao;
+
 
   public Historico() {
     this.data = new Date();
@@ -110,6 +113,14 @@ public class Historico extends BaseEntity{
 
   public void setAcao(AcaoHistoricoEnum acao) {
     this.acao = acao;
+  }
+
+  public String getDescricao() {
+    return descricao;
+  }
+
+  public void setDescricao(String descricao) {
+    this.descricao = descricao;
   }
 
   @Override

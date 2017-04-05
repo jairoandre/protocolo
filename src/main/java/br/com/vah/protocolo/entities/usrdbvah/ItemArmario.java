@@ -33,7 +33,7 @@ public class ItemArmario extends BaseEntity {
   private String coluna;
 
   @Column(name = "DT_CRIACAO")
-  private Date criacao;
+  private Date criacao = new Date();
 
   public Long getId() {
     return id;

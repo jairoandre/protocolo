@@ -156,12 +156,13 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
 
   }
 
-  public Protocolo addHistorico(Protocolo protocolo, User user, SetorProtocolo origem, SetorProtocolo destino, AcaoHistoricoEnum acao) {
+  public Protocolo addHistorico(Protocolo protocolo, User user, SetorProtocolo origem, SetorProtocolo destino, String descricao, AcaoHistoricoEnum acao) {
     if (user != null) {
       Historico historico = new Historico();
       historico.setAutor(user);
       historico.setOrigem(origem);
       historico.setDestino(destino);
+      historico.setDescricao(descricao);
       historico.setAcao(acao);
       historico.setProtocolo(protocolo);
       if (protocolo.getHistorico() == null) {
@@ -170,6 +171,10 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
       protocolo.getHistorico().add(historico);
     }
     return protocolo;
+  }
+
+  public Protocolo addHistorico(Protocolo protocolo, User user, SetorProtocolo origem, SetorProtocolo destino, AcaoHistoricoEnum acao) {
+    return addHistorico(protocolo, user, origem, destino, null, acao);
   }
 
   /**
@@ -485,7 +490,7 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
           }
         });
         if (candidatos.size() > seraoEnviados.size()) {
-         throw new ProtocoloBusinessException("O envio não foi realizado, pois existem documentos que devem ser incluídos.");
+         throw new ProtocoloBusinessException("O envio não foi realizado, pois existem documentos pendentes de inclusão.");
         }
       }
     }

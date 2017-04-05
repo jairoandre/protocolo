@@ -73,7 +73,7 @@ public class CaixaEntradaSrv extends AbstractSrv<CaixaEntrada> {
 
   public List<CaixaEntrada> busqueDocumentosNaoVinculados(Atendimento atendimento, SetorProtocolo setor) {
     Criteria crit = getSession().createCriteria(CaixaEntrada.class);
-    crit.add(Restrictions.eq("atendimento", atendimento.getId()));
+    crit.add(Restrictions.eq("atendimento", atendimento));
     crit.add(Restrictions.eq("destino", setor));
     crit.add(Restrictions.eq("vinculado", false));
     return crit.list();

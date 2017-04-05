@@ -3,6 +3,7 @@ package br.com.vah.protocolo.entities.usrdbvah;
 import br.com.vah.protocolo.entities.BaseEntity;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -31,10 +32,13 @@ public class Envelope extends BaseEntity {
       joinColumns = {@JoinColumn(name = "ID_PROTOCOLO")},
       inverseJoinColumns = {@JoinColumn(name = "ID_ENVELOPE")},
       schema = "USRDBVAH")
-  private List<Protocolo> itens;
+  private List<Protocolo> itens = new ArrayList<>();
 
   @Column(name = "DT_CRIACAO")
-  private Date criacao;
+  private Date criacao = new Date();
+
+  @Transient
+  private Boolean editing = false;
 
   public Long getId() {
     return id;
@@ -74,6 +78,14 @@ public class Envelope extends BaseEntity {
 
   public void setCriacao(Date criacao) {
     this.criacao = criacao;
+  }
+
+  public Boolean getEditing() {
+    return editing;
+  }
+
+  public void setEditing(Boolean editing) {
+    this.editing = editing;
   }
 
   @Override

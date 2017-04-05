@@ -1,6 +1,7 @@
 package br.com.vah.protocolo.controllers;
 
 import br.com.vah.protocolo.entities.usrdbvah.Caixa;
+import br.com.vah.protocolo.entities.usrdbvah.Envelope;
 import br.com.vah.protocolo.service.AbstractSrv;
 import br.com.vah.protocolo.service.CaixaSrv;
 
@@ -30,6 +31,35 @@ public class CaixaCtrl extends AbstractCtrl<Caixa> {
         logger.info(this.getClass().getSimpleName() + " created");
         setItem(createNewItem());
         initLazyModel(service);
+    }
+
+    @Override
+    public void onLoad() {
+        getLogger().info("Load params");
+        if (getId() == null) {
+            setItem(createNewItem());
+        } else {
+            setItem(service.loadLists(getId()));
+        }
+    }
+
+    public void novoEnvelope() {
+        Envelope envelope = new Envelope();
+        envelope.setEditing(true);
+        envelope.setCaixa(getItem());
+        getItem().getEnvelopes().add(envelope);
+    }
+
+    public void confirmarEnvelope(Envelope envelope) {
+        envelope.setEditing(false);
+    }
+
+    public void removerEnvelope(Envelope envelope) {
+        getItem().getEnvelopes().remove(envelope);
+    }
+
+    public void editarEnvelope(Envelope envelope) {
+        envelope.setEditing(true);
     }
 
 
