@@ -341,7 +341,6 @@
                         <p:tab id="docSelecTab_#{item.entry.key}" title="#{item.entry.key}">
                           <p:dataTable id="docSelecionadosTable" value="#{item.entry.value}"
                                        var="doc"
-                                       widgetVar="docSelecionadosTable"
                                        filteredValue="#{item.filtereds}"
                                        selection="#{item.selecteds}"
                                        selectionMode="multiple"
@@ -356,12 +355,12 @@
                             <p:ajax event="rowSelect"
                                     listener="#{protocoloCtrl.selectRowRecebimento}"
                                     process="@this"
-                                    update="@this"
+                                    update="@this #{p:component('vinculadosCount')}"
                                     rendered="#{protocoloCtrl.editing}"/>
                             <p:ajax event="rowUnselect"
                                     listener="#{protocoloCtrl.unselectRow}"
                                     process="@this"
-                                    update="@this"
+                                    update="@this #{p:component('vinculadosCount')}"
                                     rendered="#{protocoloCtrl.editing}"/>
                             <p:columnGroup type="header">
                               <p:row>

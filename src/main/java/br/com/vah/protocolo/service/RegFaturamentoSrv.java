@@ -39,12 +39,19 @@ public class RegFaturamentoSrv extends AbstractSrv<RegFaturamento> {
     // Contas que iniciam antes do período e terminam dentro do período
     Conjunction iniciaAntesTerminaDentro = Restrictions.conjunction();
     iniciaAntesTerminaDentro.add(Restrictions.lt("inicio", begin));
-    iniciaAntesTerminaDentro.add(Restrictions.between("fim", begin, end));
+    Disjunction fim01 = Restrictions.disjunction();
+    fim01.add(Restrictions.between("fim", begin, end));
+    fim01.add(Restrictions.isNull("fim"));
+    iniciaAntesTerminaDentro.add(fim01);
 
     // Contas que iniciam antes do período e terminam dentro do período
     Conjunction iniciaDentroTerminaFora = Restrictions.conjunction();
     iniciaDentroTerminaFora.add(Restrictions.between("inicio", begin, end));
-    iniciaDentroTerminaFora.add(Restrictions.gt("fim", end));
+    Disjunction fim02 = Restrictions.disjunction();
+    fim02.add(Restrictions.gt("fim", end));
+    fim02.add(Restrictions.isNull("fim"));
+    iniciaDentroTerminaFora.add(fim02);
+
 
     // Contas que iniciam antes do período e terminam dentro do período
     Conjunction iniciaETerminaFora = Restrictions.conjunction();

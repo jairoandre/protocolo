@@ -32,7 +32,8 @@
     </h:panelGroup>
     <h:panelGroup id="pendentesTablePnl" layout="block" style="margin: 5px 0;">
         <p:dataTable id="pendentesTable" value="#{sameCtrl.pendentes}"
-                     var="doc" rowKey="#{doc.rowKey}"
+                     var="doc"
+                     rowKey="#{doc.rowKey}"
                      rowSelectMode="checkbox"
                      paginator="true"
                      rows="20"
