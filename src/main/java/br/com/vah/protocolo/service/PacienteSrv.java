@@ -8,13 +8,14 @@ import javax.ejb.Stateless;
 import javax.persistence.Query;
 
 import org.hibernate.Criteria;
+import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Restrictions;
 
+import br.com.vah.protocolo.dto.HistoricoDTO;
 import br.com.vah.protocolo.entities.dbamv.Atendimento;
 import br.com.vah.protocolo.entities.dbamv.Paciente;
-import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 import br.com.vah.protocolo.util.PaginatedSearchParam;
 
 @Stateless
@@ -40,20 +41,51 @@ public class PacienteSrv extends AbstractSrv<Paciente> {
 		return paciente;
 	}
 
-	public String localizacaoProntuario(Long id) {
-		String localizacao = null;
+	public List<Object[]> localizacaoProntuario(Long id) {
+		List<Object[]> localizacao = new ArrayList<>();
 		Session session = getEm().unwrap(Session.class);
-		Query consulta = (Query) session.createSQLQuery("SELECT NPTC.NM_LOCALIZACAO FROM TB_NPTC_PROTOCOLO NPTC"
-				+ " WHERE NPTC.CD_ATENDIMENTO = "+id);
+		SQLQuery consulta = session.createSQLQuery("SELECT NPTC.* FROM USRDBVAH.TB_NPTC_PROTOCOLO NPTC"
+				+ " WHERE NPTC.CD_ATENDIMENTO = "+id.toString());
 		
-		localizacao = (String) consulta.getSingleResult();
-		
-		
-		
-		
-		
+		localizacao = consulta.list();
 		
 		return localizacao;
+	}
+	
+	public List<HistoricoDTO> historicoAtendimento(Long atendimento) {
+		List<Object[]> historicoObject = new ArrayList<>();
+		List<HistoricoDTO> historicoDTO = new ArrayList<>();
+		Session session = getEm().unwrap(Session.class);
+		SQLQuery consulta = session.createSQLQuery(
+				"SELECT HISTPRO.ID,"
+						+ " HISTPRO.ID_PROTOCOLO,"
+						+ " HISTPRO.DT_ALTERACAO,"
+						+ " HISTPRO.CD_ACAO,"
+						+ " SETORPROORIGEM.NM_SETOR  AS ORIGEM,"
+						+ " SETORPRODESTINO.NM_SETOR AS DESTINO"
+
+						+ " FROM USRDBVAH.TB_NPTC_HISTORICO HISTPRO"
+
+						+ " LEFT JOIN USRDBVAH.TB_NPTC_SETOR SETORPROORIGEM"
+						+ "  ON (HISTPRO.ID_SETOR_ORIGEM = SETORPROORIGEM.CD_SETOR)"
+
+						+ " LEFT JOIN USRDBVAH.TB_NPTC_SETOR SETORPRODESTINO"
+						+ "  ON (HISTPRO.ID_SETOR_DESTINO = SETORPRODESTINO.CD_SETOR)"
+
+						+ " LEFT JOIN USRDBVAH.TB_NPTC_PROTOCOLO PRO"
+						+ "  ON (HISTPRO.ID_PROTOCOLO = PRO.ID)"
+
+						+ " WHERE HISTPRO.ID IN (SELECT T.ID"
+												+ " FROM USRDBVAH.TB_NPTC_HISTORICO T, USRDBVAH.TB_NPTC_PROTOCOLO P"
+												+ " WHERE T.ID_PROTOCOLO = P.ID"
+												+ " AND P.Cd_Atendimento ="+atendimento.toString()+")");
+		
+		historicoObject = consulta.list();
+		
+		for (Object[] obj : historicoObject ){
+			historicoDTO.add(new HistoricoDTO(obj));
+		}
+		return historicoDTO;
 	}
 
 	public Criteria createCriteria(PaginatedSearchParam params) {

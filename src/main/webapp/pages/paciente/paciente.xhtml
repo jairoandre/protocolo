@@ -26,7 +26,22 @@
 				<p:column headerText="Atendimentos">
 					<p:outputLabel value="#{paciente.labelForSelectItem}" />
 				</p:column>
-			</p:dataTable>
+				<p:column headerText="Localização">
+					<p:outputLabel value="#{pacienteCtrl.localizacaoProntuario}" />
+				</p:column>
+		</p:dataTable>
+		
+		<p:dataTable id="tbHistorico" widgetVar="tbHistorico" var="atendimento" value="#{pacienteCtrl.protocolos}">
+				<p:column headerText="Protocolo">
+					<p:outputLabel value="#{atendimento.idProtocolo}" />
+				</p:column>
+				<p:column headerText="Estado">
+					<p:outputLabel value="#{atendimento.acao}" />
+				</p:column>
+				<p:column>
+					<p:outputLabel value="#{atendimento.setorOrigem}" />
+				</p:column>
+		</p:dataTable>
 		</h:panelGrid>
 
 	</ui:define>

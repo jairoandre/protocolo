@@ -1,20 +1,19 @@
 package br.com.vah.protocolo.controllers;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
-import javax.faces.application.FacesMessage;
-import javax.faces.context.FacesContext;
-import javax.faces.event.ActionEvent;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.primefaces.event.SelectEvent;
-
+import br.com.vah.protocolo.dto.HistoricoDTO;
 import br.com.vah.protocolo.entities.dbamv.Atendimento;
 import br.com.vah.protocolo.entities.dbamv.Paciente;
-import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
+import br.com.vah.protocolo.entities.usrdbvah.Historico;
+import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 import br.com.vah.protocolo.service.AbstractSrv;
 import br.com.vah.protocolo.service.PacienteSrv;
 
@@ -27,6 +26,10 @@ public class PacienteCtrl extends AbstractCtrl<Paciente> {
 	private @Inject PacienteSrv service;
 	
 	private Paciente paciente;
+	
+	private String localizacaoProntuario;
+	
+	private List<HistoricoDTO> protocolos;
 	
 	@PostConstruct
 	public void init() {
@@ -67,14 +70,25 @@ public class PacienteCtrl extends AbstractCtrl<Paciente> {
 	}
 
 	public void onPacienteSelect() {
-		String local = null;
+		List<Object[]> local = new ArrayList<>();
+		List<HistoricoDTO> hist = new ArrayList<>();
+		this.localizacaoProntuario = null;
+		this.protocolos = new ArrayList<>();
 		this.paciente = service.initializeListsAtendimentos(new Long(1));
 		
 		for (Atendimento atendimento : this.paciente.getAtendimentos()){
 			
 			local = service.localizacaoProntuario(atendimento.getId());
-			System.out.println(local);
+			System.out.println(local.get(0)[10]);
+			setLocalizacaoProntuario(local.get(0)[10].toString());
+			
+			//hist.addAll(service.historicoAtendimento(atendimento.getId()));
+			this.protocolos = service.historicoAtendimento(atendimento.getId());
+			
+			//System.out.println(hist.get(0).getId()+" "+hist.get(0).getAcao());
+			//System.out.println(hist.get(1).getId()+" "+hist.get(1).getAcao());
 		}
+		
 	}
 
 	public Paciente getPaciente() {
@@ -83,5 +97,21 @@ public class PacienteCtrl extends AbstractCtrl<Paciente> {
 
 	public void setPaciente(Paciente paciente) {
 		this.paciente = paciente;
+	}
+
+	public String getLocalizacaoProntuario() {
+		return localizacaoProntuario;
+	}
+
+	public void setLocalizacaoProntuario(String localizacaoProntuario) {
+		this.localizacaoProntuario = localizacaoProntuario;
+	}
+
+	public List<HistoricoDTO> getProtocolos() {
+		return protocolos;
+	}
+
+	public void setProtocolos(List<HistoricoDTO> protocolos) {
+		this.protocolos = protocolos;
 	}
 }
