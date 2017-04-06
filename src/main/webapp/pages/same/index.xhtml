@@ -4,32 +4,46 @@
                 xmlns:h="http://java.sun.com/jsf/html"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
                 xmlns:p="http://primefaces.org/ui">
-  <ui:define name="content">
-    <h:form id="sameForm">
-      <p:panel header="SAME">
-        <h:panelGroup id="navigation" layout="block" style="margin: 5px 0;">
-          <p:commandLink value="Documentos" action="#{sameCtrl.navigate(0)}" process="@form" update="@form"
-                         validateClient="false" disabled="#{sameCtrl.route eq 0}" styleClass="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"/>
-          <p:spacer width="5"/>
-          <p:commandLink value="Salas/Armários" action="#{sameCtrl.navigate(1)}" process="@form" update="@form"
-                         validateClient="false" disabled="#{sameCtrl.route eq 1}" styleClass="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"/>
-          <p:spacer width="5"/>
-          <p:commandLink value="Caixas" action="#{sameCtrl.navigate(2)}" process="@form" update="@form"
-                         validateClient="false" disabled="#{sameCtrl.route eq 2}" styleClass="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"/>
-        </h:panelGroup>
-        <h:panelGroup id="content" layout="block">
-          <h:panelGroup id="arquivo" layout="block" rendered="#{sameCtrl.route eq 0}">
-            <ui:include src="arquivo.xhtml"/>
-          </h:panelGroup>
-          <h:panelGroup id="salas" layout="block" rendered="#{sameCtrl.route eq 1}">
-            <ui:include src="salas.xhtml"/>
-          </h:panelGroup>
-          <h:panelGroup id="caixas" layout="block" rendered="#{sameCtrl.route eq 1}">
-            <ui:include src="caixas.xhtml"/>
-          </h:panelGroup>
-        </h:panelGroup>
-      </p:panel>
-    </h:form>
+    <ui:define name="content">
+        <h:form id="sameForm">
+            <p:panel header="SAME">
+                <h:panelGroup id="navigation" layout="block" style="margin: 0 0 10px 0;">
+                    <p:commandLink value="Doc. Arquivados" action="#{sameCtrl.navigate(0)}" process="@this"
+                                   update="@this content navigation"
+                                   ajax="true" validateClient="false" oncomplete="updateBtns();"
+                                   styleClass="vah-btn mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect #{sameCtrl.route eq 0 ? 'mdl-button--colored' : 'mdl-button--accent'}"/>
+                    <p:spacer width="5"/>
+                    <p:commandLink value="Doc. Não Arquivados" action="#{sameCtrl.navigate(1)}" process="@this"
+                                   update="@this content navigation"
+                                   ajax="true" validateClient="false" oncomplete="updateBtns();"
+                                   styleClass="vah-btn mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect #{sameCtrl.route eq 1 ? 'mdl-button--colored' : 'mdl-button--accent'}"/>
+                    <p:spacer width="5"/>
+                    <p:commandLink value="Salas/Armários" action="#{sameCtrl.navigate(2)}" process="@this"
+                                   update="@this content navigation"
+                                   ajax="true" validateClient="false" oncomplete="updateBtns();"
+                                   styleClass="vah-btn mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect #{sameCtrl.route eq 2 ? 'mdl-button--colored' : 'mdl-button--accent'}"/>
+                    <p:spacer width="5"/>
+                    <p:commandLink value="Caixas/Envelopes" action="#{sameCtrl.navigate(3)}" process="@this"
+                                   update="@this content navigation"
+                                   ajax="true" validateClient="false" oncomplete="updateBtns();"
+                                   styleClass="vah-btn mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect #{sameCtrl.route eq 3 ? 'mdl-button--colored' : 'mdl-button--accent'}"/>
+                </h:panelGroup>
+                <h:panelGroup id="content" layout="block">
+                    <h:panelGroup id="arquivo" layout="block" rendered="#{sameCtrl.route eq 0}">
+                        <ui:include src="arquivo.xhtml"/>
+                    </h:panelGroup>
+                    <h:panelGroup id="pendente" layout="block" rendered="#{sameCtrl.route eq 1}">
+                        <ui:include src="pendente.xhtml"/>
+                    </h:panelGroup>
+                    <h:panelGroup id="salas" layout="block" rendered="#{sameCtrl.route eq 2}">
+                        <ui:include src="salas.xhtml"/>
+                    </h:panelGroup>
+                    <h:panelGroup id="caixas" layout="block" rendered="#{sameCtrl.route eq 3}">
+                        <ui:include src="caixas.xhtml"/>
+                    </h:panelGroup>
+                </h:panelGroup>
+            </p:panel>
+        </h:form>
 
-  </ui:define>
+    </ui:define>
 </ui:composition>

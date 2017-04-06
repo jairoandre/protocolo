@@ -20,6 +20,10 @@ public class ViewUtils {
     return selectItems;
   }
 
+  public static String truncString(String string, Integer length) {
+    return string.length() > length ? string.substring(0, length) : string;
+  }
+
   public static List<SelectItem> splice(List<SelectItem> items, Object id) {
     List<SelectItem> newItems = new ArrayList<>();
     for (SelectItem item : items) {

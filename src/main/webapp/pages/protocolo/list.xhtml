@@ -120,18 +120,15 @@
               <h:outputText id="protocolo" value="#{item.id}"/>
             </p:column>
 
-            <p:column headerText="Atend." width="45" styleClass="left-align">
-              <h:outputText value="#{item.atendimento.id}" rendered="#{not empty item.atendimento}"/>
-            </p:column>
-
-            <p:column headerText="Paciente" width="170" styleClass="left-align ellipsis-text">
+            <p:column headerText="Descrição" width="170" styleClass="left-align ellipsis-text">
               <h:panelGroup layout="block" rendered="#{not empty item.atendimento}">
+                <h:outputText value="#{item.atendimento.id} - "/>
                 <h:outputText id="pacienteOutput" value="#{item.atendimento.paciente.name}"/>
                 <vah:toolTip id="pacienteToolTip" value="#{item.atendimento.paciente.name}" index="#{indexVar}"
                              for="#{p:component('pacienteOutput')}"/>
               </h:panelGroup>
               <h:panelGroup layout="block" rendered="#{empty item.atendimento}">
-                <h:outputText value="#{item.contaFaturamento.id}" rendered="#{not empty item.contaFaturamento}"/>
+                <h:outputText value="PACOTE CONTAS"/>
               </h:panelGroup>
             </p:column>
 

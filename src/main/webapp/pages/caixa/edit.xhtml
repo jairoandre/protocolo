@@ -1,0 +1,84 @@
+<ui:composition template="/templates/layout.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:vah="http://java.sun.com/jsf/composite/vah"
+                xmlns:uivah="http://vah.com.br/vah"
+                xmlns:p="http://primefaces.org/ui">
+  <ui:define name="metadata">
+    <f:metadata>
+      <f:viewParam name="id" value="#{caixaCtrl.id}"/>
+      <f:viewAction action="#{caixaCtrl.onLoad}"/>
+    </f:metadata>
+  </ui:define>
+  <ui:define name="content">
+    <h:form id="form">
+
+      <vah:editForm id="salaPnl" controller="#{caixaCtrl}"
+                    columns="3">
+
+        <uivah:inputText id="name" label="Nome"
+                         required="true"
+                         value="#{caixaCtrl.item.titulo}" editing="#{caixaCtrl.editing}"/>
+
+
+        <p:outputLabel value="Sala" for="sala" styleClass="lance-label"/>
+        <p:autoComplete id="sala" value="#{caixaCtrl.item.sala}"
+                        queryDelay="150"
+                        var="sala"
+                        itemLabel="#{sala.titulo}"
+                        itemValue="#{sala}"
+                        onclick="this.setSelectionRange(0, this.value.length)"
+                        converter="#{salaConverter}"
+                        required="true"
+                        inputStyleClass="lance-input"
+                        completeMethod="#{salaCtrl.completeMethod}"
+                        placeholder="Digite o nome..."
+                        readonly="#{not caixaCtrl.editing}">
+          <p:column>
+            <h:outputText value="#{sala.titulo}"/>
+          </p:column>
+        </p:autoComplete>
+        <p:message for="sala"/>
+
+
+        <f:facet name="other">
+          <p:panel header="Envelopes">
+            <p:commandButton id="novoEnvelope" value="Novo Envelope" action="#{caixaCtrl.novoEnvelope}"
+                             process="@this envelopes"
+                             update="envelopes" rendered="#{caixaCtrl.editing}"/>
+            <h:panelGroup id="envelopes" layout="block" styleClass="margin-top">
+              <p:dataTable id="envelopesTable" value="#{caixaCtrl.item.envelopes}" var="envelope"
+                           emptyMessage="Sem envelopes">
+                <p:column headerText="Cód." width="70">
+                  <h:outputText value="#{envelope.id}"/>
+                </p:column>
+                <p:column headerText="Título" styleClass="left-align">
+                  <h:outputText value="#{envelope.titulo}" rendered="#{not envelope.editing}"/>
+                  <p:inputText value="#{envelope.titulo}" rendered="#{envelope.editing}"/>
+                </p:column>
+                <p:column headerText="Ações" rendered="#{caixaCtrl.editing}" style="text-align: center;" width="100">
+                  <p:commandLink ajax="true" action="#{caixaCtrl.confirmarEnvelope(envelope)}" process="@this #{p:component('envelopes')}"
+                                 update="#{p:component('envelopes')}" rendered="#{envelope.editing}">
+                    <span class="fa fa-check"/>
+                  </p:commandLink>
+                  <p:commandLink ajax="true" action="#{caixaCtrl.removerEnvelope(envelope)}" process="@this #{p:component('envelopes')}"
+                                 update="#{p:component('envelopes')}" rendered="#{not envelope.editing}">
+                    <span class="fa fa-trash"/>
+                  </p:commandLink>
+                  <p:commandLink ajax="true" action="#{caixaCtrl.editarEnvelope(envelope)}" process="@this #{p:component('envelopes')}"
+                                 update="#{p:component('envelopes')}" styleClass="margin-left" rendered="#{not envelope.editing}">
+                    <span class="fa fa-pencil"/>
+                  </p:commandLink>
+                </p:column>
+              </p:dataTable>
+            </h:panelGroup>
+          </p:panel>
+        </f:facet>
+
+
+      </vah:editForm>
+    </h:form>
+  </ui:define>
+</ui:composition>

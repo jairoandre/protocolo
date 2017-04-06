@@ -2,7 +2,19 @@
                 xmlns:f="http://java.sun.com/jsf/core"
                 xmlns:h="http://java.sun.com/jsf/html"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
-                xmlns:p="http://primefaces.org/ui">
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:vah="http://java.sun.com/jsf/composite/vah">
 
+    <vah:dataTable id="dataTable" controller="#{salaCtrl}"
+                   renderDeleteAction="false">
+        <p:column sortBy="#{item.id}" headerText="Id"
+                  style="text-align: left;" width="50">
+            <h:outputText value="#{item.id}"/>
+        </p:column>
+        <p:column sortBy="#{item.title}" headerText="Sala"
+                  style="text-align: left;">
+            <h:outputText value="#{item.titulo}"/>
+        </p:column>
+    </vah:dataTable>
 
 </ui:composition>

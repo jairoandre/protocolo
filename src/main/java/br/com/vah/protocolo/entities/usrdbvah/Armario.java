@@ -3,6 +3,7 @@ package br.com.vah.protocolo.entities.usrdbvah;
 import br.com.vah.protocolo.entities.BaseEntity;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class Armario extends BaseEntity {
   private Sala sala;
 
   @OneToMany(mappedBy = "armario")
-  private List<ItemArmario> itens;
+  private List<ItemArmario> itens = new ArrayList<>();
 
   @Column(name = "DT_CRIACAO")
   private Date criacao = new Date();
@@ -107,6 +108,11 @@ public class Armario extends BaseEntity {
 
   @Override
   public String getLabelForSelectItem() {
-    return titulo;
+    if (sala == null) {
+      return titulo;
+    } else {
+      return String.format("%s - %s", sala.getTitulo(), titulo);
+    }
+
   }
 }

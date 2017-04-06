@@ -156,12 +156,13 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
 
   }
 
-  public Protocolo addHistorico(Protocolo protocolo, User user, SetorProtocolo origem, SetorProtocolo destino, AcaoHistoricoEnum acao) {
+  public Protocolo addHistorico(Protocolo protocolo, User user, SetorProtocolo origem, SetorProtocolo destino, String descricao, AcaoHistoricoEnum acao) {
     if (user != null) {
       Historico historico = new Historico();
       historico.setAutor(user);
       historico.setOrigem(origem);
       historico.setDestino(destino);
+      historico.setDescricao(descricao);
       historico.setAcao(acao);
       historico.setProtocolo(protocolo);
       if (protocolo.getHistorico() == null) {
@@ -170,6 +171,10 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
       protocolo.getHistorico().add(historico);
     }
     return protocolo;
+  }
+
+  public Protocolo addHistorico(Protocolo protocolo, User user, SetorProtocolo origem, SetorProtocolo destino, AcaoHistoricoEnum acao) {
+    return addHistorico(protocolo, user, origem, destino, null, acao);
   }
 
   /**
@@ -485,7 +490,7 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
           }
         });
         if (candidatos.size() > seraoEnviados.size()) {
-         throw new ProtocoloBusinessException("O envio não foi realizado, pois existem documentos que devem ser incluídos.");
+         throw new ProtocoloBusinessException("O envio não foi realizado, pois existem documentos pendentes de inclusão.");
         }
       }
     }
@@ -748,6 +753,10 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
       } else {
         // Cria um item de caixa pra o protocolo recebido
         protocolo.getItens().forEach((item) -> {
+          Protocolo filho = find(item.getFilho().getId());
+          // Muda "indiretamente" a localização do protocolo filho.
+          filho.setLocalizacao(destino.getTitle());
+          update(filho);
           CaixaEntrada caixa = caixaSrv.criarCaixa(item.getFilho());
           // Altera a origem e o destino para coincidir com o protocolo que está sendo recebido.
           // Isto é necessário, pois o método "criarCaixa" utiliza origem/destino do protocolo passado como parâmetro.
