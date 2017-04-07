@@ -1,6 +1,7 @@
 package br.com.vah.protocolo.constants;
 
 import br.com.vah.protocolo.entities.usrdbvah.Historico;
+import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
 import br.com.vah.protocolo.entities.usrdbvah.User;
 
@@ -13,7 +14,7 @@ public enum AcaoHistoricoEnum {
   RECEBIMENTO("Recebido por <b>%s</b> no setor <b>%s</b>"),
   RECUSA("Recusado por <b>%s</b> no setor <b>%s</b>"),
   CORRECAO("Corrigido por <b>%s</b>"),
-  ARQUIVAMENTO("Arquivado por <b>%s</b>");
+  ARQUIVAMENTO("Arquivado por <b>%s</b>, local: <b>%s</b>");
 
   private String label;
 
@@ -25,6 +26,7 @@ public enum AcaoHistoricoEnum {
     User autor = historico.getAutor();
     SetorProtocolo origem = historico.getOrigem();
     SetorProtocolo destino = historico.getDestino();
+    Protocolo protocolo = historico.getProtocolo();
     switch (this) {
       case MOVIMENTO:
         if (origem != null && destino != null) {
@@ -35,6 +37,9 @@ public enum AcaoHistoricoEnum {
       case RECEBIMENTO:
       case RECUSA:
         return String.format(label, autor.getTitle() == null ? autor.getLogin() : autor.getTitle(), destino.getTitle());
+      case ARQUIVAMENTO:
+        String localizacao = protocolo.getLocalizacao();
+        return String.format(label, autor.getTitle() == null ? autor.getLogin() : autor.getTitle(), localizacao);
       default:
         return String.format(label, autor.getTitle() == null ? autor.getLogin() : autor.getTitle());
     }

@@ -1,6 +1,7 @@
 package br.com.vah.protocolo.service;
 
 import br.com.vah.protocolo.constants.AcaoHistoricoEnum;
+import br.com.vah.protocolo.constants.EstadosProtocoloEnum;
 import br.com.vah.protocolo.dto.DocumentoDTO;
 import br.com.vah.protocolo.entities.usrdbvah.*;
 import br.com.vah.protocolo.util.ViewUtils;
@@ -41,7 +42,6 @@ public class SameSrv implements Serializable {
             Armario armario = armarioSrv.find(id);
             String linha = (String) params.get("linha");
             String coluna = (String) params.get("coluna");
-
             String nomeSala = ViewUtils.truncString(armario.getSala().getTitulo(), 40);
             String nomeArmario = ViewUtils.truncString(armario.getTitulo(), 40);
 
@@ -58,10 +58,15 @@ public class SameSrv implements Serializable {
                 // Seta a vinculação
                 CaixaEntrada caixaEntrada = dto.getCaixa();
                 caixaEntrada.setVinculado(true);
+
                 caixaEntradaSrv.update(caixaEntrada);
 
                 Protocolo attProt = protocoloSrv.find(protocolo.getId());
                 protocoloSrv.addHistorico(attProt, user, origem, null, descricao, AcaoHistoricoEnum.ARQUIVAMENTO);
+                attProt.setLocalizacao(descricao);
+                attProt.setEstado(EstadosProtocoloEnum.ARQUIVADO);
+
+                protocoloSrv.update(attProt);
             });
 
             armarioSrv.update(armario);
@@ -72,11 +77,14 @@ public class SameSrv implements Serializable {
             String nomeCaixa = ViewUtils.truncString(envelope.getCaixa().getTitulo(), 30);
             String nomeEnvelope = ViewUtils.truncString(envelope.getTitulo(), 30);
             Sala sala = envelope.getCaixa().getSala();
+            String nomeSala = ViewUtils.truncString(sala.getTitulo(), 30);
 
             StringJoiner joiner = new StringJoiner(";");
+            joiner.add(nomeSala);
             joiner.add(nomeCaixa);
             joiner.add(nomeEnvelope);
-            joiner.add(sala.getTitulo());
+
+            String descricao = joiner.toString();
 
             dtos.forEach((dto) -> {
                 Protocolo protocolo = dto.getFilho();
@@ -84,7 +92,15 @@ public class SameSrv implements Serializable {
                 // Seta a vinculação
                 CaixaEntrada caixaEntrada = dto.getCaixa();
                 caixaEntrada.setVinculado(true);
+
                 caixaEntradaSrv.update(caixaEntrada);
+
+                Protocolo attProt = protocoloSrv.find(protocolo.getId());
+                protocoloSrv.addHistorico(attProt, user, origem, null, descricao, AcaoHistoricoEnum.ARQUIVAMENTO);
+                attProt.setLocalizacao(descricao);
+                attProt.setEstado(EstadosProtocoloEnum.ARQUIVADO);
+
+                protocoloSrv.update(attProt);
             });
 
             envelopeSrv.update(envelope);

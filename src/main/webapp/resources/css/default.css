@@ -396,6 +396,10 @@ input.ui-state-disabled {
   background-color: #202b93;
 }
 
+.protocolo-estado--ARQUIVADO {
+  background-color: #ff9540;
+}
+
 .protocolo-estado--RECEBIDO {
   background-color: #008d0e;
 }

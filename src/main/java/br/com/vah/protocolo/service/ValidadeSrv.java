@@ -5,7 +5,9 @@ import org.hibernate.SQLQuery;
 
 import javax.ejb.Stateless;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -255,7 +257,38 @@ public class ValidadeSrv extends AbstractSrv<Protocolo> {
 
     List<Object[]> rows = query.list();
 
+    rows = preencherGaps(rows);
+
     return rows.stream().filter((row) -> checkRow(row, protocolo)).collect(Collectors.toList());
+  }
+
+  private List<Object[]> preencherGaps(List<Object[]> rows) {
+    List<Object[]> resultado = new ArrayList<>();
+    Iterator<Object[]> iterator = rows.iterator();
+    if (iterator.hasNext()) {
+      Object[] ultimoVerificado = iterator.next();
+      resultado.add(ultimoVerificado);
+      while (iterator.hasNext()) {
+        Object[] corrente = iterator.next();
+        Date fimUltimo = (Date) ultimoVerificado[1];
+        Date inicioCorrente = (Date) corrente[0];
+        long t1 = fimUltimo.getTime();
+        long t2 = inicioCorrente.getTime();
+
+        if ((t2 - t1) > 1000) {
+          Object[] gap = new Object[4];
+          gap[0] = new Date(t1 + 1000);
+          gap[1] = new Date(t2 - 1000);
+          gap[2] = ultimoVerificado[2];
+          gap[3] = ultimoVerificado[3];
+          resultado.add(gap);
+        }
+        ultimoVerificado = corrente;
+      }
+    }
+
+    return resultado;
+
   }
 
   private Boolean checkRow(Object[] row, Protocolo protocolo) {

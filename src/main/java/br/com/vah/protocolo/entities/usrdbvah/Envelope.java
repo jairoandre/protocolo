@@ -27,10 +27,10 @@ public class Envelope extends BaseEntity {
   @JoinColumn(name = "ID_CAIXA")
   private Caixa caixa;
 
-  @ManyToMany(cascade = CascadeType.DETACH)
+  @ManyToMany
   @JoinTable(name = "TB_NPTC_PROTOCOLO_ENVELOPE",
-      joinColumns = {@JoinColumn(name = "ID_PROTOCOLO")},
-      inverseJoinColumns = {@JoinColumn(name = "ID_ENVELOPE")},
+      joinColumns = {@JoinColumn(name = "ID_ENVELOPE")},
+      inverseJoinColumns = {@JoinColumn(name = "ID_PROTOCOLO")},
       schema = "USRDBVAH")
   private List<Protocolo> itens = new ArrayList<>();
 
