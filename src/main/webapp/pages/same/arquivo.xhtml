@@ -31,45 +31,60 @@
                          update="arquivosTable"/>
     </h:panelGroup>
     <h:panelGroup id="arquivosTablePnl" layout="block" style="margin: 5px 0;">
-        <p:dataTable id="arquivosTable" value="#{sameCtrl.arquivados}"
+        <p:dataTable id="arquivosTable" value="#{arquivoCtrl.arquivos}"
                      var="doc"
                      rowKey="#{doc.rowKey}"
                      rowSelectMode="checkbox"
                      paginator="true"
                      rows="20"
                      paginatorPosition="bottom"
-                     sortBy="#{doc.dataHoraCriacao}" rowIndexVar="idx"
+                     sortBy="#{doc.criacao}" rowIndexVar="idx"
                      emptyMessage="Busque por items"
                      selectionMode="multiple"
-                     selection="#{sameCtrl.selecteds}"
-                     filteredValue="#{sameCtrl.filtereds}">
+                     selection="#{arquivoCtrl.selecteds}"
+                     filteredValue="#{arquivoCtrl.filtereds}">
             <f:facet name="header">
                 <h:panelGroup layout="block">
-                    <h:outputText value="Documentos Pendentes - "/>
-                    <h:outputText id="arquivosSelectCount"
-                                  value="#{sameCtrl.arquivosSelectCount} marcado(s)"/>
+                    <h:outputText value="Documentos Arquivados - "/>
+                    <h:outputText id="selectCount"
+                                  value="#{arquivoCtrl.selectCount} marcado(s)"/>
                 </h:panelGroup>
             </f:facet>
             <p:ajax event="rowSelect"
-                    listener="#{sameCtrl.arquivosSelectRow}"
+                    listener="#{arquivoCtrl.selectRow}"
                     process="@this"
-                    update="@this arquivosSelectCount #{p:component('arquivoActionsPnl')}"/>
+                    update="@this selectCount #{p:component('actionsPnl')}"/>
             <p:ajax event="rowUnselect"
-                    listener="#{sameCtrl.unselectRow}"
+                    listener="#{arquivoCtrl.unselectRow}"
                     process="@this"
-                    update="@this arquivosSelectCount #{p:component('arquivoActionsPnl')}"/>
+                    update="@this selectCount #{p:component('actionsPnl')}"/>
             <p:columnGroup type="header">
                 <p:row>
                     <p:column width="20"/>
-                    <p:column id="descNaoRelac" headerText="Conta"
-                              sortBy="#{doc.descricao}"
-                              filterBy="#{doc.descricao}"
+                    <p:column id="arquivosConvenio"
+                              headerText="Convênio"
+                              sortBy="#{doc.convenio}"
+                              styleClass="left-align ellipsis-text"
+                              width="150"/>
+                    <p:column id="arquivosConta"
+                              headerText="Conta"
+                              sortBy="#{doc.conta}"
+                              filterBy="#{doc.conta}"
                               filterStyle="display: inline-block;"
                               filterMatchMode="contains"
                               styleClass="left-align ellipsis-text" width="300"/>
-                    <p:column id="consPrestConvNaoRelac"
-                              headerText="Convênio/Atendimento"
-                              sortBy="#{doc.consPrestConv}"
+                    <p:column id="arquivosPaciente"
+                              headerText="Paciente"
+                              sortBy="#{doc.paciente}"
+                              styleClass="left-align ellipsis-text"/>
+                    <p:column id="arquivosCriacao"
+                              headerText="Criação"
+                              sortBy="#{doc.criacao}"
+                              styleClass="left-align"
+                              width="75"/>
+                    <p:column id="arquivosLocalizacao"
+                              headerText="Localização"
+                              sortBy="#{doc.localizacao}"
                               styleClass="left-align ellipsis-text"/>
                     <p:column width="120"/>
                 </p:row>
@@ -78,17 +93,22 @@
                 <h:panelGroup styleClass="fa #{doc.selected ? 'fa-check-square-o' : 'fa-square-o'}"/>
             </p:column>
             <p:column>
-                <p:commandButton icon="fa fa-eye" value="#{doc.descricao}"
-                                 action="#{sameCtrl.visualizarDoc(doc)}"
+                <h:outputText value="#{doc.convenio}"/>
+            </p:column>
+            <p:column>
+                <p:commandButton icon="fa fa-eye" value="#{doc.conta}"
+                                 action="#{arquivoCtrl.visualizarDoc(doc)}"
                                  onclick="openLoading();"
                                  oncomplete="closeLoading(); PF('documentosDlg').show();"
                                  process="@this" update="#{p:component('documentosDlgPnl')}"/>
             </p:column>
-            <p:column styleClass="ellipsis-text">
-                <h:outputText id="consPrestConvNaoSelec" value="#{doc.consPrestConv}"/>
-                <vah:toolTip id="consPrestConvNaoSelecTool" for="#{p:component('consPrestConvNaoSelec')}"
-                             value="#{doc.consPrestConv}"
-                             index="#{idx}"/>
+            <p:column>
+                <h:outputText value="#{doc.paciente}"/>
+            </p:column>
+            <p:column>
+                <h:outputText value="#{doc.criacao}">
+                    <f:convertDateTime pattern="dd/MM/yy" locale="pt_BR" timeZone="GMT-03:00"/>
+                </h:outputText>
             </p:column>
             <p:column style="text-align: center;">
                 <h:panelGroup>

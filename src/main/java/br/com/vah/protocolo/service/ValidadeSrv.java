@@ -284,6 +284,7 @@ public class ValidadeSrv extends AbstractSrv<Protocolo> {
           resultado.add(gap);
         }
         ultimoVerificado = corrente;
+        resultado.add(corrente);
       }
     }
 

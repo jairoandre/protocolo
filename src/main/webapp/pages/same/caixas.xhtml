@@ -3,18 +3,135 @@
                 xmlns:h="http://java.sun.com/jsf/html"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
                 xmlns:p="http://primefaces.org/ui"
+                xmlns:uivah="http://vah.com.br/vah"
                 xmlns:vah="http://java.sun.com/jsf/composite/vah">
 
-    <vah:dataTable id="caixaTable" controller="#{caixaCtrl}"
-                   renderDeleteAction="false">
-        <p:column sortBy="#{item.id}" headerText="Id"
-                  style="text-align: left;" width="50">
-            <h:outputText value="#{item.id}"/>
-        </p:column>
-        <p:column sortBy="#{item.title}" headerText="Sala"
-                  style="text-align: left;">
-            <h:outputText value="#{item.titulo}"/>
-        </p:column>
-    </vah:dataTable>
+    <h:panelGroup id="caixasPnl" layout="block">
+
+        <h:panelGroup id="caixasForm" layout="block" style="margin: 5px 0;">
+            <h:panelGroup id="caixasFields" rendered="#{caixaCtrl.showFields}">
+                <p:panel header="Nova Caixa">
+                    <h:panelGrid columns="3" columnClasses="right-align left-align">
+                        <uivah:inputText id="name" label="Nome"
+                                         required="true"
+                                         value="#{caixaCtrl.item.titulo}" editing="#{caixaCtrl.editing}"/>
+
+
+                        <p:outputLabel value="Sala" for="sala" styleClass="lance-label"/>
+                        <p:autoComplete id="sala" value="#{caixaCtrl.item.sala}"
+                                        queryDelay="150"
+                                        var="sala"
+                                        itemLabel="#{sala.titulo}"
+                                        itemValue="#{sala}"
+                                        onclick="this.setSelectionRange(0, this.value.length)"
+                                        converter="#{salaConverter}"
+                                        required="true"
+                                        inputStyleClass="lance-input"
+                                        completeMethod="#{salaCtrl.completeMethod}"
+                                        placeholder="Digite o nome..."
+                                        readonly="#{not caixaCtrl.editing}">
+                            <p:column>
+                                <h:outputText value="#{sala.titulo}"/>
+                            </p:column>
+                        </p:autoComplete>
+                        <p:message for="sala"/>
+                    </h:panelGrid>
+                    <p:panel header="Envelopes">
+                        <p:commandButton id="novoEnvelope" value="Novo Envelope" action="#{caixaCtrl.novoEnvelope}"
+                                         process="@this caixasEnvelopes"
+                                         update="caixasEnvelopes" rendered="#{caixaCtrl.editing}"/>
+                        <h:panelGroup id="caixasEnvelopes" layout="block" style="margin: 5px 0;">
+                            <p:dataTable id="caixasEnvelopesTable" value="#{caixaCtrl.item.envelopes}" var="envelope"
+                                         emptyMessage="Sem envelopes">
+                                <p:column headerText="Cód." width="70">
+                                    <h:outputText value="#{envelope.id}"/>
+                                </p:column>
+                                <p:column headerText="Título" styleClass="left-align">
+                                    <h:outputText value="#{envelope.titulo}" rendered="#{not envelope.editing}"/>
+                                    <p:inputText value="#{envelope.titulo}" rendered="#{envelope.editing}"/>
+                                </p:column>
+                                <p:column headerText="Ações" rendered="#{caixaCtrl.editing}" styleClass="action-link"
+                                          style="text-align: center;" width="100">
+                                    <p:commandLink ajax="true" action="#{caixaCtrl.confirmarEnvelope(envelope)}"
+                                                   process="@this #{p:component('caixasEnvelopes')}"
+                                                   update="#{p:component('caixasEnvelopes')}"
+                                                   rendered="#{envelope.editing}">
+                                        <span class="fa fa-check"/>
+                                    </p:commandLink>
+                                    <p:commandLink ajax="true" action="#{caixaCtrl.removerEnvelope(envelope)}"
+                                                   process="@this #{p:component('caixasEnvelopes')}"
+                                                   update="#{p:component('caixasEnvelopes')}"
+                                                   rendered="#{not envelope.editing}">
+                                        <span class="fa fa-trash"/>
+                                    </p:commandLink>
+                                    <p:commandLink ajax="true" action="#{caixaCtrl.editarEnvelope(envelope)}"
+                                                   process="@this #{p:component('caixasEnvelopes')}"
+                                                   update="#{p:component('caixasEnvelopes')}" styleClass="margin-left"
+                                                   rendered="#{not envelope.editing}">
+                                        <span class="fa fa-pencil"/>
+                                    </p:commandLink>
+                                </p:column>
+                            </p:dataTable>
+                        </h:panelGroup>
+                    </p:panel>
+                    <h:panelGroup layout="block" style="margin: 5px 0 0 0;">
+                        <p:commandButton value="Salvar"
+                                         ajax="true"
+                                         action="#{caixaCtrl.inlineSave}"
+                                         rendered="#{caixaCtrl.showSaveBtn}"
+                                         process="@this caixasForm"
+                                         update="caixasForm caixasTable"/>
+                        <p:spacer width="5" rendered="#{caixaCtrl.showSaveBtn}"/>
+                        <p:commandButton value="Cancelar"
+                                         ajax="true"
+                                         action="#{caixaCtrl.inlineBack}"
+                                         rendered="#{caixaCtrl.showBackBtn}"
+                                         process="@this"
+                                         update="caixasForm"/>
+                    </h:panelGroup>
+                </p:panel>
+            </h:panelGroup>
+            <h:panelGroup id="caixasBtns" layout="block">
+                <p:commandButton value="Nova Caixa"
+                                 ajax="true"
+                                 action="#{caixaCtrl.preAddCaixa}"
+                                 rendered="#{caixaCtrl.showAddBtn}"
+                                 process="@this"
+                                 update="caixasForm"/>
+            </h:panelGroup>
+        </h:panelGroup>
+
+        <h:panelGroup id="caixasTable" layout="block">
+            <p:dataTable var="item" value="#{caixaCtrl.lazyModel}"
+                         paginator="true" emptyMessage="Sem registros" styleClass="table-left-header"
+                         paginatorPosition="bottom" rows="25" rowKey="index" rowIndexVar="indexVar"
+                         paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                         lazy="true" rowsPerPageTemplate="25,50,100">
+                <p:column sortBy="#{item.id}" headerText="Id"
+                          style="text-align: left;" width="50">
+                    <h:outputText value="#{item.id}"/>
+                </p:column>
+                <p:column sortBy="#{item.title}" headerText="Caixa"
+                          style="text-align: left;">
+                    <h:outputText value="#{item.titulo}"/>
+                </p:column>
+                <p:column width="100" headerText="Ações" styleClass="action-link">
+                    <p:commandLink ajax="true"
+                                   action="#{sameCtrl.inlineEdit(item)}" process="@this">
+                        <span class="fa fa-pencil"/>
+                    </p:commandLink>
+                    <span/>
+                    <p:commandLink action="#{sameCtrl.inlineDelete(item.id, index)}"
+                                   ajax="true">
+                        <span class="fa fa-trash"/>
+                    </p:commandLink>
+                </p:column>
+
+            </p:dataTable>
+        </h:panelGroup>
+
+
+    </h:panelGroup>
+
 
 </ui:composition>
