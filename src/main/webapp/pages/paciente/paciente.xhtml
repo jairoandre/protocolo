@@ -6,32 +6,37 @@
 	xmlns:p="http://primefaces.org/ui" xmlns:uivah="http://vah.com.br/vah"
 	xmlns:vah="http://java.sun.com/jsf/composite/vah">
 	<ui:define name="content">
-		<h:panelGrid id="grid" >
-		<p:panel id="tb">
-			<uivah:autoComplete id="setor" value="#{pacienteCtrl.item}"
-				label="Paciente: " controller="#{pacienteCtrl}"
-				completeMethod="completeMethod" converter="#{pacienteConverter}"
-				itemLabel="labelForSelectItem" placeholder="Cód./Nome">
-				<p:ajax event="itemSelect" process="@this" />
-				<p:column>
+		<h:panelGrid id="grid">
+			<p:panel id="tb">
+				<uivah:autoComplete id="setor" value="#{pacienteCtrl.item}"
+					label="Paciente: " controller="#{pacienteCtrl}"
+					completeMethod="completeMethod" converter="#{pacienteConverter}"
+					itemLabel="labelForSelectItem" placeholder="Cód./Nome">
+					<p:ajax event="itemSelect" process="@this" />
+					<p:column>
                 #{item.name}
               </p:column>
-			</uivah:autoComplete>
-			
-			<p:commandButton id="prosseguirBtn" value="Prosseguir" actionListener="#{pacienteCtrl.onPacienteSelect()}"
-                         style="font-size: 25px; margin-top: 25px" process="@all" update="grid"/>
-		</p:panel>
-		<p:dataTable id="tbAtendimentos" widgetVar="tbAtendimentos" var="paciente" value="#{pacienteCtrl.paciente.atendimentos}"
-					 paginator="true" rows="10" rendered="#{not empty pacienteCtrl.paciente.atendimentos}">
+				</uivah:autoComplete>
+
+				<p:commandButton id="prosseguirBtn" value="Prosseguir"
+					actionListener="#{pacienteCtrl.onPacienteSelect()}"
+					style="font-size: 25px; margin-top: 25px" process="@all"
+					update="grid" />
+			</p:panel>
+			<p:dataTable id="tbAtendimentos" widgetVar="tbAtendimentos"
+				var="paciente" value="#{pacienteCtrl.paciente.atendimentos}"
+				paginator="true" rows="10"
+				rendered="#{not empty pacienteCtrl.paciente.atendimentos}">
 				<p:column headerText="Atendimentos">
 					<p:outputLabel value="#{paciente.labelForSelectItem}" />
 				</p:column>
 				<p:column headerText="Localização">
 					<p:outputLabel value="#{pacienteCtrl.localizacaoProntuario}" />
 				</p:column>
-		</p:dataTable>
-		
-		<p:dataTable id="tbHistorico" widgetVar="tbHistorico" var="atendimento" value="#{pacienteCtrl.protocolos}">
+			</p:dataTable>
+
+			<p:dataTable id="tbHistorico" widgetVar="tbHistorico"
+				var="atendimento" value="#{pacienteCtrl.protocolos}">
 				<p:column headerText="Protocolo">
 					<p:outputLabel value="#{atendimento.idProtocolo}" />
 				</p:column>
@@ -41,8 +46,44 @@
 				<p:column>
 					<p:outputLabel value="#{atendimento.setorOrigem}" />
 				</p:column>
-		</p:dataTable>
+			</p:dataTable>
+
+			<!-- DIÁLOGO HISTÓRICO -->
+			<h:panelGroup id="historicoDlgPnl">
+				<p:dialog id="historicoDlg" widgetVar="historicoDlg"
+					rendered="#{protocoloCtrl.renderHistoricoDlg}" modal="true"
+					position="top" width="800">
+					<f:facet name="header">
+						<h:outputText
+							value="Histórico - Protocolo nº #{protocoloCtrl.item.id}" />
+					</f:facet>
+
+					<p:dataTable id="historicoTable"
+						value="#{protocoloCtrl.item.historico}" var="hist"
+						sortBy="#{hist.data}" scrollRows="5" emptyMessage="Sem histórico">
+						<p:column headerText="Usuário" width="100" styleClass="left-align">
+							<h:outputText value="#{hist.autor.login}" />
+						</p:column>
+						<p:column headerText="Ação" styleClass="left-align">
+							<h:outputText value="#{hist.acao.textoFormatado(hist)}"
+								escape="false" />
+						</p:column>
+						<p:column headerText="Data" width="100" styleClass="left-align">
+							<h:outputText value="#{hist.data}">
+								<f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="GMT-3" />
+							</h:outputText>
+						</p:column>
+					</p:dataTable>
+
+					<f:facet name="footer">
+						<p:commandButton id="closeHistorico" value="Fechar" ajax="true"
+							process="@this" action="#{protocoloCtrl.closeHistorico}"
+							oncomplete="PF('historicoDlg').hide()" />
+					</f:facet>
+				</p:dialog>
+			</h:panelGroup>
 		</h:panelGrid>
+
 
 	</ui:define>
 

@@ -74,11 +74,14 @@ public class PacienteCtrl extends AbstractCtrl<Paciente> {
 		List<HistoricoDTO> hist = new ArrayList<>();
 		this.localizacaoProntuario = null;
 		this.protocolos = new ArrayList<>();
-		this.paciente = service.initializeListsAtendimentos(new Long(1));
+		this.paciente = service.initializeListsAtendimentos(new Long(1812646));
 		
 		for (Atendimento atendimento : this.paciente.getAtendimentos()){
 			
 			local = service.localizacaoProntuario(atendimento.getId());
+			if (local.isEmpty() || local == null){
+				break;
+			}
 			System.out.println(local.get(0)[10]);
 			setLocalizacaoProntuario(local.get(0)[10].toString());
 			

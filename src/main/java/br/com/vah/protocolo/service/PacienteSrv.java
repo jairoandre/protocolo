@@ -28,17 +28,22 @@ public class PacienteSrv extends AbstractSrv<Paciente> {
 		List<Atendimento> tempAtendimento = new ArrayList<>();
 		Paciente paciente = find(id);
 
-		new HashSet<>(paciente.getAtendimentos());
+		if (paciente != null) {
+			new HashSet<>(paciente.getAtendimentos());
 
-		for (Atendimento atendimento : paciente.getAtendimentos()) {
-			if (atendimento.getTipo().equalsIgnoreCase("I")) {
-				tempAtendimento.add(atendimento);
+			for (Atendimento atendimento : paciente.getAtendimentos()) {
+				if (atendimento.getTipo().equalsIgnoreCase("I")) {
+					tempAtendimento.add(atendimento);
+				}
 			}
+
+			paciente.setAtendimentos(tempAtendimento);
+
+			return paciente;
 		}
-
-		paciente.setAtendimentos(tempAtendimento);
-
-		return paciente;
+		else{
+			return null;
+		}
 	}
 
 	public List<Object[]> localizacaoProntuario(Long id) {
