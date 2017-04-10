@@ -1,10 +1,10 @@
 package br.com.vah.protocolo.dto;
 
-import br.com.vah.protocolo.entities.dbamv.Documento;
-import org.primefaces.model.SelectableDataModel;
+import java.util.List;
 
 import javax.faces.model.ListDataModel;
-import java.util.List;
+
+import org.primefaces.model.SelectableDataModel;
 
 /**
  * Created by Jairoportela on 23/03/2017.

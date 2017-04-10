@@ -1,29 +1,26 @@
 package br.com.vah.protocolo.service;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 import javax.ejb.Stateless;
 import javax.persistence.Query;
 
-import br.com.vah.protocolo.constants.TipoDocumentoEnum;
-import br.com.vah.protocolo.entities.dbamv.ConfiguracaoSetor;
-import br.com.vah.protocolo.entities.usrdbvah.DocumentoProtocolo;
-import br.com.vah.protocolo.entities.usrdbvah.ItemProtocolo;
-import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
-import br.com.vah.protocolo.util.DateUtility;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
-import org.hibernate.SQLQuery;
 import org.hibernate.Session;
-import org.hibernate.criterion.*;
-
-import br.com.vah.protocolo.entities.dbamv.Atendimento;
-import br.com.vah.protocolo.entities.dbamv.PrescricaoMedica;
+import org.hibernate.criterion.Conjunction;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Disjunction;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.Subqueries;
 import org.hibernate.sql.JoinType;
+
+import br.com.vah.protocolo.constants.TipoDocumentoEnum;
+import br.com.vah.protocolo.entities.dbamv.PrescricaoMedica;
+import br.com.vah.protocolo.entities.usrdbvah.DocumentoProtocolo;
+import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 
 /**
  * Created by jairoportela on 16/06/2016.

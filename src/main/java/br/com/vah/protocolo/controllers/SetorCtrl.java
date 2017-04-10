@@ -61,5 +61,5 @@ public class SetorCtrl extends AbstractCtrl<Setor> {
     super.prepareSearch();
     setSearchParam("title", getSearchTerm());
   }
-
+  
 }

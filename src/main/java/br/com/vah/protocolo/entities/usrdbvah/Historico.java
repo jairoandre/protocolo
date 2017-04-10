@@ -1,11 +1,21 @@
 package br.com.vah.protocolo.entities.usrdbvah;
 
-import br.com.vah.protocolo.constants.AcaoHistoricoEnum;
-import br.com.vah.protocolo.constants.EstadosProtocoloEnum;
-import br.com.vah.protocolo.entities.BaseEntity;
-
-import javax.persistence.*;
 import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+
+import br.com.vah.protocolo.constants.AcaoHistoricoEnum;
+import br.com.vah.protocolo.entities.BaseEntity;
 
 /**
  * Created by jairoportela on 16/06/2016.

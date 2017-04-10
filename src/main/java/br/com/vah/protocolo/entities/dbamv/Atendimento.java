@@ -1,9 +1,11 @@
 package br.com.vah.protocolo.entities.dbamv;
 
 import br.com.vah.protocolo.entities.BaseEntity;
+import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by Jairoportela on 05/04/2016.
@@ -31,7 +33,14 @@ public class Atendimento extends BaseEntity {
 
   @Column(name = "DT_ALTA")
   private Date dataAlta;
-
+  
+  @Column(name = "TP_ATENDIMENTO")
+  private String tipo;
+  
+  @OneToMany
+  @JoinColumn(name = "CD_ATENDIMENTO")
+  private List<Protocolo> protocolos;
+  
   @Override
   public Long getId() {
     return id;
@@ -74,4 +83,20 @@ public class Atendimento extends BaseEntity {
   public String getLabelForSelectItem() {
     return String.format("%d - %s", id, paciente.getName());
   }
+
+public String getTipo() {
+	return tipo;
+}
+
+public void setTipo(String tipo) {
+	this.tipo = tipo;
+}
+
+public List<Protocolo> getProtocolos() {
+	return protocolos;
+}
+
+public void setProtocolos(List<Protocolo> protocolos) {
+	this.protocolos = protocolos;
+}
 }

@@ -1,11 +1,10 @@
 package br.com.vah.protocolo.constants;
 
+import java.util.List;
+import java.util.StringJoiner;
+
 import br.com.vah.protocolo.entities.dbamv.Convenio;
 import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
-
-import java.util.List;
-import java.util.Map;
-import java.util.StringJoiner;
 
 /**
  * Created by Jairoportela on 25/03/2017.

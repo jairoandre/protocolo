@@ -1,13 +1,8 @@
 package br.com.vah.protocolo.service;
 
-import br.com.vah.protocolo.constants.TipoDocumentoEnum;
-import br.com.vah.protocolo.entities.dbamv.Atendimento;
-import br.com.vah.protocolo.entities.dbamv.AvisoCirurgia;
-import br.com.vah.protocolo.entities.dbamv.Setor;
-import br.com.vah.protocolo.entities.usrdbvah.DocumentoProtocolo;
-import br.com.vah.protocolo.entities.usrdbvah.ItemProtocolo;
-import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
-import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
+import java.util.Date;
+import java.util.List;
+
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.DetachedCriteria;
@@ -15,8 +10,11 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
 
-import java.util.Date;
-import java.util.List;
+import br.com.vah.protocolo.constants.TipoDocumentoEnum;
+import br.com.vah.protocolo.entities.dbamv.AvisoCirurgia;
+import br.com.vah.protocolo.entities.usrdbvah.DocumentoProtocolo;
+import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
+import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
 
 /**
  * Created by jairoportela on 23/06/2016.
