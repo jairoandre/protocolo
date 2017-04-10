@@ -5,9 +5,10 @@ import java.util.HashSet;
 import java.util.List;
 
 import javax.ejb.Stateless;
-import javax.persistence.Query;
+import javax.inject.Inject;
 
 import org.hibernate.Criteria;
+import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.criterion.MatchMode;
@@ -16,10 +17,14 @@ import org.hibernate.criterion.Restrictions;
 import br.com.vah.protocolo.dto.HistoricoDTO;
 import br.com.vah.protocolo.entities.dbamv.Atendimento;
 import br.com.vah.protocolo.entities.dbamv.Paciente;
+import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 import br.com.vah.protocolo.util.PaginatedSearchParam;
 
 @Stateless
 public class PacienteSrv extends AbstractSrv<Paciente> {
+	
+	private @Inject ProtocoloSrv protocoloService;
+	
 	public PacienteSrv() {
 		super(Paciente.class);
 	}
@@ -27,16 +32,23 @@ public class PacienteSrv extends AbstractSrv<Paciente> {
 	public Paciente initializeListsAtendimentos(Long id) {
 		List<Atendimento> tempAtendimento = new ArrayList<>();
 		Paciente paciente = find(id);
-
+		List<Protocolo> listProtocolos = new ArrayList<>();
 		if (paciente != null) {
 			new HashSet<>(paciente.getAtendimentos());
 
 			for (Atendimento atendimento : paciente.getAtendimentos()) {
-				if (atendimento.getTipo().equalsIgnoreCase("I")) {
-					tempAtendimento.add(atendimento);
+				if (atendimento.getTipo().equalsIgnoreCase("I") || atendimento.getTipo().equalsIgnoreCase("U")) {
+					for ( Protocolo nptc : atendimento.getProtocolos()){
+						if (nptc != null){
+							
+							if (!tempAtendimento.contains(atendimento)){
+								tempAtendimento.add(atendimento);
+							}
+						}
+					}
 				}
 			}
-
+			
 			paciente.setAtendimentos(tempAtendimento);
 
 			return paciente;
@@ -46,13 +58,14 @@ public class PacienteSrv extends AbstractSrv<Paciente> {
 		}
 	}
 
-	public List<Object[]> localizacaoProntuario(Long id) {
-		List<Object[]> localizacao = new ArrayList<>();
+	public Protocolo localizacaoProntuario(Atendimento id) {
+		Protocolo localizacao = null;
+		List<Protocolo> list = new ArrayList<>();
 		Session session = getEm().unwrap(Session.class);
-		SQLQuery consulta = session.createSQLQuery("SELECT NPTC.* FROM USRDBVAH.TB_NPTC_PROTOCOLO NPTC"
-				+ " WHERE NPTC.CD_ATENDIMENTO = "+id.toString());
-		
-		localizacao = consulta.list();
+		Query consulta = session.createQuery("SELECT NPTC FROM Protocolo NPTC"
+				+ " WHERE NPTC.atendimento = :id");
+		consulta.setParameter("id", id);
+		list = (List<Protocolo>) consulta.list();
 		
 		return localizacao;
 	}
@@ -104,7 +117,7 @@ public class PacienteSrv extends AbstractSrv<Paciente> {
 		} else if (pacienteParam != null && !pacienteParam.isEmpty()) {
 			criteria.createAlias("name", "p").add(Restrictions.ilike("p.name", pacienteParam, MatchMode.ANYWHERE));
 		}
-		criteria.createAlias("atendimentos", "atd").add(Restrictions.eq("atd.tipo", "I"));
+		//criteria.createAlias("atendimentos", "atd").add(Restrictions.eq("atd.tipo", "I"));
 
 		return criteria;
 	}

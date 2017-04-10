@@ -640,6 +640,13 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     new LinkedHashSet<>(att.getComentarios());
     return att;
   }
+  
+  public List<Historico> initializeHistorico(Protocolo protocolo){
+	  	Protocolo att = find(protocolo.getId());
+	    new LinkedHashSet<>(att.getHistorico());
+	    return att.getHistorico();
+  }
+  
 
   private void checkDates(Date date, Date[] range) {
     if (range[0] == null || range[0].compareTo(date) > 0) {

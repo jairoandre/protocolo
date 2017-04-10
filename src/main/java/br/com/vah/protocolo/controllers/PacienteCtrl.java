@@ -9,6 +9,8 @@ import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sun.xml.internal.ws.message.AttachmentSetImpl;
+
 import br.com.vah.protocolo.dto.HistoricoDTO;
 import br.com.vah.protocolo.entities.dbamv.Atendimento;
 import br.com.vah.protocolo.entities.dbamv.Paciente;
@@ -16,6 +18,7 @@ import br.com.vah.protocolo.entities.usrdbvah.Historico;
 import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 import br.com.vah.protocolo.service.AbstractSrv;
 import br.com.vah.protocolo.service.PacienteSrv;
+import br.com.vah.protocolo.service.ProtocoloSrv;
 
 @Named
 @ViewScoped
@@ -25,12 +28,16 @@ public class PacienteCtrl extends AbstractCtrl<Paciente> {
 
 	private @Inject PacienteSrv service;
 	
+	private @Inject ProtocoloSrv protocoloService;
+	
 	private Paciente paciente;
 	
 	private String localizacaoProntuario;
 	
-	private List<HistoricoDTO> protocolos;
+	private List<HistoricoDTO> historicoDTO;
 	
+	private List<Historico> protocolo;
+
 	@PostConstruct
 	public void init() {
 		logger.info(this.getClass().getSimpleName() + " created");
@@ -70,29 +77,36 @@ public class PacienteCtrl extends AbstractCtrl<Paciente> {
 	}
 
 	public void onPacienteSelect() {
-		List<Object[]> local = new ArrayList<>();
-		List<HistoricoDTO> hist = new ArrayList<>();
-		this.localizacaoProntuario = null;
-		this.protocolos = new ArrayList<>();
-		this.paciente = service.initializeListsAtendimentos(new Long(1812646));
-		
-		for (Atendimento atendimento : this.paciente.getAtendimentos()){
-			
-			local = service.localizacaoProntuario(atendimento.getId());
-			if (local.isEmpty() || local == null){
-				break;
+		Protocolo local = null;
+		List<Protocolo> tempNptc = new ArrayList<>();
+		this.protocolo = new ArrayList<>();
+		if (getItem() != null && getItem().getId() != null) {
+
+			this.localizacaoProntuario = null;
+			this.historicoDTO = new ArrayList<>();
+			this.paciente = service.initializeListsAtendimentos(getItem().getId());
+
+			for (Atendimento atendimento : this.paciente.getAtendimentos()) {
+				Protocolo temp = atendimento.getProtocolos().get(0);
+				for (Protocolo nptc : atendimento.getProtocolos()){
+					if (nptc.getId() > temp.getId()){
+						if(nptc.getLocalizacao() == null){
+							nptc.setLocalizacao(nptc.getOrigem().getLabelForSelectItem());
+						}
+						temp = nptc;
+					}
+				}
+				tempNptc.add(temp);
+				atendimento.setProtocolos(tempNptc);
 			}
-			System.out.println(local.get(0)[10]);
-			setLocalizacaoProntuario(local.get(0)[10].toString());
 			
-			//hist.addAll(service.historicoAtendimento(atendimento.getId()));
-			this.protocolos = service.historicoAtendimento(atendimento.getId());
-			
-			//System.out.println(hist.get(0).getId()+" "+hist.get(0).getAcao());
-			//System.out.println(hist.get(1).getId()+" "+hist.get(1).getAcao());
-		}
-		
+		}		
 	}
+	
+	public List<Historico> recuperarHistorico(Protocolo protocolo){
+		return protocoloService.initializeHistorico(protocolo);
+	}
+	
 
 	public Paciente getPaciente() {
 		return paciente;
@@ -111,10 +125,18 @@ public class PacienteCtrl extends AbstractCtrl<Paciente> {
 	}
 
 	public List<HistoricoDTO> getProtocolos() {
-		return protocolos;
+		return historicoDTO;
 	}
 
 	public void setProtocolos(List<HistoricoDTO> protocolos) {
-		this.protocolos = protocolos;
+		this.historicoDTO = protocolos;
+	}
+	
+	public List<Historico> getProtocolo() {
+		return protocolo;
+	}
+
+	public void setProtocolo(List<Historico> protocolo) {
+		this.protocolo = protocolo;
 	}
 }
