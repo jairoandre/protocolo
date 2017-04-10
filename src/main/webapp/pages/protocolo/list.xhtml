@@ -25,6 +25,7 @@
         <h:panelGroup id="tablePnl">
           <vah:dataTable id="dataTable" controller="#{protocoloCtrl}"
                          renderActionColumn="false"
+                         rowStyleClass="#{empty item.atendimento ? 'stripped' : ''}"
                          addLabel="Criar/Editar Movimentação"
                          placeholder="Nº atendimento ou nome do paciente"
                          renderAddBtn="true">

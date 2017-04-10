@@ -17,6 +17,7 @@
   <composite:attribute name="renderDefaultFilter" default="true"/>
   <composite:attribute name="placeholder"/>
   <composite:attribute name="addLabel"/>
+  <composite:attribute name="rowStyleClass"/>
 </composite:interface>
 
 <composite:implementation>
@@ -52,6 +53,7 @@
     <p:dataTable id="table" var="item" value="#{cc.attrs.controller.lazyModel}"
                  paginator="true" emptyMessage="Sem registros" styleClass="table-left-header"
                  paginatorPosition="bottom" rows="25" rowKey="index" rowIndexVar="indexVar"
+                 rowStyleClass="#{cc.attrs.rowStyleClass}"
                  paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
                  lazy="true" rowsPerPageTemplate="25,50,100">
       <composite:insertChildren/>

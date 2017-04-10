@@ -26,6 +26,12 @@ public class CaixaCtrl extends AbstractCtrl<Caixa> {
     @Inject
     CaixaSrv service;
 
+    private Boolean showFields = false;
+    private Boolean showAddBtn = true;
+    private Boolean showSaveBtn = false;
+    private Boolean showBackBtn = false;
+
+
     @PostConstruct
     public void init() {
         logger.info(this.getClass().getSimpleName() + " created");
@@ -48,6 +54,29 @@ public class CaixaCtrl extends AbstractCtrl<Caixa> {
         envelope.setEditing(true);
         envelope.setCaixa(getItem());
         getItem().getEnvelopes().add(envelope);
+    }
+
+    public void preAddCaixa() {
+        showAddBtn = false;
+        showFields = true;
+        showSaveBtn = true;
+        showBackBtn = true;
+        setItem(createNewItem());
+    }
+
+    public void inlineSave() {
+        if (doSave() == null) {
+            // Erro
+        } else {
+            showAddBtn = true;
+            showSaveBtn = false;
+            showFields = false;
+            showBackBtn = false;
+        }
+    }
+
+    public void inlineBack() {
+
     }
 
     public void confirmarEnvelope(Envelope envelope) {
@@ -92,5 +121,21 @@ public class CaixaCtrl extends AbstractCtrl<Caixa> {
     public void prepareSearch() {
         super.prepareSearch();
         setSearchParam("titulo", getSearchTerm());
+    }
+
+    public Boolean getShowFields() {
+        return showFields;
+    }
+
+    public Boolean getShowAddBtn() {
+        return showAddBtn;
+    }
+
+    public Boolean getShowSaveBtn() {
+        return showSaveBtn;
+    }
+
+    public Boolean getShowBackBtn() {
+        return showBackBtn;
     }
 }

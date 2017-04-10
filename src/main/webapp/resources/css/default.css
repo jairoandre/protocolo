@@ -416,3 +416,13 @@ input.ui-state-disabled {
   font-size: 18px;
   padding: 0 20px;
 }
+
+.stripped {
+  background: repeating-linear-gradient(
+          45deg,
+          #efefef,
+          #efefef 10px,
+          #e1e1e1 10px,
+          #e1e1e1 20px
+  );
+}
