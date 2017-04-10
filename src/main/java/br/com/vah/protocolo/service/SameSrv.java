@@ -3,6 +3,8 @@ package br.com.vah.protocolo.service;
 import br.com.vah.protocolo.constants.AcaoHistoricoEnum;
 import br.com.vah.protocolo.constants.EstadosProtocoloEnum;
 import br.com.vah.protocolo.dto.DocumentoDTO;
+import br.com.vah.protocolo.dto.SameDTO;
+import br.com.vah.protocolo.entities.dbamv.Convenio;
 import br.com.vah.protocolo.entities.usrdbvah.*;
 import br.com.vah.protocolo.util.ViewUtils;
 
@@ -106,5 +108,9 @@ public class SameSrv implements Serializable {
             envelopeSrv.update(envelope);
 
         }
+    }
+
+    public List<SameDTO> buscarArquivos(Long atendimento, String contas, Convenio convenio) {
+        return null;
     }
 }

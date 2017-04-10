@@ -8,10 +8,10 @@
     <h:panelGroup id="arquivosSearchParams" layout="block" style="margin: 5px 0;">
         <h:panelGrid columns="3" rendered="#{protocoloCtrl.item.origem.nivel ne 'SECRETARIA'}">
             <p:outputLabel value="Contas:" styleClass="lance-label"/>
-            <p:inputText id="listaContas" value="#{sameCtrl.listaContas}"
+            <p:inputText id="arquivosListaContas" value="#{arquivoCtrl.listaContas}"
                          placeholder="Contas separadas por ';'" style="width: 450px;"/>
             <h:panelGroup/>
-            <uivah:autoComplete id="convenio" value="#{sameCtrl.convenio}" label="Convênio:"
+            <uivah:autoComplete id="arquivosConvenioSearch" value="#{arquivoCtrl.convenio}" label="Convênio:"
                                 controller="#{convenioCtrl}" completeMethod="completeMethod"
                                 converter="#{convenioConverter}" itemLabel="labelForSelectItem"
                                 styleClass="client-input"
@@ -53,11 +53,11 @@
             <p:ajax event="rowSelect"
                     listener="#{arquivoCtrl.selectRow}"
                     process="@this"
-                    update="@this selectCount #{p:component('actionsPnl')}"/>
+                    update="@this"/>
             <p:ajax event="rowUnselect"
                     listener="#{arquivoCtrl.unselectRow}"
                     process="@this"
-                    update="@this selectCount #{p:component('actionsPnl')}"/>
+                    update="@this"/>
             <p:columnGroup type="header">
                 <p:row>
                     <p:column width="20"/>
