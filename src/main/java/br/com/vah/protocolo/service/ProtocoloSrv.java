@@ -342,7 +342,9 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
       final List<AvisoCirurgia> avisos = new ArrayList<>();
       final List<RegistroDocumento> registros = new ArrayList<>();
       final List<EvolucaoEnfermagem> evolucoes = new ArrayList<>();
-
+      /* Adição de lista de documentos para atendimentos de urgência ( PS )*/
+      final List<HDA> hdas = new ArrayList<>();
+      final ClassificacaoDeRisco classificacao = null;
       List<Object[]> datas = validadeSrv.recuperarValidades(protocolo, begin, end);
 
       if (datas.size() > 0) {
@@ -371,6 +373,9 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
         avisos.addAll(avisoCirurgiaSrv.consultarAvisos(protocolo, inicioValidade, fimValidade, referencia));
         registros.addAll(registroDocumentoSrv.consultarRegistros(protocolo, inicioValidade, fimValidade, referencia));
         evolucoes.addAll(evolucaoEnfermagemSrv.consultarEvolucoesEnfermagem(protocolo, inicioValidade, fimValidade, referencia));
+        
+        /**/
+        
       });
 
       final List<DocumentoDTO> rawResult = new ArrayList<>();
