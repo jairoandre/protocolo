@@ -4,7 +4,6 @@ package br.com.vah.protocolo.service;
 import br.com.vah.protocolo.constants.AcaoHistoricoEnum;
 import br.com.vah.protocolo.constants.EstadosProtocoloEnum;
 import br.com.vah.protocolo.constants.SetorNivelEnum;
-import br.com.vah.protocolo.constants.TipoDocumentoEnum;
 import br.com.vah.protocolo.dto.DocumentoDTO;
 import br.com.vah.protocolo.entities.dbamv.*;
 import br.com.vah.protocolo.entities.usrdbvah.*;
@@ -224,47 +223,20 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     return criteria;
   }
 
-  private List<DocumentoDTO> gerarListaDTO(Protocolo protocolo, Boolean onlyDocs) {
+  public List<DocumentoDTO> gerarListaDTO(Protocolo protocolo, Boolean onlyDocs, Boolean selected) {
     List<DocumentoDTO> dtos = new ArrayList<>();
     if (protocolo.getItens() != null) {
       protocolo.getItens().forEach((item) -> {
         if (onlyDocs && item.getFilho() != null) {
-          dtos.addAll(gerarListaDTO(initializeLists(item.getFilho()), true));
+          dtos.addAll(gerarListaDTO(initializeLists(item.getFilho()), true, selected));
         } else {
-          dtos.add(new DocumentoDTO(item));
+          dtos.add(new DocumentoDTO(item, selected));
         }
       });
     }
     return dtos;
   }
 
-
-
-  private DtoKeyMap gerarDtoKeyMap(List<DocumentoDTO> documentos) {
-    DtoKeyMap dtoKeyMap = new DtoKeyMap();
-
-    if (documentos.isEmpty()) {
-      dtoKeyMap.put("Sem documentos", null);
-    }
-
-    for (DocumentoDTO documento : documentos) {
-
-      TipoDocumentoEnum tipo = documento.getTipo();
-
-      String key = DtoKeyMap.textoGrupo(tipo);
-
-      List<DocumentoDTO> listaDoc = dtoKeyMap.get(key);
-
-      if (listaDoc == null) {
-        listaDoc = new ArrayList<>();
-        dtoKeyMap.put(key, listaDoc);
-      }
-
-      listaDoc.add(documento);
-    }
-
-    return dtoKeyMap;
-  }
 
   public Boolean documentoIguais(DocumentoDTO dto, ItemProtocolo itemProtocolo) {
     Protocolo filho = itemProtocolo.getFilho();
@@ -296,24 +268,19 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     if (toRemove != null) {
       dtos.remove(toRemove);
     }
-
     return dtos;
-
   }
 
-  public void addIfNoExists(Protocolo protocolo, DocumentoDTO dto) {
-    ItemProtocolo newItem = dto.criarItemProtocolo();
-    newItem.setProtocolo(protocolo);
-    Boolean add = true;
-    for (ItemProtocolo item : protocolo.getItens()) {
-      if (documentoIguais(dto, item)) {
-        add = false;
-        break;
-      }
+  public DtoKeyMap criarKeyMap(List<DocumentoDTO> dtos, Set<ItemProtocolo> items) {
+    DtoKeyMap keyMap = new DtoKeyMap();
+    if (dtos != null) {
+      dtos.forEach((dto) -> keyMap.add(dto));
     }
-    if (add) {
-      protocolo.getItens().add(newItem);
+    if (items != null) {
+      items.forEach((item) -> keyMap.add(new DocumentoDTO(item, true), true));
     }
+    keyMap.sortEverything();
+    return keyMap;
   }
 
   private Boolean jaProtocolado(DocumentoDTO dto) {
@@ -329,7 +296,7 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     return false;
   }
 
-  private Map<String, Object> buscarDocumentos(Protocolo protocolo, Date begin, Date end, Convenio convenio, String listaContas) {
+  private Map<String, Object> buscarDocumentosMap(Protocolo protocolo, Date begin, Date end, Convenio convenio, String listaContas) {
 
     final List<DocumentoDTO> result = new ArrayList<>();
     Map<String, Object> resultMap = new HashMap<>();
@@ -350,7 +317,10 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
       }
 
       datas.forEach((range) -> {
-        prescricoes.addAll(prescricaoMedicaSrv.consultarPrescricoes(protocolo, (Date) range[0], (Date) range[1], (Date) range[3]));
+        Date inicioValidade = (Date) range[0];
+        Date fimValidade = (Date) range[1];
+        Date referencia = (Date) range[3];
+        prescricoes.addAll(prescricaoMedicaSrv.consultarPrescricoes(protocolo, inicioValidade, fimValidade, referencia));
         // TODO: Colocar checagem de folhas anestésicas (Tabelas PRESTADOR_AVISO, ATI_MED, PRESTADOR e CIRURGIA_AVISO)
         /*
         SELECT DISTINCT 'X'
@@ -365,12 +335,11 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
                                CIRURGIA_AVISO.CD_CIRURGIA = PRESTADOR_AVISO.CD_CIRURGIA) AND
                                CIRURGIA_AVISO.CD_AVISO_CIRURGIA = c.cd_aviso_cirurgia
          */
-        Date inicioValidade = (Date) range[0];
-        Date fimValidade = (Date) range[1];
-        Date referencia = (Date) range[3];
         avisos.addAll(avisoCirurgiaSrv.consultarAvisos(protocolo, inicioValidade, fimValidade, referencia));
         registros.addAll(registroDocumentoSrv.consultarRegistros(protocolo, inicioValidade, fimValidade, referencia));
         evolucoes.addAll(evolucaoEnfermagemSrv.consultarEvolucoesEnfermagem(protocolo, inicioValidade, fimValidade, referencia));
+
+
       });
 
       final List<DocumentoDTO> rawResult = new ArrayList<>();
@@ -411,10 +380,12 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     return resultMap;
   }
 
-  public DtoKeyMap buscarDocumentosNaoSelecionados(Protocolo protocolo, Date begin, Date end, Convenio convenio, String listaContas) throws ProtocoloBusinessException {
+  public List<DocumentoDTO> buscarDocumentos(Protocolo protocolo, Convenio convenio, String listaContas) throws ProtocoloBusinessException {
+    Date begin = protocolo.getInicio();
+    Date end = protocolo.getFim();
     if (SetorNivelEnum.SECRETARIA.equals(protocolo.getOrigem().getNivel())) {
       if (begin == null) {
-        return new DtoKeyMap();
+        return null;
       } else {
         Calendar beginCld = Calendar.getInstance();
         beginCld.setTime(begin);
@@ -429,19 +400,15 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
           }
           endCld.setTime(end);
         }
-        Map<String, Object> resultado = buscarDocumentos(protocolo, beginCld.getTime(), endCld.getTime(), convenio, listaContas);
+        Map<String, Object> resultado = buscarDocumentosMap(protocolo, beginCld.getTime(), endCld.getTime(), convenio, listaContas);
         List<DocumentoDTO> documentos = (List<DocumentoDTO>) resultado.get("items");
-        return gerarDtoKeyMap(documentos);
+        return documentos;
       }
     } else {
-      Map<String, Object> resultado = buscarDocumentos(protocolo, null, null, convenio, listaContas);
+      Map<String, Object> resultado = buscarDocumentosMap(protocolo, null, null, convenio, listaContas);
       List<DocumentoDTO> documentos = (List<DocumentoDTO>) resultado.get("items");
-      return gerarDtoKeyMap(documentos);
+      return documentos;
     }
-  }
-
-  public DtoKeyMap gerarDocumentosSelecionados(Protocolo protocolo, Boolean onlyDocs) {
-    return gerarDtoKeyMap(gerarListaDTO(protocolo, onlyDocs));
   }
 
   public Protocolo enviarProtocolo(final Protocolo protocolo, User user, List<CaixaEntrada> caixasVinculadas, List<CaixaEntrada> caixasRemovidas) throws ProtocoloBusinessException {
@@ -490,7 +457,7 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
           }
         });
         if (candidatos.size() > seraoEnviados.size()) {
-         throw new ProtocoloBusinessException("O envio não foi realizado, pois existem documentos pendentes de inclusão.");
+          throw new ProtocoloBusinessException("O envio não foi realizado, pois existem documentos pendentes de inclusão.");
         }
       }
     }
@@ -640,13 +607,13 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     new LinkedHashSet<>(att.getComentarios());
     return att;
   }
-  
-  public List<Historico> initializeHistorico(Protocolo protocolo){
-	  	Protocolo att = find(protocolo.getId());
-	    new LinkedHashSet<>(att.getHistorico());
-	    return att.getHistorico();
+
+  public List<Historico> initializeHistorico(Protocolo protocolo) {
+    Protocolo att = find(protocolo.getId());
+    new LinkedHashSet<>(att.getHistorico());
+    return att.getHistorico();
   }
-  
+
 
   private void checkDates(Date date, Date[] range) {
     if (range[0] == null || range[0].compareTo(date) > 0) {
@@ -674,7 +641,9 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
         contas.addAll(inferirContasInitialize(filho));
       }
     });
-    contas.addAll(regFaturamentoSrv.obterContas(att, range));
+    if (range[0] != null && range[1] != null) {
+      contas.addAll(regFaturamentoSrv.obterContas(att, range));
+    }
     return contas;
   }
 

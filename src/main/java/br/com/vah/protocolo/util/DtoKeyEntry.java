@@ -21,6 +21,17 @@ public class DtoKeyEntry {
     this.filtereds = new ArrayList<>();
   }
 
+  public void fillSelecteds() {
+    List<DocumentoDTO> dtos = entry.getValue();
+    if (dtos != null) {
+      for (DocumentoDTO dto : dtos) {
+        if (dto.getSelected()) {
+          this.selecteds.add(dto);
+        }
+      }
+    }
+  }
+
   public Integer getSelectedSize() {
     return this.selecteds == null ? 0 : this.selecteds.size();
   }

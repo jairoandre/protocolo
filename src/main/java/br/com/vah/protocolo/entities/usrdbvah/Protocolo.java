@@ -71,6 +71,12 @@ public class Protocolo extends BaseEntity {
   @Column(name = "NM_LOCALIZACAO")
   private String localizacao;
 
+  @Column(name = "DT_INICIO")
+  private Date inicio;
+
+  @Column(name = "DT_FIM")
+  private Date fim;
+
   @Override
   public Long getId() {
     return id;
@@ -183,6 +189,22 @@ public class Protocolo extends BaseEntity {
 
   public void setLocalizacao(String localizacao) {
     this.localizacao = localizacao;
+  }
+
+  public Date getInicio() {
+    return inicio;
+  }
+
+  public void setInicio(Date inicio) {
+    this.inicio = inicio;
+  }
+
+  public Date getFim() {
+    return fim;
+  }
+
+  public void setFim(Date fim) {
+    this.fim = fim;
   }
 
   @Override

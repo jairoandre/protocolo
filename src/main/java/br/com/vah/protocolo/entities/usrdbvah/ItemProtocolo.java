@@ -25,7 +25,7 @@ public class ItemProtocolo implements Serializable {
   @JoinColumn(name = "ID_PROTOCOLO")
   private Protocolo protocolo;
 
-  @ManyToOne(cascade = CascadeType.ALL)
+  @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
   @JoinColumn(name = "ID_DOCUMENTO")
   private DocumentoProtocolo documento;
 

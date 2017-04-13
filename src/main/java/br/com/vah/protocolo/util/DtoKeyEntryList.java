@@ -18,8 +18,6 @@ public class DtoKeyEntryList extends ArrayList<DtoKeyEntry> {
 
   public DtoKeyEntryList (Set<Map.Entry<String, List<DocumentoDTO>>> entrySet) {
     super();
-    entrySet.forEach((entry) -> {
-      add(new DtoKeyEntry(entry));
-    });
+    entrySet.forEach((entry) -> add(new DtoKeyEntry(entry)));
   }
 }

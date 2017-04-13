@@ -10,6 +10,7 @@ import java.util.*;
  * Created by jairoportela on 24/06/2016.
  */
 public class DtoKeyMap implements Serializable {
+
   private Map<String, List<DocumentoDTO>> map = new HashMap<>();
 
   private Map<String, DocumentoDTO> dtoMap = new HashMap<>();
@@ -24,15 +25,21 @@ public class DtoKeyMap implements Serializable {
     return o1.getEntry().getKey().compareTo(o2.getEntry().getKey());
   }
 
-  public void put(String key, List<DocumentoDTO> value) {
-    remove("Sem documentos");
-    map.put(key, value);
-    list = new DtoKeyEntryList(map.entrySet());
-    Collections.sort(list, (o1, o2) -> compareKeys(o1, o2));
+  public void compile() {
+    if (!map.isEmpty()) {
+      list = new DtoKeyEntryList(map.entrySet());
+      sortEverything();
+      list.forEach((docEntry) -> docEntry.fillSelecteds());
+    }
   }
 
-  public void clearSelecteds() {
-    list.forEach((item) -> item.getSelecteds().clear());
+  public void put(String key, List<DocumentoDTO> value) {
+    map.put(key, value);
+  }
+
+
+  public void remove(String key) {
+    map.remove(key);
   }
 
   public Integer getCountSelecteds() {
@@ -43,17 +50,13 @@ public class DtoKeyMap implements Serializable {
     }
   }
 
-  public Integer getTotalSize() {
+  public Integer getCountTotal() {
     if (list.isEmpty()) {
       return 0;
     } else {
       return list.stream().map(DtoKeyEntry::getListSize).reduce(0, (a, b) -> a + b);
     }
 
-  }
-
-  public void remove(String key) {
-    map.remove(key);
   }
 
   public static String textoGrupo(TipoDocumentoEnum tipo) {
@@ -80,57 +83,43 @@ public class DtoKeyMap implements Serializable {
     }
   }
 
-  public List<DocumentoDTO> getSelecionados() {
-    List<DocumentoDTO> selecionados = new ArrayList<>();
-    if (list != null) {
-      list.forEach((dtoKeyEntry) -> {
-        if (dtoKeyEntry.getEntry().getValue() != null) {
-          dtoKeyEntry.getEntry().getValue().forEach((doc) -> {
-            if (doc.getSelected()) {
-              selecionados.add(doc);
-            }
-          });
-        }
-      });
-    }
-    return selecionados;
-  }
-
   private String rowKey(DocumentoDTO dto) {
     return String.format("%d%s", dto.getCodigo(), dto.getTipo());
   }
 
-  public void addDto(DocumentoDTO dto) {
-    String key = textoGrupo(dto.getTipo());
-    dtoMap.put(rowKey(dto), dto);
-    List<DocumentoDTO> listaDoc = this.get(key);
-    if (listaDoc == null) {
-      listaDoc = new ArrayList<>();
-      this.put(key, listaDoc);
-    }
-    listaDoc.add(dto);
-    dto.setSelected(false);
-    Collections.sort(listaDoc, (o1, o2) -> o1.getDataHoraCriacao().compareTo(o2.getDataHoraCriacao()));
-    list = new DtoKeyEntryList(map.entrySet());
-    Collections.sort(list, (o1, o2) -> compareKeys(o1, o2));
+  public void add(DocumentoDTO dto) {
+    add(dto, false);
   }
 
-  public DtoKeyMap getNotSelectedMap() {
-    DtoKeyMap notSelectedMap = new DtoKeyMap();
-    if (list != null) {
-      list.forEach((docEntry) -> {
-        List<DocumentoDTO> notSelecteds = new ArrayList<>();
-        docEntry.getEntry().getValue().forEach((item) -> {
-          if (!item.getSelected()) {
-            notSelecteds.add(item);
-          }
-        });
-        if (!notSelecteds.isEmpty()) {
-          notSelectedMap.put(docEntry.getEntry().getKey(), notSelecteds);
-        }
-      });
+  public void add(DocumentoDTO dto, Boolean selected) {
+    String rowKey = rowKey(dto);
+    DocumentoDTO included = dtoMap.get(rowKey);
+    if (included == null) {
+      dtoMap.put(rowKey, dto);
+      String key = textoGrupo(dto.getTipo());
+      List<DocumentoDTO> listaDoc = this.get(key);
+      if (listaDoc == null) {
+        listaDoc = new ArrayList<>();
+        this.put(key, listaDoc);
+      }
+      listaDoc.add(dto);
+      dto.setSelected(selected);
+    } else if (selected) {
+      included.setSelected(true);
     }
-    return notSelectedMap;
+  }
+
+  public void addAll(List<DocumentoDTO> dtos, Boolean selected) {
+    if (dtos != null) {
+      for (DocumentoDTO dto : dtos) {
+        add(dto, selected);
+      }
+    }
+  }
+
+  public void sortEverything() {
+    map.values().forEach((list) -> Collections.sort(list, (o1, o2) -> o1.getDataHoraCriacao().compareTo(o2.getDataHoraCriacao())));
+    Collections.sort(list, this::compareKeys);
   }
 
   public List<DocumentoDTO> get(String key) {

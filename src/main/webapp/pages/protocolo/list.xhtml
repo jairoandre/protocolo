@@ -405,10 +405,10 @@
             <h:panelGroup id="docSelecionadosPnl">
               <p:tabView id="docsTab"
                          widgetVar="docsTab"
-                         value="#{protocoloCtrl.documentosSelecionados.list}"
+                         value="#{protocoloCtrl.documentosKeyMap.list}"
                          onTabChange="updateTooltips();"
                          var="item"
-                         rendered="#{not empty protocoloCtrl.documentosSelecionados.list}">
+                         rendered="#{not empty protocoloCtrl.documentosKeyMap.list}">
                 <p:tab title="#{item.entry.key}">
                   <p:dataTable id="docTable" value="#{item.entry.value}" var="doc"
                                emptyMessage="Sem documentos para selecionar"
@@ -422,7 +422,7 @@
                                paginatorPosition="bottom"
                                sortBy="#{doc.dataHoraCriacao}" rowIndexVar="idx">
                     <p:ajax event="rowSelect"
-                            listener="#{protocoloCtrl.selectRowRecebimento}"
+                            listener="#{protocoloCtrl.selectRow}"
                             process="@this"
                             update="@this #{p:component('registrarRecebBtn')}"/>
                     <p:ajax event="rowUnselect"
@@ -513,14 +513,14 @@
                                update="tablePnl receberDlgPnl"
                                action="#{protocoloCtrl.receber}"/>
               <p:commandButton value="Selecionar Todos"
-                               action="#{protocoloCtrl.selectAllRecebimento}"
+                               action="#{protocoloCtrl.selectAll}"
                                ajax="true"
                                icon="fa fa-check-square-o"
                                style="margin-left: 5px;"
                                process="@this"
                                update="docsTab registrarRecebBtn"/>
               <p:commandButton value="Desmarcar Todos"
-                               action="#{protocoloCtrl.unselectAllRecebimento}"
+                               action="#{protocoloCtrl.unselectAll}"
                                ajax="true"
                                icon="fa fa-square-o"
                                style="margin-left: 5px;"
@@ -552,10 +552,10 @@
               <h:outputText value="Visualizar Documentos - Protocolo nº #{protocoloCtrl.item.id}"/>
             </f:facet>
 
-            <p:tabView value="#{protocoloCtrl.documentosSelecionados.list}"
+            <p:tabView value="#{protocoloCtrl.documentosKeyMap.list}"
                        var="item"
                        onTabChange="updateTooltips()"
-                       rendered="#{not empty protocoloCtrl.documentosSelecionados.list}">
+                       rendered="#{not empty protocoloCtrl.documentosKeyMap.list}">
               <p:tab title="#{item.entry.key}">
                 <p:dataTable value="#{item.entry.value}" var="doc"
                              emptyMessage="Sem documentos"

@@ -29,7 +29,8 @@ public class DocumentoDTO {
 
   private Boolean selected = false;
 
-  public DocumentoDTO() {}
+  public DocumentoDTO() {
+  }
 
   public void createDocumento() {
     this.documento = new DocumentoProtocolo();
@@ -91,7 +92,7 @@ public class DocumentoDTO {
   public DocumentoDTO(EvolucaoEnfermagem evolucao) {
     this.codigo = evolucao.getId();
     this.tipo = TipoDocumentoEnum.EVOLUCAO_ENFERMAGEM;
-    this.descricao = evolucao.getDescricao();
+    this.descricao = tipo.getLabel();
     Prestador prestador = evolucao.getPrestador();
     if (prestador == null) {
       this.prestador = "N/A";
@@ -161,25 +162,32 @@ public class DocumentoDTO {
     setFields(caixa);
   }
 
-  public DocumentoDTO(ItemProtocolo item) {
+  public DocumentoDTO(ItemProtocolo item, Boolean selected) {
     this.itemProtocolo = item;
     if (item.getDocumento() != null) {
       setFields(item.getDocumento());
     } else if (item.getFilho() != null) {
       setFields(item.getFilho());
     }
+    this.caixa = item.getCaixa();
+    this.protocolo = item.getProtocolo();
+    this.selected = selected;
   }
 
   public ItemProtocolo getItemProtocolo() {
     return this.itemProtocolo;
   }
 
-  public ItemProtocolo criarItemProtocolo() {
-    ItemProtocolo itemProtocolo = new ItemProtocolo();
-    itemProtocolo.setProtocolo(protocolo);
-    itemProtocolo.setDocumento(documento);
-    itemProtocolo.setFilho(filho);
-    itemProtocolo.setCaixa(caixa);
+  public ItemProtocolo criarItemProtocoloSeNecessario(Protocolo protocolo) {
+    if (itemProtocolo == null) {
+      ItemProtocolo newItem = new ItemProtocolo();
+      newItem.setProtocolo(protocolo);
+      newItem.setDocumento(documento);
+      newItem.setFilho(filho);
+      newItem.setCaixa(caixa);
+      this.protocolo = protocolo;
+      itemProtocolo = newItem;
+    }
     return itemProtocolo;
   }
 
@@ -309,4 +317,16 @@ public class DocumentoDTO {
     }
     return "";
   }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof DocumentoDTO) {
+      DocumentoDTO dto = (DocumentoDTO) obj;
+      if (dto.getTipo() != null && dto.getCodigo() != null) {
+        return tipo.equals(dto.getTipo()) && codigo.equals(dto.getCodigo());
+      }
+    }
+    return false;
+  }
+
 }

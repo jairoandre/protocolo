@@ -117,7 +117,8 @@ public class SameCtrl implements Serializable {
     public void visualizarDoc(DocumentoDTO dto) {
         Protocolo att = protocoloSrv.initializeLists(dto.getFilho());
         protocoloToVisualize = att;
-        documentosToVisualize = protocoloSrv.gerarDocumentosSelecionados(att, true);
+        documentosToVisualize = new DtoKeyMap();
+        documentosToVisualize.addAll(protocoloSrv.gerarListaDTO(att, true, false), false);
     }
 
     public void closeDocumentosDlg() {

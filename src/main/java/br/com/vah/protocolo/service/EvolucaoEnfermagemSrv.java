@@ -41,7 +41,7 @@ public class EvolucaoEnfermagemSrv extends AbstractSrv<EvolucaoEnfermagem> {
     DetachedCriteria dt = DetachedCriteria.forClass(DocumentoProtocolo.class, "dp");
     dt.setProjection(Projections.id());
     dt.add(Restrictions.eqProperty("evo.id", "dp.codigo"));
-    dt.add(Restrictions.eq("dp.tipo", TipoDocumentoEnum.REGISTRO_DOCUMENTO));
+    dt.add(Restrictions.eq("dp.tipo", TipoDocumentoEnum.EVOLUCAO_ENFERMAGEM));
     criteria.add(Subqueries.notExists(dt));
 
     List<EvolucaoEnfermagem> evolucoes = criteria.list();
