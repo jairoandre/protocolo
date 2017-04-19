@@ -1,6 +1,7 @@
 package br.com.vah.protocolo.util;
 
 import br.com.vah.protocolo.constants.TipoDocumentoEnum;
+import br.com.vah.protocolo.controllers.ProtocoloCtrl;
 import br.com.vah.protocolo.dto.DocumentoDTO;
 
 import java.io.Serializable;
@@ -25,9 +26,9 @@ public class DtoKeyMap implements Serializable {
     return o1.getEntry().getKey().compareTo(o2.getEntry().getKey());
   }
 
-  public void compile() {
+  public void compile(ProtocoloCtrl ctrl) {
     if (!map.isEmpty()) {
-      list = new DtoKeyEntryList(map.entrySet());
+      list = new DtoKeyEntryList(map.entrySet(), ctrl);
       sortEverything();
       list.forEach((docEntry) -> docEntry.fillSelecteds());
     }

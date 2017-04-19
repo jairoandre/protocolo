@@ -8,7 +8,8 @@ public enum SetorNivelEnum {
   FATURAMENTO_CENTRAL("Faturamento Central"),
   ENVIOS("Envios"),
   AUDITORIA("Auditoria"),
-  SAME("SAME");
+  SAME("SAME"),
+  PRONTO_SOCORRO("Pronto Socorro");
 
   private String label;
 

@@ -6,42 +6,39 @@
                 xmlns:vah="http://java.sun.com/jsf/composite/vah"
                 xmlns:uivah="http://vah.com.br/vah"
                 xmlns:p="http://primefaces.org/ui">
-  <ui:define name="metadata">
-    <f:metadata>
-      <f:viewParam name="id" value="#{setorProtocoloCtrl.id}"/>
-      <f:viewAction action="#{setorProtocoloCtrl.onLoad}"/>
-    </f:metadata>
-  </ui:define>
-  <ui:define name="content">
-    <h:form id="form">
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:viewParam name="id" value="#{setorProtocoloCtrl.id}"/>
+            <f:viewAction action="#{setorProtocoloCtrl.onLoad}"/>
+        </f:metadata>
+    </ui:define>
+    <ui:define name="content">
+        <h:form id="form">
 
-      <vah:editForm id="setorProtocoloPnl" controller="#{setorProtocoloCtrl}"
-                    columns="3">
+            <vah:editForm id="setorProtocoloPnl" controller="#{setorProtocoloCtrl}"
+                          columns="3">
 
-        <uivah:inputText id="name" label="Nome"
-                         value="#{setorProtocoloCtrl.item.title}"/>
+                <uivah:inputText id="name" label="Nome"
+                                 value="#{setorProtocoloCtrl.item.title}"/>
 
-        <p:outputLabel value="Nível" styleClass="lance-label" for="nivel" indicateRequired="true"/>
-        <p:selectOneMenu id="nivel" value="#{setorProtocoloCtrl.item.nivel}" required="true"
-                         requiredMessage="Campo obrigatório">
-          <f:selectItem itemValue="" itemLabel="Selecione..."/>
-          <f:selectItem itemValue="0" itemLabel="Nível 0"/>
-          <f:selectItem itemValue="1" itemLabel="Nível 1"/>
-          <f:selectItem itemValue="2" itemLabel="Nível 2"/>
-          <f:selectItem itemValue="3" itemLabel="Nível 3"/>
-        </p:selectOneMenu>
-        <p:message for="nivel"/>
+                <p:outputLabel value="Nível" styleClass="lance-label" for="nivel" indicateRequired="true"/>
+                <p:selectOneMenu id="nivel" value="#{setorProtocoloCtrl.item.nivel}" required="true"
+                                 requiredMessage="Campo obrigatório">
+                    <f:selectItem itemValue="" itemLabel="Selecione..."/>
+                    <f:selectItems value="#{setorProtocoloCtrl.niveis}" var="nivel" itemLabel="#{nivel.label}" itemValue="#{nivel}"/>
+                </p:selectOneMenu>
+                <p:message for="nivel"/>
 
-        <uivah:autoComplete id="setor" value="#{setorProtocoloCtrl.item.setorMV}" label="Setor"
-                            controller="#{setorCtrl}" completeMethod="completeMethod"
-                            converter="#{setorConverter}" itemLabel="labelForSelectItem"
-                            placeholder="Cód./Nome">
-          <p:column>
-            #{item.title}
-          </p:column>
-        </uivah:autoComplete>
+                <uivah:autoComplete id="setor" value="#{setorProtocoloCtrl.item.setorMV}" label="Setor"
+                                    controller="#{setorCtrl}" completeMethod="completeMethod"
+                                    converter="#{setorConverter}" itemLabel="labelForSelectItem"
+                                    placeholder="Cód./Nome">
+                    <p:column>
+                        #{item.title}
+                    </p:column>
+                </uivah:autoComplete>
 
-      </vah:editForm>
-    </h:form>
-  </ui:define>
+            </vah:editForm>
+        </h:form>
+    </ui:define>
 </ui:composition>

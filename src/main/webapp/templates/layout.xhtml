@@ -6,70 +6,74 @@
       xmlns:p="http://primefaces.org/ui">
 <ui:insert name="metadata"/>
 <h:head>
-  <title>PROTOCOLO v2.0</title>
-  <h:outputStylesheet library="css" name="default.css"/>
-  <h:outputStylesheet library="css" name="material.min.css"/>
-  <h:outputScript library="js" name="locales.js"/>
-  <h:outputScript library="js" name="jquery.maskMoney.min.js"/>
-  <h:outputScript library="js" name="guiabi.js"/>
-  <h:outputScript library="js" name="jquery.numberMask.min.js"/>
-  <h:outputScript library="js" name="material.min.js"/>
-  <h:outputScript library="js" name="jquery.maskedinput.min.js"/>
-  <link rel="shortcut icon" type="image/x-icon"
-        href="#{resource['img/favicon.ico']}"/>
-  <h:outputStylesheet library="css" name="material.css"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>PROTOCOLO v2.0</title>
+    <h:outputStylesheet library="css" name="default.css"/>
+    <h:outputStylesheet library="css" name="material.min.css"/>
+    <h:outputScript library="js" name="locales.js"/>
+    <h:outputScript library="js" name="jquery.maskMoney.min.js"/>
+    <h:outputScript library="js" name="guiabi.js"/>
+    <h:outputScript library="js" name="jquery.numberMask.min.js"/>
+    <h:outputScript library="js" name="material.min.js"/>
+    <h:outputScript library="js" name="jquery.maskedinput.min.js"/>
+    <link rel="shortcut icon" type="image/x-icon"
+          href="#{resource['img/favicon.ico']}"/>
+    <h:outputStylesheet library="css" name="material.css"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 </h:head>
 <h:body>
-  <p:ajaxStatus onstart="PF('statusDialog').show()"
-                onerror="PF('statusDialog').hide()"
-                onsuccess="PF('statusDialog').hide()"/>
-  <p:dialog widgetVar="statusDialog" modal="false" draggable="false"
-            closable="false" resizable="false" showHeader="false"
-            hideEffect="fade" position="right bottom"
-            style="margin: 0 20px 20px 0; font-size: 25px !important;">
-    <span class="fa fa-refresh fa-spin" style=""/>
-  </p:dialog>
-  <p:dialog widgetVar="changePage" modal="true" draggable="false"
-            closable="false" resizable="false" showHeader="false"
-            hideEffect="fade" position="center">
-    <span class="fa fa-refresh fa-spin" style=""/>
-  </p:dialog>
-  <h:panelGroup layout="block" style="padding: 5px 5px">
-    <ui:include src="../templates/tiles/top-menu.xhtml"/>
-  </h:panelGroup>
-  <h:panelGroup layout="block" style="padding: 5px">
-    <p:messages autoUpdate="true" showDetail="true" showSummary="true" globalOnly="true" escape="false"/>
-  </h:panelGroup>
-  <h:panelGroup layout="block" style="padding: 5px 5px;">
-    <ui:insert name="content"/>
-  </h:panelGroup>
-  <script type="text/javascript">
-    function selectContent(elem) {
-      elem.setSelectionRange(0, elem.value.length);
-    }
-    function openLoading() {
-      PF('changePage').show();
-    }
+    <p:ajaxStatus onstart="PF('statusDialog').show()"
+                  onerror="PF('statusDialog').hide()"
+                  onsuccess="PF('statusDialog').hide()"/>
+    <p:dialog widgetVar="statusDialog" modal="false" draggable="false"
+              closable="false" resizable="false" showHeader="false"
+              hideEffect="fade" position="right bottom"
+              style="margin: 0 20px 20px 0; font-size: 25px !important;">
+        <span class="fa fa-refresh fa-spin" style=""/>
+    </p:dialog>
+    <p:dialog widgetVar="changePage" modal="true" draggable="false"
+              closable="false" resizable="false" showHeader="false"
+              hideEffect="fade" position="center">
+        <span class="fa fa-refresh fa-spin" style=""/>
+    </p:dialog>
+    <h:panelGroup layout="block" style="padding: 5px 5px">
+        <ui:include src="../templates/tiles/top-menu.xhtml"/>
+    </h:panelGroup>
+    <h:panelGroup layout="block" style="padding: 5px">
+        <p:messages autoUpdate="true" showDetail="true" showSummary="true" globalOnly="true" escape="false"/>
+    </h:panelGroup>
+    <h:panelGroup layout="block" style="padding: 5px 5px;">
+        <ui:insert name="content"/>
+    </h:panelGroup>
+    <script type="text/javascript">
+        function selectContent(elem) {
+            elem.setSelectionRange(0, elem.value.length);
+        }
+        function openLoading() {
+            PF('changePage').show();
+        }
 
-    function closeLoading() {
-      PF('changePage').hide();
-    }
+        function closeLoading() {
+            PF('changePage').hide();
+        }
 
-    function countDownCharacters(value, size, outputSelector) {
-      var output = document.querySelector(outputSelector);
-      var delta = size - (value ? value.length : 0);
-      output.innerHTML = delta.toString();
-    }
+        function countDownCharacters(value, size, outputSelector) {
+            var output = document.querySelector(outputSelector);
+            var delta = size - (value ? value.length : 0);
+            output.innerHTML = delta.toString();
+        }
 
-    function updateTooltips() {
-      componentHandler.upgradeElements($('.vah-tooltip'));
-    }
+        function updateTooltips() {
+            componentHandler.upgradeElements($('.vah-tooltip'));
+        }
 
-    function updateBtns() {
-      componentHandler.upgradeElements($('.vah-btn'));
-    }
+        function updateBtns() {
+            componentHandler.upgradeElements($('.vah-btn'));
+        }
 
-  </script>
+        function selectionRange(elem) {
+            elem.setSelectionRange(0, elem.value.length);
+        }
+
+    </script>
 </h:body>
 </html>

@@ -14,6 +14,7 @@ import br.com.vah.protocolo.util.DtoKeyMap;
 import br.com.vah.protocolo.util.PaginatedSearchParam;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
+import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.MatchMode;
@@ -271,18 +272,6 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     return dtos;
   }
 
-  public DtoKeyMap criarKeyMap(List<DocumentoDTO> dtos, Set<ItemProtocolo> items) {
-    DtoKeyMap keyMap = new DtoKeyMap();
-    if (dtos != null) {
-      dtos.forEach((dto) -> keyMap.add(dto));
-    }
-    if (items != null) {
-      items.forEach((item) -> keyMap.add(new DocumentoDTO(item, true), true));
-    }
-    keyMap.sortEverything();
-    return keyMap;
-  }
-
   private Boolean jaProtocolado(DocumentoDTO dto) {
     Session session = getSession();
     Criteria criteria = session.createCriteria(DocumentoProtocolo.class);
@@ -294,6 +283,24 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
       return itemProtocoloCrit.list().size() > 0;
     }
     return false;
+  }
+
+  private Boolean checkFolhaAnestesica(AvisoCirurgia aviso) {
+    String sql = "SELECT DISTINCT 'X' " +
+        "FROM DBAMV.PRESTADOR_AVISO PRESTADOR_AVISO, " +
+        "      DBAMV.ATI_MED         ATI_MED, " +
+        "      DBAMV.PRESTADOR       PRESTADOR, " +
+        "      DBAMV.CIRURGIA_AVISO  CIRURGIA_AVISO " +
+        "WHERE (PRESTADOR_AVISO.CD_PRESTADOR = PRESTADOR.CD_PRESTADOR AND " +
+        "      PRESTADOR_AVISO.CD_ATI_MED = ATI_MED.CD_ATI_MED AND " +
+        "      TP_FUNCAO = 'N' AND " +
+        "      CIRURGIA_AVISO.CD_AVISO_CIRURGIA = PRESTADOR_AVISO.CD_AVISO_CIRURGIA AND " +
+        "      CIRURGIA_AVISO.CD_CIRURGIA = PRESTADOR_AVISO.CD_CIRURGIA) AND " +
+        "      CIRURGIA_AVISO.CD_AVISO_CIRURGIA = C.CD_AVISO_CIRURGIA AND " +
+        "      CIRURGIA_AVISO.CD_AVISO_CIRURGIA = :CD_AVISO_CIRURGIA ";
+    SQLQuery query = getSession().createSQLQuery(sql);
+    query.setParameter("CD_AVISO_CIRURGIA", aviso.getId());
+    return query.list().size() > 0;
   }
 
   private Map<String, Object> buscarDocumentosMap(Protocolo protocolo, Date begin, Date end, Convenio convenio, String listaContas) {
@@ -321,24 +328,9 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
         Date fimValidade = (Date) range[1];
         Date referencia = (Date) range[3];
         prescricoes.addAll(prescricaoMedicaSrv.consultarPrescricoes(protocolo, inicioValidade, fimValidade, referencia));
-        // TODO: Colocar checagem de folhas anestésicas (Tabelas PRESTADOR_AVISO, ATI_MED, PRESTADOR e CIRURGIA_AVISO)
-        /*
-        SELECT DISTINCT 'X'
-                          FROM DBAMV.PRESTADOR_AVISO PRESTADOR_AVISO,
-                               DBAMV.ATI_MED         ATI_MED,
-                               DBAMV.PRESTADOR       PRESTADOR,
-                               DBAMV.CIRURGIA_AVISO  CIRURGIA_AVISO
-                         WHERE (PRESTADOR_AVISO.CD_PRESTADOR = PRESTADOR.CD_PRESTADOR AND
-                               PRESTADOR_AVISO.CD_ATI_MED = ATI_MED.CD_ATI_MED AND
-                               TP_FUNCAO = 'N' AND
-                               CIRURGIA_AVISO.CD_AVISO_CIRURGIA = PRESTADOR_AVISO.CD_AVISO_CIRURGIA AND
-                               CIRURGIA_AVISO.CD_CIRURGIA = PRESTADOR_AVISO.CD_CIRURGIA) AND
-                               CIRURGIA_AVISO.CD_AVISO_CIRURGIA = c.cd_aviso_cirurgia
-         */
         avisos.addAll(avisoCirurgiaSrv.consultarAvisos(protocolo, inicioValidade, fimValidade, referencia));
         registros.addAll(registroDocumentoSrv.consultarRegistros(protocolo, inicioValidade, fimValidade, referencia));
         evolucoes.addAll(evolucaoEnfermagemSrv.consultarEvolucoesEnfermagem(protocolo, inicioValidade, fimValidade, referencia));
-
 
       });
 
@@ -355,7 +347,13 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
         }
       });
 
-      avisos.forEach((a) -> rawResult.add(new DocumentoDTO(a)));
+      avisos.forEach((a) -> {
+        DocumentoDTO dtoAviso = new DocumentoDTO(a);
+        rawResult.add(dtoAviso);
+        if (checkFolhaAnestesica(a)) {
+          rawResult.add(dtoAviso.criarFolhaAnestesica());
+        }
+      });
       registros.forEach((r) -> rawResult.add(new DocumentoDTO(r)));
       evolucoes.forEach((e) -> rawResult.add(new DocumentoDTO(e)));
 
@@ -626,10 +624,10 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
 
   public Set<RegFaturamento> inferirContasInitialize(Protocolo protocolo) {
     Protocolo att = initializeLists(protocolo);
-    return inferirContas(att);
+    return inferirContas(att, null);
   }
 
-  public Set<RegFaturamento> inferirContas(Protocolo att) {
+  public Set<RegFaturamento> inferirContas(Protocolo att, List<DocumentoDTO> documentos) {
     Date[] range = new Date[2];
     Set<RegFaturamento> contas = new HashSet<>();
     att.getItens().forEach((itemProtocolo) -> {
@@ -641,6 +639,9 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
         contas.addAll(inferirContasInitialize(filho));
       }
     });
+    if (documentos != null) {
+      documentos.forEach((dto) -> checkDates(dto.getDataHoraCriacao(), range));
+    }
     if (range[0] != null && range[1] != null) {
       contas.addAll(regFaturamentoSrv.obterContas(att, range));
     }

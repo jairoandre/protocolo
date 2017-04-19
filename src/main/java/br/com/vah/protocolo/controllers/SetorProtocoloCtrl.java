@@ -1,5 +1,6 @@
 package br.com.vah.protocolo.controllers;
 
+import br.com.vah.protocolo.constants.SetorNivelEnum;
 import br.com.vah.protocolo.entities.usrdbvah.SetorProtocolo;
 import br.com.vah.protocolo.service.AbstractSrv;
 import br.com.vah.protocolo.service.SetorProtocoloSrv;
@@ -24,6 +25,8 @@ public class SetorProtocoloCtrl extends AbstractCtrl<SetorProtocolo> {
   private
   @Inject
   SetorProtocoloSrv service;
+
+  private final SetorNivelEnum[] niveis = SetorNivelEnum.values();
 
   @PostConstruct
   public void init() {
@@ -64,4 +67,7 @@ public class SetorProtocoloCtrl extends AbstractCtrl<SetorProtocolo> {
     setSearchParam("title", getSearchTerm());
   }
 
+  public SetorNivelEnum[] getNiveis() {
+    return niveis;
+  }
 }

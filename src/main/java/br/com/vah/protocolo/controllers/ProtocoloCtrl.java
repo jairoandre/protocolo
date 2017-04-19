@@ -11,11 +11,8 @@ import br.com.vah.protocolo.service.AbstractSrv;
 import br.com.vah.protocolo.service.AtendimentoSrv;
 import br.com.vah.protocolo.service.ProtocoloSrv;
 import br.com.vah.protocolo.util.DtoKeyEntry;
-import br.com.vah.protocolo.util.DtoKeyEntryList;
 import br.com.vah.protocolo.util.DtoKeyMap;
 import br.com.vah.protocolo.util.ViewUtils;
-import org.primefaces.event.SelectEvent;
-import org.primefaces.event.UnselectEvent;
 
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
@@ -98,9 +95,9 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   private Boolean renderHistoricoDlg = false;
 
-  private Boolean renderReceberDlg = false;
-
   private Boolean renderDocumentosDlg = false;
+
+  private Boolean recebendo = false;
 
   private Protocolo protocoloToVisualize;
 
@@ -178,7 +175,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
       contarDocumentos();
     }
     documentosKeyMap = new DtoKeyMap();
-    documentosKeyMap.compile();
+    documentosKeyMap.compile(this);
   }
 
   public void saveAddingHistory(AcaoHistoricoEnum acao) {
@@ -186,17 +183,20 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
   }
 
   public void receber() {
-    renderReceberDlg = false;
     saveAddingHistory(AcaoHistoricoEnum.RECEBIMENTO);
     setItem(createNewItem());
+    recebendo = false;
   }
 
   public void preReceber(Protocolo protocolo) {
+    documentosKeyMap = new DtoKeyMap();
     Protocolo att = service.initializeLists(protocolo);
     documentosKeyMap.addAll(service.gerarListaDTO(att, false, false), false);
-    documentosKeyMap.compile();
+    documentosKeyMap.compile(this);
     setItem(att);
-    renderReceberDlg = true;
+    contarDocumentos();
+    recebendo = true;
+    renderDocumentosDlg = true;
   }
 
   private Boolean isOrigemSecretaria() {
@@ -208,11 +208,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     protocoloToVisualize = att;
     documentosToVisualize = new DtoKeyMap();
     documentosToVisualize.addAll(service.gerarListaDTO(att, isOrigemSecretaria(), false), false);
-    documentosToVisualize.compile();
-  }
-
-  public void closeReceberDlg() {
-    renderReceberDlg = false;
+    documentosToVisualize.compile(this);
   }
 
   public void preRecusar(Protocolo protocolo) {
@@ -232,9 +228,10 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
   public void preOpenDocumentosDlg(Protocolo protocolo) {
     Protocolo att = service.initializeLists(protocolo);
     setItem(att);
+    contarDocumentos();
     documentosKeyMap = new DtoKeyMap();
     documentosKeyMap.addAll(service.gerarListaDTO(att, isOrigemSecretaria(), false), false);
-    documentosKeyMap.compile();
+    documentosKeyMap.compile(this);
     renderDocumentosDlg = true;
   }
 
@@ -252,6 +249,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
   public void closeDocumentosDlg() {
     renderDocumentosDlg = false;
     setItem(createNewItem());
+    recebendo = false;
   }
 
   public void closeComentariosDlg() {
@@ -294,7 +292,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
       contarDocumentos();
     }
     documentosKeyMap.addAll(service.gerarListaDTO(getItem(), isOrigemSecretaria(), true), true);
-    documentosKeyMap.compile();
+    documentosKeyMap.compile(this);
   }
 
   public void salvarNovoComentarioEdit() {
@@ -322,7 +320,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
         documentos = service.buscarDocumentos(getItem(), convenio, listaContas);
         aferirContas();
         documentosKeyMap.addAll(documentos, false);
-        documentosKeyMap.compile();
+        documentosKeyMap.compile(this);
       } catch (ProtocoloBusinessException e) {
         addMsg(FacesMessage.SEVERITY_WARN, e.getMessage());
       }
@@ -336,13 +334,13 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
   }
 
   public void aferirContas() {
-    contas = new ArrayList<>(service.inferirContas(getItem()));
+    contas = new ArrayList<>(service.inferirContas(getItem(), documentos));
     if (contas.size() == 1) {
       getItem().setContaFaturamento(contas.iterator().next());
     }
   }
 
-  private void contarDocumentos() {
+  public void contarDocumentos() {
     Integer[] totais = service.contarDocumentos(getItem());
     showSumario = true;
     totalDocumentos = totais[0];
@@ -426,7 +424,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     itemProtocolo.setDocumento(docManualToAdd);
     getItem().getItens().add(itemProtocolo);
     documentosKeyMap.add(new DocumentoDTO(itemProtocolo, true));
-    documentosKeyMap.compile();
+    documentosKeyMap.compile(this);
     contarDocumentos();
     docManualToAdd = null;
   }
@@ -444,12 +442,12 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     super.onLoad();
     if (getItem().getId() != null) {
       setItem(service.initializeLists(getItem()));
-      contas = new ArrayList<>(service.inferirContas(getItem()));
+      contas = new ArrayList<>(service.inferirContas(getItem(), null));
       prepareDocumentos();
     }
   }
 
-  private void checkDto(DocumentoDTO dto) {
+  public void checkDto(DocumentoDTO dto) {
     dto.setSelected(true);
     if (getEditing()) {
       CaixaEntrada caixa = dto.getCaixa();
@@ -461,7 +459,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     }
   }
 
-  private void uncheckDto(DocumentoDTO dto) {
+  public void uncheckDto(DocumentoDTO dto) {
     dto.setSelected(false);
     if (getEditing()) {
       CaixaEntrada caixa = dto.getCaixa();
@@ -472,31 +470,6 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
       getItem().getItens().remove(dto.getItemProtocolo());
     }
   }
-
-  public void selectRow(SelectEvent evt) {
-    DocumentoDTO dto = (DocumentoDTO) evt.getObject();
-    if (dto.getSelected()) {
-      String key = DtoKeyMap.textoGrupo(dto.getTipo());
-      DtoKeyEntryList list = documentosKeyMap.getList();
-      for (DtoKeyEntry entry : list) {
-        if (key.equals(entry.getEntry().getKey())) {
-          entry.getSelecteds().remove(dto);
-          break;
-        }
-      }
-      uncheckDto(dto);
-    } else {
-      checkDto(dto);
-    }
-    contarDocumentos();
-  }
-
-  public void unselectRow(UnselectEvent evt) {
-    DocumentoDTO dto = (DocumentoDTO) evt.getObject();
-    uncheckDto(dto);
-    contarDocumentos();
-  }
-
 
   public void selectAll() {
     documentosKeyMap.getList().forEach((docEntry) -> {
@@ -687,12 +660,12 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     return renderHistoricoDlg;
   }
 
-  public Boolean getRenderReceberDlg() {
-    return renderReceberDlg;
-  }
-
   public Boolean getRenderDocumentosDlg() {
     return renderDocumentosDlg;
+  }
+
+  public Boolean getRecebendo() {
+    return recebendo;
   }
 
   public EstadosProtocoloEnum getAcaoComentario() {

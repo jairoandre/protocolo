@@ -84,7 +84,7 @@
                                                 placeholder="Número/Nome paciente">
                                 <p:ajax event="itemSelect" listener="#{protocoloCtrl.recuperarDadosRascunho}"
                                         process="@this"
-                                        update="docSearchResult searchBtn contasPnl sumarioPnl"/>
+                                        update="searchBtn contasPnl sumarioPnl documentosPnl"/>
                                 <p:column width="75">
                                     #{item.id}
                                 </p:column>
@@ -128,12 +128,14 @@
                                 <p:panel toggleable="true">
                                     <f:facet name="header">
                                         <h:outputText
-                                                value="#{protocoloCtrl.item.origem.nivel eq 'SECRETARIA' ? 'Documentos | ' : 'Contas | '}"/>
+                                                value="#{protocoloCtrl.item.origem.nivel eq 'SECRETARIA' ? 'Documentos | ' :
+                                                    protocoloCtrl.item.origem.nivel eq 'PRONTO_SOCORRO' ? 'Atendimentos | ' : 'Contas | '}"/>
                                         <h:panelGroup id="selectCount">
-                                            <h:outputText value="Total: #{protocoloCtrl.documentosKeyMap.countTotal} :: "/>
-                                            <h:outputText value="#{protocoloCtrl.documentosKeyMap.countSelecteds} selecionad#{protocoloCtrl.item.origem.nivel eq 'SECRETARIA' ? 'o' : 'a'}(s)"/>
+                                            <h:outputText
+                                                    value="Total: #{protocoloCtrl.documentosKeyMap.countTotal} :: "/>
+                                            <h:outputText
+                                                    value="#{protocoloCtrl.item.itens.size()} selecionad#{protocoloCtrl.item.origem.nivel eq 'SECRETARIA' ? 'o' : 'a'}(s)"/>
                                         </h:panelGroup>
-
                                     </f:facet>
                                     <h:panelGroup id="datesSearch">
                                         <h:panelGroup id="searchFields">
@@ -154,7 +156,7 @@
                                                                  pattern="dd/MM/yyyy"/>
                                             </h:panelGrid>
                                             <h:panelGrid columns="3"
-                                                         rendered="#{protocoloCtrl.editing and protocoloCtrl.item.origem.nivel ne 'SECRETARIA'}">
+                                                         rendered="#{protocoloCtrl.editing and (protocoloCtrl.item.origem.nivel ne 'SECRETARIA' and protocoloCtrl.item.origem.nivel ne 'PRONTO_SOCORRO')}">
                                                 <p:outputLabel value="Contas:" styleClass="lance-label"/>
                                                 <p:inputText id="listaContas" value="#{protocoloCtrl.listaContas}"
                                                              placeholder="Contas separadas por ';'"
@@ -216,36 +218,51 @@
                                                        onTabChange="updateTooltips();"
                                                        rendered="#{not empty protocoloCtrl.documentosKeyMap.list}">
                                                 <p:tab id="dayTab" title="#{item.entry.key}">
-                                                    <p:dataTable id="docTable" value="#{item.entry.value}" var="doc"
+                                                    <h:panelGroup layout="block" style="margin: 5px 0;">
+                                                        <p:outputLabel value="Filtrar Código: "/>
+                                                        <p:inputText value="#{item.filter}"
+                                                                     onfocus="selectionRange(this)">
+                                                            <p:ajax event="keyup" delay="200"
+                                                                    listener="#{item.changeFilter()}"
+                                                                    process="@this"
+                                                                    update="docTable"/>
+                                                        </p:inputText>
+                                                        <h:panelGroup id="ocultarMarcadosPnl">
+                                                            <p:spacer width="5"/>
+                                                            <p:commandButton value="Ocultar Marcados"
+                                                                             icon="#{item.hideSelecteds ? 'fa fa-check-square-o' : 'fa fa-square-o'}"
+                                                                             action="#{item.toggleHideSelecteds}"
+                                                                             process="@this"
+                                                                             rendered="#{protocoloCtrl.editing and protocoloCtrl.item.origem.nivel eq 'SECRETARIA'}"
+                                                                             update="@this docTable"/>
+                                                        </h:panelGroup>
+                                                    </h:panelGroup>
+                                                    <p:dataTable id="docTable" value="#{item.list}"
+                                                                 var="doc"
                                                                  emptyMessage="Sem documentos para selecionar"
-                                                                 filteredValue="#{item.filtereds}"
                                                                  selection="#{item.selecteds}"
-                                                                 selectionMode="multiple"
                                                                  disabledSelection="#{not (protocoloCtrl.editing and (protocoloCtrl.item.estado eq 'RASCUNHO' or protocoloCtrl.item.estado eq 'RECUSADO'))}"
+                                                                 selectionMode="multiple"
                                                                  rowSelectMode="checkbox"
+                                                                 rowStyleClass="rows"
                                                                  rowKey="#{doc.rowKey}"
                                                                  paginator="true"
+                                                                 sortOrder="descending"
                                                                  rows="20"
                                                                  paginatorPosition="bottom"
-                                                                 sortBy="#{doc.dataHoraCriacao}" rowIndexVar="idx">
+                                                                 sortBy="#{doc.dataHoraCriacao}"
+                                                                 rowIndexVar="idx">
                                                         <p:ajax event="rowSelect"
-                                                                listener="#{protocoloCtrl.selectRow}"
-                                                                process="@this"
-                                                                update="@this #{p:component('selectCount')} #{p:component('sumarioPnl')} #{p:component('actionsPnl')} #{p:component('actionsPnlUp')}"/>
-                                                        <p:ajax event="rowUnselect"
-                                                                listener="#{protocoloCtrl.unselectRow}"
+                                                                listener="#{item.toggleRow}"
                                                                 process="@this"
                                                                 update="@this #{p:component('selectCount')} #{p:component('sumarioPnl')} #{p:component('actionsPnl')} #{p:component('actionsPnlUp')}"/>
                                                         <p:columnGroup type="header">
                                                             <p:row>
                                                                 <p:column width="20"/>
-                                                                <p:column id="codNaoRelac" width="175"
+                                                                <p:column id="codNaoRelac" width="100"
                                                                           headerText="Cód."
                                                                           sortBy="#{doc.codigo}"
-                                                                          styleClass="left-align"
-                                                                          filterBy="#{doc.codigo}"
-                                                                          filterStyle="display: inline-block;"
-                                                                          filterMatchMode="contains"/>
+                                                                          styleClass="left-align"/>
                                                                 <p:column id="descNaoRelac" headerText="Descrição/Conta"
                                                                           sortBy="#{doc.descricao}"
                                                                           styleClass="left-align ellipsis-text"
@@ -272,8 +289,8 @@
                                                             </p:row>
                                                         </p:columnGroup>
                                                         <p:column style="text-align: center;">
-                                                            <h:panelGroup
-                                                                    styleClass="fa #{doc.selected ? 'fa-check-square-o' : 'fa-square-o'}"/>
+                                                            <h:panelGroup id="checkBox"
+                                                                          styleClass="checkBox fa #{doc.selected ? 'fa-check-square-o' : 'fa-square-o'}"/>
                                                         </p:column>
                                                         <p:column>
                                                             <h:outputText value="#{doc.codigo}"/>

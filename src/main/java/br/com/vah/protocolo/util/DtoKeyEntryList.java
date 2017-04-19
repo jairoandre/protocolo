@@ -1,5 +1,6 @@
 package br.com.vah.protocolo.util;
 
+import br.com.vah.protocolo.controllers.ProtocoloCtrl;
 import br.com.vah.protocolo.dto.DocumentoDTO;
 
 import java.util.ArrayList;
@@ -16,8 +17,8 @@ public class DtoKeyEntryList extends ArrayList<DtoKeyEntry> {
     super();
   }
 
-  public DtoKeyEntryList (Set<Map.Entry<String, List<DocumentoDTO>>> entrySet) {
+  public DtoKeyEntryList (Set<Map.Entry<String, List<DocumentoDTO>>> entrySet, ProtocoloCtrl ctrl) {
     super();
-    entrySet.forEach((entry) -> add(new DtoKeyEntry(entry)));
+    entrySet.forEach((entry) -> add(new DtoKeyEntry(entry, ctrl)));
   }
 }

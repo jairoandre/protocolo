@@ -46,11 +46,14 @@ public class AvisoCirurgiaSrv extends AbstractSrv<AvisoCirurgia> {
     }
 
     // Remove itens já protocolados.
+    // Removido verificação para atender folhas anestésicas.
+    /*
     DetachedCriteria dt = DetachedCriteria.forClass(DocumentoProtocolo.class, "dp");
     dt.setProjection(Projections.id());
     dt.add(Restrictions.eqProperty("aviso.id", "dp.codigo"));
     dt.add(Restrictions.eq("dp.tipo", TipoDocumentoEnum.DESCRICAO_CIRURGICA));
     criteria.add(Subqueries.notExists(dt));
+    */
 
     List<AvisoCirurgia> avisos = criteria.list();
 

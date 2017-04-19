@@ -76,6 +76,20 @@ public class DocumentoDTO {
     createDocumento();
   }
 
+  public DocumentoDTO criarFolhaAnestesica() {
+    DocumentoDTO dto = new DocumentoDTO();
+    dto.codigo = codigo;
+    dto.tipo = TipoDocumentoEnum.FOLHA_ANESTESICA;
+    dto.descricao = descricao;
+    dto.conselho = "N/A";
+    dto.prestador = "N/A";
+    dto.dataReferencia = dataReferencia;
+    dto.dataHoraCriacao = dataHoraCriacao;
+    dto.dataHoraImpressao = dataHoraImpressao;
+    dto.createDocumento();
+    return dto;
+  }
+
   public DocumentoDTO(RegistroDocumento registro) {
     this.codigo = registro.getId();
     this.tipo = TipoDocumentoEnum.REGISTRO_DOCUMENTO;

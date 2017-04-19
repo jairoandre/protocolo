@@ -426,3 +426,13 @@ input.ui-state-disabled {
           #e1e1e1 20px
   );
 }
+
+.sumario-label {
+    text-align: right;
+}
+
+.sumario-value {
+    font-weight: bold;
+    text-align: left;
+    padding-right: 10px;
+}
