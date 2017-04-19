@@ -10,7 +10,6 @@ import br.com.vah.protocolo.entities.usrdbvah.*;
 import br.com.vah.protocolo.exceptions.ProtocoloBusinessException;
 import br.com.vah.protocolo.reports.ReportLoader;
 import br.com.vah.protocolo.reports.ReportTotalPorSetor;
-import br.com.vah.protocolo.util.DtoKeyMap;
 import br.com.vah.protocolo.util.PaginatedSearchParam;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
@@ -68,6 +67,14 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
   private
   @Inject
   ValidadeSrv validadeSrv;
+
+  private
+  @Inject
+  HDASrv hdaSrv;
+
+  private
+  @Inject
+  ClassificacaoDeRiscoSrv classificacaoDeRiscoSrv;
 
   public ProtocoloSrv() {
     super(Protocolo.class);
@@ -310,18 +317,23 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
 
     SetorNivelEnum nivelOrigem = protocolo.getOrigem().getNivel();
 
-    if (SetorNivelEnum.SECRETARIA.equals(nivelOrigem)) {
+    if (SetorNivelEnum.SECRETARIA.equals(nivelOrigem) || SetorNivelEnum.PRONTO_SOCORRO.equals(nivelOrigem)) {
 
       final List<PrescricaoMedica> prescricoes = new ArrayList<>();
       final List<AvisoCirurgia> avisos = new ArrayList<>();
       final List<RegistroDocumento> registros = new ArrayList<>();
       final List<EvolucaoEnfermagem> evolucoes = new ArrayList<>();
+      final List<HDA> hdas = new ArrayList<>();
+      final List<ClassificacaoDeRisco> classificacoes = new ArrayList<>();
+      final List<DocumentoProtocolo> documentosPs = new ArrayList<>();
 
       List<Object[]> datas = validadeSrv.recuperarValidades(protocolo, begin, end);
 
       if (datas.size() > 0) {
         resultMap.put("periodo", datas);
       }
+
+      Atendimento atendimento = protocolo.getAtendimento();
 
       datas.forEach((range) -> {
         Date inicioValidade = (Date) range[0];
@@ -331,8 +343,19 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
         avisos.addAll(avisoCirurgiaSrv.consultarAvisos(protocolo, inicioValidade, fimValidade, referencia));
         registros.addAll(registroDocumentoSrv.consultarRegistros(protocolo, inicioValidade, fimValidade, referencia));
         evolucoes.addAll(evolucaoEnfermagemSrv.consultarEvolucoesEnfermagem(protocolo, inicioValidade, fimValidade, referencia));
-
+        if (SetorNivelEnum.PRONTO_SOCORRO.equals(nivelOrigem) &&
+            atendimento != null &&
+            "U".equals(atendimento.getTipo()) &&
+            atendimento.getDataAlta() != null) {
+          hdas.addAll(hdaSrv.consultarHdas(protocolo, inicioValidade, fimValidade, referencia));
+          classificacoes.addAll(classificacaoDeRiscoSrv.consultarClassificacao(protocolo, inicioValidade, fimValidade, referencia));
+        }
       });
+
+      if (!hdas.isEmpty()) {
+        documentosPs.addAll(hdaSrv.diagnosticoPs(hdas));
+        documentosPs.addAll(classificacaoDeRiscoSrv.guiaSadt(hdas));
+      }
 
       final List<DocumentoDTO> rawResult = new ArrayList<>();
 
@@ -356,6 +379,9 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
       });
       registros.forEach((r) -> rawResult.add(new DocumentoDTO(r)));
       evolucoes.forEach((e) -> rawResult.add(new DocumentoDTO(e)));
+      hdas.forEach((h) -> rawResult.add(new DocumentoDTO(h)));
+      classificacoes.forEach((c) -> rawResult.add(new DocumentoDTO(c)));
+      documentosPs.forEach((d) -> rawResult.add(new DocumentoDTO(d)));
 
       result.addAll(rawResult.stream().filter((dto) -> !jaProtocolado(dto)).collect(Collectors.toList()));
 

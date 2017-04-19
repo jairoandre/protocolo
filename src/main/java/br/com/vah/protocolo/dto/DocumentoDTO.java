@@ -90,6 +90,44 @@ public class DocumentoDTO {
     return dto;
   }
 
+  /* DOCUMENTOS PARA O PROTOCOLO PRONTO SOCORRO*/
+  public DocumentoDTO(HDA hda) {
+    this.codigo = hda.getId();
+    this.tipo = TipoDocumentoEnum.HDA;
+    this.descricao = "";
+    this.conselho = hda.getPrestador().getConselho().getNome();
+    this.prestador = hda.getPrestador().getNome();
+    this.dataReferencia = hda.getDataInicio();
+    this.dataHoraCriacao = hda.getDataInicio();
+    this.dataHoraImpressao = hda.getDataInicio();
+    this.consPrestConv = String.format("%s - %s", this.conselho, this.prestador);
+    createDocumento();
+  }
+
+  public DocumentoDTO(ClassificacaoDeRisco classificacao) {
+    this.codigo = classificacao.getId();
+    this.tipo = TipoDocumentoEnum.CLASSIFICACAO_DE_RISCO;
+    this.descricao = "";
+    this.conselho = "";
+    this.prestador = classificacao.getUsuario();
+    this.dataReferencia = classificacao.getDataPreAtendimento();
+    this.dataHoraCriacao = classificacao.getDataPreAtendimento();
+    this.dataHoraImpressao = classificacao.getDataPreAtendimentoFim();
+    this.consPrestConv = String.format("%s", this.prestador);
+    createDocumento();
+  }
+
+  public DocumentoDTO(DocumentoProtocolo docPs) {
+    this.codigo = docPs.getCodigo();
+    this.tipo = docPs.getTipo();
+    this.descricao = docPs.getDescricao();
+    this.conselho = "";
+    this.prestador = "";
+    this.consPrestConv = String.format("%s", this.descricao);
+    createDocumento();
+  }
+
+  /* FIM DOCUMENTOS PARA O PRONTO SOCORRO */
   public DocumentoDTO(RegistroDocumento registro) {
     this.codigo = registro.getId();
     this.tipo = TipoDocumentoEnum.REGISTRO_DOCUMENTO;

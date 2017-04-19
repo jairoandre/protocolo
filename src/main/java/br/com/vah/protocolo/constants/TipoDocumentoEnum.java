@@ -21,7 +21,11 @@ public enum TipoDocumentoEnum {
   DOC_MANUAL_CLASSIFICACAO_RISCO("Classificação de Risco"),
   DOC_MANUAL_FOLHA_CLASSIFICACAO("Folha de Classificação"),
   DOC_MANUAL_SADT("SADT"),
-  DOC_MANUAL_AUTORIZACAO_PS("Autorização (PS)");
+  DOC_MANUAL_AUTORIZACAO_PS("Autorização (PS)"),
+  HDA("HDA"),
+  CLASSIFICACAO_DE_RISCO("Classificação de Risco"),
+  DIAGNOSTICO_DO_ATENDIMENTO("Diagnóstico do Atendimento"),
+  GUIA_SADT("Guia SADT");
 
   private String label;
 
