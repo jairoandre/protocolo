@@ -10,6 +10,7 @@ import org.hibernate.criterion.*;
 import javax.ejb.Stateless;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * Created by Jairoportela on 06/04/2016.
@@ -52,5 +53,9 @@ public class AtendimentoSrv extends AbstractSrv<Atendimento> {
 
     }
     return criteria;
+  }
+
+  public Map<String, Object> buscarAtendimentosProntoSocorro(String atendimentos) {
+    return null;
   }
 }
