@@ -50,7 +50,7 @@ public class ClassificacaoDeRisco extends BaseEntity {
 
 	@Override
 	public String getLabelForSelectItem() {
-		return String.format("%d - %s", id, usuario);
+		return String.format("%s", usuario);
 	}
 
 	public Atendimento getAtendimento() {
