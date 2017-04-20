@@ -183,7 +183,8 @@
                                                     </p:column>
                                                 </uivah:autoComplete>
                                             </h:panelGrid>
-                                            <h:panelGrid columns="2" rendered="#{protocoloCtrl.item.origem.nivel eq 'PRONTO_SOCORRO'}">
+                                            <h:panelGrid columns="2"
+                                                         rendered="#{protocoloCtrl.item.origem.nivel eq 'PRONTO_SOCORRO'}">
                                                 <p:outputLabel value="Atendimentos:" styleClass="lance-label"/>
                                                 <p:inputText id="atendimentos" value="#{protocoloCtrl.atendimentos}"
                                                              placeholder="Atendimentos separados por ';'"
@@ -277,6 +278,10 @@
                                                                           headerText="#{protocoloCtrl.item.origem.nivel eq 'SECRETARIA' ? 'Conselho/Prestador' : 'Convênio/Atendimento'}"
                                                                           sortBy="#{doc.consPrestConv}"
                                                                           styleClass="left-align ellipsis-text"/>
+                                                                <p:column headerText="Documentos"
+                                                                          width="150"
+                                                                          styleClass="left-align"
+                                                                          rendered="#{protocoloCtrl.item.origem.nivel eq 'PRONTO_SOCORRO'}"/>
                                                                 <p:column id="referenciaNaoRelac"
                                                                           headerText="Referência"
                                                                           sortBy="#{doc.dataReferencia}"
@@ -295,9 +300,8 @@
                                                             </p:row>
                                                         </p:columnGroup>
                                                         <p:column style="text-align: center;">
-                                                            <h:panelGroup id="checkBox" rendered="#{protocoloCtrl.isSecretaria()}"
+                                                            <h:panelGroup id="checkBox"
                                                                           styleClass="checkBox fa #{doc.selected ? 'fa-check-square-o' : 'fa-square-o'}"/>
-                                                            <p:rowToggler rendered="#{protocoloCtrl.isProntoSocorro()}"/>
                                                         </p:column>
                                                         <p:column>
                                                             <h:outputText value="#{doc.codigo}"/>
@@ -329,6 +333,15 @@
                                                                          value="#{doc.consPrestConv}"
                                                                          index="#{idx}"/>
                                                         </p:column>
+                                                        <p:column
+                                                                renderd="#{protocoloCtrl.item.origem.nivel eq 'PRONTO_SOCORRO'}">
+                                                            <p:commandButton value="Selecionar Docs."
+                                                                             icon="fa fa-asterisk" ajax="true"
+                                                                             action="#{protocoloCtrl.preSelecionarDocumentosPS}"
+                                                                             process="@this"
+                                                                             update="#{p:component('selecionarDocsPSDlgPnl')}"
+                                                                             oncomplete="PF('selecionarDocsPSDlg').show();"/>
+                                                        </p:column>
                                                         <p:column rendered="#{protocoloCtrl.isSecretaria()}">
                                                             <h:outputText value="#{doc.dataReferencia}">
                                                                 <f:convertDateTime pattern="dd/MM/yy" locale="pt_BR"/>
@@ -346,10 +359,7 @@
                                                                                    locale="pt_BR" timeZone="GMT-03:00"/>
                                                             </h:outputText>
                                                         </p:column>
-                                                        
-                                                        <p:rowExpansion>
-                                                        	#{doc.consPrestConv}
-                                                        </p:rowExpansion>
+
                                                     </p:dataTable>
                                                 </p:tab>
                                             </p:tabView>
@@ -696,6 +706,12 @@
                                      oncomplete="PF('novoComentarioDlg').hide()"/>
                 </f:facet>
             </p:dialog>
+
+            <h:panelGroup id="selecionarDocsPSDlgPnl">
+                <p:dialog id="selecionarDocsPSDlg" modal="true" rendered="#{protocoloCtrl.}">
+
+                </p:dialog>
+            </h:panelGroup>
 
             <!-- SCRIPTS -->
             <script type="application/javascript">

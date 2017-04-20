@@ -67,6 +67,8 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   private DtoKeyMap documentosKeyMap = new DtoKeyMap();
 
+  private DtoKeyMap documentosKeyMapPS = new DtoKeyMap();
+
   private DtoKeyMap documentosToVisualize = new DtoKeyMap();
 
   private Boolean showSumario;
@@ -756,5 +758,9 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   public void setAtendimentos(String atendimentos) {
     this.atendimentos = atendimentos;
+  }
+
+  public DtoKeyMap getDocumentosKeyMapPS() {
+    return documentosKeyMapPS;
   }
 }
