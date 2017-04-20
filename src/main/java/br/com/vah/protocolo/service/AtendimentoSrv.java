@@ -76,7 +76,7 @@ public class AtendimentoSrv extends AbstractSrv<Atendimento> {
         }
       }
 
-      if (atendimentosLong.isEmpty()) {
+      if (!atendimentosLong.isEmpty()) {
         Criteria criteria = getSession().createCriteria(Atendimento.class, "atd");
         criteria.add(Restrictions.in("id", atendimentosLong));
         criteria.add(Restrictions.isNotNull("dataAlta"));

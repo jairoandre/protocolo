@@ -295,8 +295,9 @@
                                                             </p:row>
                                                         </p:columnGroup>
                                                         <p:column style="text-align: center;">
-                                                            <h:panelGroup id="checkBox"
+                                                            <h:panelGroup id="checkBox" rendered="#{protocoloCtrl.isSecretaria()}"
                                                                           styleClass="checkBox fa #{doc.selected ? 'fa-check-square-o' : 'fa-square-o'}"/>
+                                                            <p:rowToggler rendered="#{protocoloCtrl.isProntoSocorro()}"/>
                                                         </p:column>
                                                         <p:column>
                                                             <h:outputText value="#{doc.codigo}"/>
@@ -345,6 +346,10 @@
                                                                                    locale="pt_BR" timeZone="GMT-03:00"/>
                                                             </h:outputText>
                                                         </p:column>
+                                                        
+                                                        <p:rowExpansion>
+                                                        	#{doc.consPrestConv}
+                                                        </p:rowExpansion>
                                                     </p:dataTable>
                                                 </p:tab>
                                             </p:tabView>

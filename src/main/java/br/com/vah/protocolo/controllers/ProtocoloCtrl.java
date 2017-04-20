@@ -170,6 +170,16 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     }
 
   }
+  /*PRONTO SOCORRO*/
+  public Boolean isProntoSocorro() {
+	    SetorProtocolo origem = getItem().getOrigem();
+	    if (origem == null) {
+	      return false;
+	    } else {
+	      return SetorNivelEnum.PRONTO_SOCORRO.equals(origem.getNivel());
+	    }
+
+	  }
 
   public void changeOrigem() {
     getItem().getItens().clear();
