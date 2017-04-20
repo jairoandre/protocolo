@@ -25,7 +25,9 @@ public enum TipoDocumentoEnum {
   HDA("HDA"),
   CLASSIFICACAO_DE_RISCO("Classificação de Risco"),
   DIAGNOSTICO_DO_ATENDIMENTO("Diagnóstico do Atendimento"),
-  GUIA_SADT("Guia SADT");
+  GUIA_SADT("Guia SADT"),
+  ATENDIMENTO("Atendimento");
+
 
   private String label;
 

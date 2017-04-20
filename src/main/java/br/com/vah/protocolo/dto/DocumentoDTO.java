@@ -127,6 +127,21 @@ public class DocumentoDTO {
     createDocumento();
   }
 
+  public DocumentoDTO(Atendimento atendimento) {
+    this.codigo = atendimento.getId();
+    this.tipo = TipoDocumentoEnum.ATENDIMENTO;
+    this.descricao = atendimento.getPaciente().getName();
+    this.conselho = "";
+    this.prestador = "";
+    this.dataHoraCriacao = atendimento.getDataAlta();
+    this.dataHoraImpressao = atendimento.getDataAlta();
+    this.dataReferencia = atendimento.getDataAlta();
+    this.consPrestConv = atendimento.getConvenio().getTitle();
+    createDocumento();
+  }
+
+
+
   /* FIM DOCUMENTOS PARA O PRONTO SOCORRO */
   public DocumentoDTO(RegistroDocumento registro) {
     this.codigo = registro.getId();

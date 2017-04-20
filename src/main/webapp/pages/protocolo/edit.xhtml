@@ -183,6 +183,12 @@
                                                     </p:column>
                                                 </uivah:autoComplete>
                                             </h:panelGrid>
+                                            <h:panelGrid columns="2" rendered="#{protocoloCtrl.item.origem.nivel eq 'PRONTO_SOCORRO'}">
+                                                <p:outputLabel value="Atendimentos:" styleClass="lance-label"/>
+                                                <p:inputText id="atendimentos" value="#{protocoloCtrl.atendimentos}"
+                                                             placeholder="Atendimentos separados por ';'"
+                                                             style="width: 450px;"/>
+                                            </h:panelGrid>
                                         </h:panelGroup>
                                         <h:panelGroup id="searchBtn">
                                             <h:panelGroup rendered="#{protocoloCtrl.editing}">

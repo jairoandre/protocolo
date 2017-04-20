@@ -111,6 +111,8 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   private List<CaixaEntrada> caixasRemovidas = new ArrayList<>();
 
+  private String atendimentos;
+
   @PostConstruct
   public void init() {
     logger.info(this.getClass().getSimpleName() + " created");
@@ -317,10 +319,17 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
   public void searchDocumentos() {
     if (getItem().getOrigem() != null) {
       try {
-        documentos = service.buscarDocumentos(getItem(), convenio, listaContas);
-        aferirContas();
-        documentosKeyMap.addAll(documentos, false);
-        documentosKeyMap.compile(this);
+        if (SetorNivelEnum.PRONTO_SOCORRO.equals(getItem().getOrigem().getNivel())) {
+          Map<String, Object> map = atendimentoSrv.buscarAtendimentosProntoSocorro(atendimentos);
+          documentos = (List<DocumentoDTO>) map.get("dtos");
+          documentosKeyMap.addAll(documentos, false);
+          documentosKeyMap.compile(this);
+        } else {
+          documentos = service.buscarDocumentos(getItem(), convenio, listaContas);
+          aferirContas();
+          documentosKeyMap.addAll(documentos, false);
+          documentosKeyMap.compile(this);
+        }
       } catch (ProtocoloBusinessException e) {
         addMsg(FacesMessage.SEVERITY_WARN, e.getMessage());
       }
@@ -729,5 +738,13 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   public Integer getTotalDocumentosProntuarios() {
     return totalDocumentosProntuarios;
+  }
+
+  public String getAtendimentos() {
+    return atendimentos;
+  }
+
+  public void setAtendimentos(String atendimentos) {
+    this.atendimentos = atendimentos;
   }
 }
