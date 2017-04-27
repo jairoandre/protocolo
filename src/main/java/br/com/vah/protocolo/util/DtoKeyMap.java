@@ -18,6 +18,8 @@ public class DtoKeyMap implements Serializable {
 
   private DtoKeyEntryList list = new DtoKeyEntryList();
 
+  private ProtocoloCtrl ctrl;
+
   public DtoKeyEntryList getList() {
     return list;
   }
@@ -27,6 +29,7 @@ public class DtoKeyMap implements Serializable {
   }
 
   public void compile(ProtocoloCtrl ctrl) {
+    this.ctrl = ctrl;
     if (!map.isEmpty()) {
       list = new DtoKeyEntryList(map.entrySet(), ctrl);
       sortEverything();
@@ -127,4 +130,7 @@ public class DtoKeyMap implements Serializable {
     return map.get(key);
   }
 
+  public ProtocoloCtrl getCtrl() {
+    return ctrl;
+  }
 }

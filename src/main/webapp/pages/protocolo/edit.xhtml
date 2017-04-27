@@ -337,10 +337,9 @@
                                                                 renderd="#{protocoloCtrl.item.origem.nivel eq 'PRONTO_SOCORRO'}">
                                                             <p:commandButton value="Selecionar Docs."
                                                                              icon="fa fa-asterisk" ajax="true"
-                                                                             action="#{protocoloCtrl.preSelecionarDocumentosPS}"
+                                                                             action="#{protocoloCtrl.preSelecionarDocumentosPS(doc)}"
                                                                              process="@this"
-                                                                             update="#{p:component('selecionarDocsPSDlgPnl')}"
-                                                                             oncomplete="PF('selecionarDocsPSDlg').show();"/>
+                                                                             update="#{p:component('selecionarDocsPSDlgPnl')}"/>
                                                         </p:column>
                                                         <p:column rendered="#{protocoloCtrl.isSecretaria()}">
                                                             <h:outputText value="#{doc.dataReferencia}">
@@ -708,7 +707,169 @@
             </p:dialog>
 
             <h:panelGroup id="selecionarDocsPSDlgPnl">
-                <p:dialog id="selecionarDocsPSDlg" modal="true" rendered="#{protocoloCtrl.}">
+                <p:dialog id="selecionarDocsPSDlg" widgetVar="selecionarDocsPSDlg" width="1024" modal="true"
+                          position="top"
+                          rendered="#{protocoloCtrl.showSelecionarDocsPSDlg}" visible="true">
+                    <f:facet name="header">
+                        <h:outputText value="Atendimento Nº. #{protocoloCtrl.protocoloPS.atendimento.id} | Documentos | "/>
+                        <h:panelGroup id="selectCountPS">
+                            <h:outputText
+                                    value="Total: #{protocoloCtrl.documentosKeyMapPS.countTotal} :: "/>
+                            <h:outputText
+                                    value="#{protocoloCtrl.protocoloPS.itens.size()} selecionados"/>
+                        </h:panelGroup>
+                    </f:facet>
+                    <p:tabView id="selecionarDocsPSTab"
+                               value="#{protocoloCtrl.documentosKeyMapPS.list}"
+                               var="item" styleClass="margin-top"
+                               onTabChange="updateTooltips();"
+                               rendered="#{not empty protocoloCtrl.documentosKeyMapPS.list}">
+                        <p:tab id="dayPSTab" title="#{item.entry.key}">
+                            <h:panelGroup layout="block" style="margin: 5px 0;">
+                                <p:outputLabel value="Filtrar Código: "/>
+                                <p:inputText value="#{item.filter}"
+                                             onfocus="selectionRange(this)">
+                                    <p:ajax event="keyup" delay="200"
+                                            listener="#{item.changeFilter()}"
+                                            process="@this"
+                                            update="dtosPSTable"/>
+                                </p:inputText>
+                                <h:panelGroup id="ocultarMarcadosPSPnl">
+                                    <p:spacer width="5"/>
+                                    <p:commandButton value="Ocultar Marcados"
+                                                     icon="#{item.hideSelecteds ? 'fa fa-check-square-o' : 'fa fa-square-o'}"
+                                                     action="#{item.toggleHideSelecteds}"
+                                                     process="@this"
+                                                     rendered="#{protocoloCtrl.editing and protocoloCtrl.item.origem.nivel eq 'PRONTO_SOCORRO'}"
+                                                     update="@this dtosPSTable"/>
+                                </h:panelGroup>
+                            </h:panelGroup>
+                            <p:dataTable id="dtosPSTable" value="#{item.list}"
+                                         var="doc"
+                                         emptyMessage="Sem documentos para selecionar"
+                                         selection="#{item.selecteds}"
+                                         disabledSelection="#{not (protocoloCtrl.editing and (protocoloCtrl.item.estado eq 'RASCUNHO' or protocoloCtrl.item.estado eq 'RECUSADO'))}"
+                                         selectionMode="multiple"
+                                         rowSelectMode="checkbox"
+                                         rowStyleClass="rows"
+                                         rowKey="#{doc.rowKey}"
+                                         paginator="true"
+                                         sortOrder="descending"
+                                         rows="20"
+                                         paginatorPosition="bottom"
+                                         sortBy="#{doc.dataHoraCriacao}"
+                                         rowIndexVar="idx">
+                                <p:ajax event="rowSelect"
+                                        listener="#{item.toggleRow}"
+                                        process="@this"
+                                        update="@this #{p:component('selectCountPS')} #{p:component('sumarioPnl')} #{p:component('actionsPnl')} #{p:component('actionsPnlUp')}"/>
+                                <p:columnGroup type="header">
+                                    <p:row>
+                                        <p:column width="20"/>
+                                        <p:column width="100"
+                                                  headerText="Cód."
+                                                  sortBy="#{doc.codigo}"
+                                                  styleClass="left-align"/>
+                                        <p:column headerText="Descrição/Conta"
+                                                  sortBy="#{doc.descricao}"
+                                                  styleClass="left-align ellipsis-text"
+                                                  width="300"/>
+                                        <p:column
+                                                headerText="#{protocoloCtrl.item.origem.nivel eq 'SECRETARIA' ? 'Conselho/Prestador' : 'Convênio/Atendimento'}"
+                                                sortBy="#{doc.consPrestConv}"
+                                                styleClass="left-align ellipsis-text"/>
+                                        <p:column headerText="Referência"
+                                                  sortBy="#{doc.dataReferencia}"
+                                                  rendered="#{protocoloCtrl.isSecretaria()}"
+                                                  styleClass="left-align" width="90"/>
+                                        <p:column headerText="#{protocoloCtrl.isSecretaria() ? 'Criação' : 'Resposta'}"
+                                                  sortBy="#{doc.dataHoraCriacao}"
+                                                  styleClass="left-align"
+                                                  width="90"/>
+                                        <p:column headerText="Impressão"
+                                                  sortBy="#{doc.dataHoraImpressao}"
+                                                  rendered="#{protocoloCtrl.isSecretaria()}"
+                                                  styleClass="left-align"
+                                                  width="90"/>
+                                    </p:row>
+                                </p:columnGroup>
+                                <p:column style="text-align: center;">
+                                    <h:panelGroup
+                                            styleClass="checkBox fa #{doc.selected ? 'fa-check-square-o' : 'fa-square-o'}"/>
+                                </p:column>
+                                <p:column>
+                                    <h:outputText value="#{doc.codigo}"/>
+                                </p:column>
+                                <p:column>
+                                    <h:panelGroup rendered="#{doc.tipo eq 'PROTOCOLO'}">
+                                        <p:commandButton icon="fa fa-eye"
+                                                         value="#{doc.descricao}"
+                                                         action="#{protocoloCtrl.visualizarDoc(doc)}"
+                                                         onclick="openLoading();"
+                                                         oncomplete="closeLoading(); PF('documentosDlg').show();"
+                                                         process="@this"
+                                                         update="#{p:component('documentosDlgPnl')}"/>
+                                    </h:panelGroup>
+                                    <h:panelGroup rendered="#{doc.tipo ne 'PROTOCOLO'}">
+                                        <h:outputText id="docDescPS"
+                                                      value="#{doc.descricao}"/>
+                                        <vah:toolTip id="docDescPSTip"
+                                                     for="#{p:component('docDescPS')}"
+                                                     value="#{doc.descricao}"
+                                                     index="#{idx}"/>
+                                    </h:panelGroup>
+                                </p:column>
+                                <p:column styleClass="ellipsis-text">
+                                    <h:outputText id="consPrestConvPS"
+                                                  value="#{doc.consPrestConv}"/>
+                                    <vah:toolTip id="consPrestConvNaoSelecTool"
+                                                 for="#{p:component('consPrestConvPS')}"
+                                                 value="#{doc.consPrestConv}"
+                                                 index="#{idx}"/>
+                                </p:column>
+                                <p:column rendered="#{protocoloCtrl.isSecretaria()}">
+                                    <h:outputText value="#{doc.dataReferencia}">
+                                        <f:convertDateTime pattern="dd/MM/yy" locale="pt_BR"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column>
+                                    <h:outputText value="#{doc.dataHoraCriacao}">
+                                        <f:convertDateTime pattern="dd/MM/yy HH:mm"
+                                                           locale="pt_BR" timeZone="GMT-03:00"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column rendered="#{protocoloCtrl.isSecretaria()}">
+                                    <h:outputText value="#{doc.dataHoraImpressao}">
+                                        <f:convertDateTime pattern="dd/MM/yy HH:mm"
+                                                           locale="pt_BR" timeZone="GMT-03:00"/>
+                                    </h:outputText>
+                                </p:column>
+
+                            </p:dataTable>
+                        </p:tab>
+                    </p:tabView>
+                    <h:panelGroup layout="block" style="margin-top: 10px;">
+                        <p:commandButton value="Fechar" action="#{protocoloCtrl.fecharSelecionarPSDlg}"
+                                         onclick="PF('selecionarDocsPSDlg').hide();"
+                                         process="@this"
+                                         update="selecionarDocsPSDlgPnl"/>
+                        <p:commandButton value="Marcar Todos"
+                                         icon="fa fa-check-square-o"
+                                         ajax="true"
+                                         process="@this"
+                                         update="docNaoSelecTab #{p:component('selectCountPS')} #{p:component('sumarioPnl')} #{p:component('actionsPnl')} #{p:component('actionsPnlUp')}"
+                                         action="#{protocoloCtrl.documentosKeyMapPS.ctrl.selectAll}"
+                                         style="margin-left: 5px;"
+                                         rendered="#{protocoloCtrl.editing and (protocoloCtrl.item.estado eq 'RASCUNHO' or protocoloCtrl.item.estado eq 'RECUSADO')}"/>
+                        <p:commandButton value="Desmarcar Todos"
+                                         icon="fa fa-square-o"
+                                         ajax="true"
+                                         process="@this"
+                                         update="docNaoSelecTab #{p:component('selectCountPS')} #{p:component('sumarioPnl')} #{p:component('actionsPnl')} #{p:component('actionsPnlUp')}"
+                                         style="margin-left: 5px;"
+                                         action="#{protocoloCtrl.documentosKeyMapPS.ctrl.unselectAll}"
+                                         rendered="#{protocoloCtrl.editing and (protocoloCtrl.item.estado eq 'RASCUNHO' or protocoloCtrl.item.estado eq 'RECUSADO')}"/>
+                    </h:panelGroup>
 
                 </p:dialog>
             </h:panelGroup>

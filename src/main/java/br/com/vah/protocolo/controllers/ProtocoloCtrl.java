@@ -2,6 +2,7 @@ package br.com.vah.protocolo.controllers;
 
 import br.com.vah.protocolo.constants.*;
 import br.com.vah.protocolo.dto.DocumentoDTO;
+import br.com.vah.protocolo.entities.dbamv.Atendimento;
 import br.com.vah.protocolo.entities.dbamv.Convenio;
 import br.com.vah.protocolo.entities.dbamv.RegFaturamento;
 import br.com.vah.protocolo.entities.usrdbvah.*;
@@ -114,6 +115,20 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
   private List<CaixaEntrada> caixasRemovidas = new ArrayList<>();
 
   private String atendimentos;
+
+  private Boolean showSelecionarDocsPSDlg;
+
+  private Protocolo protocoloPS;
+
+  public ProtocoloCtrl() {}
+
+  public ProtocoloCtrl(Logger logger, ProtocoloSrv service, SessionController session, AtendimentoSrv atendimentoSrv) {
+    super();
+    this.logger = logger;
+    this.service = service;
+    this.session = session;
+    this.atendimentoSrv = atendimentoSrv;
+  }
 
   @PostConstruct
   public void init() {
@@ -716,6 +731,52 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     return false;
   }
 
+  public void fecharSelecionarPSDlg() {
+    showSelecionarDocsPSDlg = false;
+  }
+
+  public void preSelecionarDocumentosPS(DocumentoDTO dto) {
+    showSelecionarDocsPSDlg = true;
+    documentosKeyMapPS = new DtoKeyMap();
+    if (dto.getItemProtocolo() == null) {
+      Atendimento atd = new Atendimento();
+      atd.setId(dto.getCodigo());
+
+      Protocolo filho = new Protocolo();
+      filho.setAtendimento(atd);
+      filho.setOrigem(getItem().getOrigem());
+
+      ItemProtocolo itemProtocolo = new ItemProtocolo();
+      itemProtocolo.setProtocolo(getItem());
+      itemProtocolo.setFilho(filho);
+
+      dto.setItemProtocolo(itemProtocolo);
+    }
+    protocoloPS = dto.getItemProtocolo().getFilho();
+    if (protocoloPS.getId() == null) {
+      Calendar cld = Calendar.getInstance();
+      protocoloPS.setFim(cld.getTime());
+      cld.add(Calendar.DAY_OF_MONTH, -2);
+      protocoloPS.setInicio(cld.getTime());
+    } else {
+      protocoloPS = service.initializeLists(protocoloPS);
+      documentosKeyMapPS.addAll(service.gerarListaDTO(protocoloPS, false, false), false);
+    }
+    try {
+      List<DocumentoDTO> docs = service.buscarDocumentos(protocoloPS, null, null);
+      documentosKeyMapPS.addAll(docs, false);
+    } catch (Exception e) {
+      addMsg(FacesMessage.SEVERITY_WARN, "Erro na busca de documentos.");
+    }
+    ProtocoloCtrl ctrl = new ProtocoloCtrl(logger, service, session, atendimentoSrv);
+    ctrl.setItem(protocoloPS);
+    documentosKeyMapPS.compile(ctrl);
+    if (documentosKeyMapPS.getCountTotal() == 0) {
+      showSelecionarDocsPSDlg = false;
+      addMsg(FacesMessage.SEVERITY_INFO, "Sem documentos para este atendimento.");
+    }
+  }
+
   public String getListaContas() {
     return listaContas;
   }
@@ -762,5 +823,13 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   public DtoKeyMap getDocumentosKeyMapPS() {
     return documentosKeyMapPS;
+  }
+
+  public Boolean getShowSelecionarDocsPSDlg() {
+    return showSelecionarDocsPSDlg;
+  }
+
+  public Protocolo getProtocoloPS() {
+    return protocoloPS;
   }
 }

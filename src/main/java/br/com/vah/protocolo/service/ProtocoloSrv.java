@@ -38,6 +38,10 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
 
   private
   @Inject
+  AtendimentoSrv atendimentoSrv;
+
+  private
+  @Inject
   PrescricaoMedicaSrv prescricaoMedicaSrv;
 
   private
@@ -327,13 +331,37 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
       final List<ClassificacaoDeRisco> classificacoes = new ArrayList<>();
       final List<DocumentoProtocolo> documentosPs = new ArrayList<>();
 
-      List<Object[]> datas = validadeSrv.recuperarValidades(protocolo, begin, end);
+      List<Object[]> datas = new ArrayList<>();
+
+      if (SetorNivelEnum.SECRETARIA.equals(nivelOrigem)) {
+        datas = validadeSrv.recuperarValidades(protocolo, begin, end);
+      } else {
+        Calendar beginCld = Calendar.getInstance();
+        beginCld.setTime(begin);
+        beginCld.set(Calendar.HOUR_OF_DAY, 0);
+        beginCld.set(Calendar.MINUTE, 0);
+        beginCld.set(Calendar.SECOND, 0);
+        Calendar endCld = Calendar.getInstance();
+        endCld.setTime(end);
+        endCld.set(Calendar.HOUR_OF_DAY, 0);
+        endCld.set(Calendar.MINUTE, 0);
+        endCld.set(Calendar.SECOND, 0);
+        while (beginCld.before(endCld)) {
+          Object[] range = new Object[4];
+          range[0] = range[3] = beginCld.getTime();
+          beginCld.add(Calendar.DAY_OF_MONTH, 1);
+          beginCld.add(Calendar.SECOND, -1);
+          range[1] = beginCld.getTime();
+          datas.add(range);
+          beginCld.add(Calendar.SECOND, 1);
+        }
+      }
 
       if (datas.size() > 0) {
         resultMap.put("periodo", datas);
       }
 
-      Atendimento atendimento = protocolo.getAtendimento();
+      Atendimento atendimento = atendimentoSrv.find(protocolo.getAtendimento().getId());
 
       datas.forEach((range) -> {
         Date inicioValidade = (Date) range[0];
@@ -344,7 +372,6 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
         registros.addAll(registroDocumentoSrv.consultarRegistros(protocolo, inicioValidade, fimValidade, referencia));
         evolucoes.addAll(evolucaoEnfermagemSrv.consultarEvolucoesEnfermagem(protocolo, inicioValidade, fimValidade, referencia));
         if (SetorNivelEnum.PRONTO_SOCORRO.equals(nivelOrigem) &&
-            atendimento != null &&
             "U".equals(atendimento.getTipo()) &&
             atendimento.getDataAlta() != null) {
           hdas.addAll(hdaSrv.consultarHdas(protocolo, inicioValidade, fimValidade, referencia));
@@ -407,7 +434,7 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
   public List<DocumentoDTO> buscarDocumentos(Protocolo protocolo, Convenio convenio, String listaContas) throws ProtocoloBusinessException {
     Date begin = protocolo.getInicio();
     Date end = protocolo.getFim();
-    if (SetorNivelEnum.SECRETARIA.equals(protocolo.getOrigem().getNivel())) {
+    if (SetorNivelEnum.SECRETARIA.equals(protocolo.getOrigem().getNivel()) || SetorNivelEnum.PRONTO_SOCORRO.equals(protocolo.getOrigem().getNivel())) {
       if (begin == null) {
         return null;
       } else {
@@ -583,7 +610,7 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
           default:
             break;
         }
-      } else if (filho != null) {
+      } else if (filho != null && filho.getId() != null) {
         Integer[] resultFilho = contarDocumentos(initializeLists(filho));
         totalDocumentos += resultFilho[0];
         totalPrescricoes += resultFilho[1];
@@ -715,9 +742,13 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
           Protocolo filho = item.getFilho();
           // Adiciona histório aos protocolos filhos
           if (filho != null) {
-            Protocolo att = initializeLists(filho);
-            addHistorico(att, user, origem, destino, acao);
-            update(att);
+            if (filho.getId() == null) {
+              addHistorico(filho, user, origem, destino, acao);
+            } else {
+              Protocolo att = initializeLists(filho);
+              addHistorico(att, user, origem, destino, acao);
+              update(att);
+            }
           }
         });
       }

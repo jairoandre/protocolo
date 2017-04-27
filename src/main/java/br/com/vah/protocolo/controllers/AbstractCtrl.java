@@ -143,7 +143,15 @@ public abstract class AbstractCtrl<T extends BaseEntity> implements Serializable
   }
 
   public void addMsg(FacesMessage.Severity severity, String msg) {
-    addMsg(new FacesMessage(msg), false);
+    String sumario = "";
+    if (FacesMessage.SEVERITY_ERROR.equals(severity) || FacesMessage.SEVERITY_FATAL.equals(severity)) {
+      sumario = "Ops! ";
+    } else if (FacesMessage.SEVERITY_WARN.equals(severity)) {
+      sumario = "Atenção: ";
+    } else {
+      sumario = "Informação: ";
+    }
+    addMsg(new FacesMessage(severity, sumario, msg), false);
   }
 
   public void addMsg(FacesMessage msg, boolean flash) {
