@@ -9,6 +9,7 @@ import br.com.vah.protocolo.entities.usrdbvah.Protocolo;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.StringJoiner;
 
 public class DocumentoDTO {
 
@@ -132,7 +133,7 @@ public class DocumentoDTO {
     this.tipo = TipoDocumentoEnum.ATENDIMENTO;
     this.descricao = atendimento.getPaciente().getName();
     this.conselho = "";
-    this.prestador = "";
+    this.prestador = atendimento.getConvenio().getTitle();
     this.dataHoraCriacao = atendimento.getDataAlta();
     this.dataHoraImpressao = atendimento.getDataAlta();
     this.dataReferencia = atendimento.getDataAlta();
@@ -188,12 +189,14 @@ public class DocumentoDTO {
     this.dataReferencia = documento.getDataReferencia();
     this.dataHoraCriacao = documento.getDataHoraCriacao();
     this.dataHoraImpressao = documento.getDataHoraImpressao();
-    if (this.conselho != null && this.prestador != null) {
-      this.consPrestConv = String.format("%s - %s", this.conselho, this.prestador);
-    } else {
-      this.consPrestConv = "N/A";
+    StringJoiner joiner = new StringJoiner(" - ");
+    if (this.conselho != null && !this.conselho.isEmpty()) {
+      joiner.add(this.conselho);
     }
-
+    if (this.prestador != null && !this.prestador.isEmpty()) {
+      joiner.add(this.prestador);
+    }
+    this.consPrestConv = joiner.length() > 0 ? joiner.toString() : "N/A";
   }
 
   public void setFields(Protocolo filho) {

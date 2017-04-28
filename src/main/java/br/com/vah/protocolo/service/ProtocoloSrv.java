@@ -204,6 +204,7 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     Convenio[] convenios = (Convenio[]) params.getParams().get("convenios");
     Date[] dateRange = (Date[]) params.getParams().get("dateRange");
     Criteria atendimentoAlias = criteria.createAlias("atendimento", "a", JoinType.LEFT_OUTER_JOIN);
+    Boolean visualizarRecebidos = (Boolean) params.getParams().get("visualizarRecebidos");
     if (atendimentoId != null) {
       atendimentoAlias.add(Restrictions.eq("a.id", atendimentoId));
     } else if (pacienteParam != null && !pacienteParam.isEmpty()) {
@@ -221,6 +222,7 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     if (estados != null) {
       criteria.add(Restrictions.in("estado", estados));
     }
+    criteria.add(Restrictions.ne("estado", EstadosProtocoloEnum.PRONTO_SOCORRO));
     if (dateRange != null) {
       if (dateRange[0] != null) {
         if (dateRange[1] != null) {
@@ -231,6 +233,9 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
       } else {
         criteria.add(Restrictions.le("dataEnvio", dateRange[1]));
       }
+    }
+    if (!visualizarRecebidos) {
+      criteria.add(Restrictions.ne("estado", EstadosProtocoloEnum.RECEBIDO));
     }
     return criteria;
   }
@@ -333,35 +338,27 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
 
       List<Object[]> datas = new ArrayList<>();
 
+      Atendimento atendimento = atendimentoSrv.find(protocolo.getAtendimento().getId());
+
       if (SetorNivelEnum.SECRETARIA.equals(nivelOrigem)) {
         datas = validadeSrv.recuperarValidades(protocolo, begin, end);
       } else {
         Calendar beginCld = Calendar.getInstance();
-        beginCld.setTime(begin);
-        beginCld.set(Calendar.HOUR_OF_DAY, 0);
-        beginCld.set(Calendar.MINUTE, 0);
-        beginCld.set(Calendar.SECOND, 0);
+        beginCld.setTime(atendimento.getDataAtendimento());
         Calendar endCld = Calendar.getInstance();
-        endCld.setTime(end);
-        endCld.set(Calendar.HOUR_OF_DAY, 0);
-        endCld.set(Calendar.MINUTE, 0);
-        endCld.set(Calendar.SECOND, 0);
-        while (beginCld.before(endCld)) {
-          Object[] range = new Object[4];
-          range[0] = range[3] = beginCld.getTime();
-          beginCld.add(Calendar.DAY_OF_MONTH, 1);
-          beginCld.add(Calendar.SECOND, -1);
-          range[1] = beginCld.getTime();
-          datas.add(range);
-          beginCld.add(Calendar.SECOND, 1);
+        endCld.setTime(atendimento.getDataAlta());
+        if (beginCld.compareTo(endCld) == 0) {
+          endCld.add(Calendar.DAY_OF_MONTH, 1);
         }
+        Object[] range = new Object[4];
+        range[0] = range[3] = beginCld.getTime();
+        range[1] = endCld.getTime();
+        datas.add(range);
       }
 
       if (datas.size() > 0) {
         resultMap.put("periodo", datas);
       }
-
-      Atendimento atendimento = atendimentoSrv.find(protocolo.getAtendimento().getId());
 
       datas.forEach((range) -> {
         Date inicioValidade = (Date) range[0];
@@ -495,7 +492,7 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
       }
       RegFaturamento conta = protocolo.getContaFaturamento();
       if (conta != null) {
-        List<CaixaEntrada> candidatos = caixaSrv.busqueDocumentosNaoVinculados(protocolo.getAtendimento(), origem);
+        List<CaixaEntrada> candidatos = caixaSrv.busqueDocumentosNaoVinculados(protocolo, origem);
         final List<CaixaEntrada> seraoEnviados = new ArrayList<>();
         protocolo.getItens().forEach((item) -> {
           CaixaEntrada seraEnviado = item.getCaixa();

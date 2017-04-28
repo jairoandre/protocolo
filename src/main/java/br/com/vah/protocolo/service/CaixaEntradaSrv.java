@@ -8,6 +8,7 @@ import java.util.Map;
 
 import javax.ejb.Stateless;
 
+import br.com.vah.protocolo.constants.SetorNivelEnum;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
 
@@ -71,9 +72,12 @@ public class CaixaEntradaSrv extends AbstractSrv<CaixaEntrada> {
     return caixa;
   }
 
-  public List<CaixaEntrada> busqueDocumentosNaoVinculados(Atendimento atendimento, SetorProtocolo setor) {
+  public List<CaixaEntrada> busqueDocumentosNaoVinculados(Protocolo protocolo, SetorProtocolo setor) {
     Criteria crit = getSession().createCriteria(CaixaEntrada.class);
-    crit.add(Restrictions.eq("atendimento", atendimento));
+    crit.add(Restrictions.eq("atendimento", protocolo.getAtendimento()));
+    if (SetorNivelEnum.SECRETARIA.equals(protocolo.getOrigem().getNivel()) && protocolo.getInicio() != null && protocolo.getFim() != null) {
+      crit.createAlias("documento", "doc").add(Restrictions.between("doc.dataReferencia", protocolo.getInicio(), protocolo.getFim()));
+    }
     crit.add(Restrictions.eq("destino", setor));
     crit.add(Restrictions.eq("vinculado", false));
     return crit.list();
@@ -102,6 +106,10 @@ public class CaixaEntradaSrv extends AbstractSrv<CaixaEntrada> {
 
     if (convenio != null) {
       criteria.add(Restrictions.eq("convenio", convenio));
+    }
+
+    if (SetorNivelEnum.SECRETARIA.equals(protocolo.getOrigem().getNivel()) && protocolo.getInicio() != null && protocolo.getFim() != null) {
+      criteria.createAlias("documento", "dp").add(Restrictions.between("dp.dataReferencia", protocolo.getInicio(), protocolo.getFim()));
     }
 
     List<RegFaturamento> ids = new ArrayList<>();

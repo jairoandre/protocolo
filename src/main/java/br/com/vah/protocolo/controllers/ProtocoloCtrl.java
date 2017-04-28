@@ -120,6 +120,8 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   private Protocolo protocoloPS;
 
+  private Boolean visualizarRecebidos = false;
+
   public ProtocoloCtrl() {}
 
   public ProtocoloCtrl(Logger logger, ProtocoloSrv service, SessionController session, AtendimentoSrv atendimentoSrv) {
@@ -164,6 +166,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
       mapFiltros.put(ProtocoloFieldEnum.DATA, new Date[]{inicioDate, terminoDate});
       setSearchParam("dateRange", new Date[]{inicioDate, terminoDate});
     }
+    setSearchParam("visualizarRecebidos", visualizarRecebidos);
   }
 
   public void filterCurrentMonth() {
@@ -753,14 +756,23 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
       dto.setItemProtocolo(itemProtocolo);
     }
     protocoloPS = dto.getItemProtocolo().getFilho();
+    if (protocoloPS == null) {
+      protocoloPS = new Protocolo();
+      Atendimento atd = new Atendimento();
+      atd.setId(dto.getCodigo());
+      protocoloPS.setAtendimento(atd);
+      protocoloPS.setEstado(EstadosProtocoloEnum.PRONTO_SOCORRO);
+      protocoloPS.setOrigem(getItem().getOrigem());
+      dto.getItemProtocolo().setFilho(protocoloPS);
+    }
     if (protocoloPS.getId() == null) {
       Calendar cld = Calendar.getInstance();
       protocoloPS.setFim(cld.getTime());
       cld.add(Calendar.DAY_OF_MONTH, -2);
       protocoloPS.setInicio(cld.getTime());
+
     } else {
       protocoloPS = service.initializeLists(protocoloPS);
-      documentosKeyMapPS.addAll(service.gerarListaDTO(protocoloPS, false, false), false);
     }
     try {
       List<DocumentoDTO> docs = service.buscarDocumentos(protocoloPS, null, null);
@@ -768,13 +780,11 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     } catch (Exception e) {
       addMsg(FacesMessage.SEVERITY_WARN, "Erro na busca de documentos.");
     }
+    documentosKeyMapPS.addAll(service.gerarListaDTO(protocoloPS, false, false), true);
     ProtocoloCtrl ctrl = new ProtocoloCtrl(logger, service, session, atendimentoSrv);
     ctrl.setItem(protocoloPS);
+    ctrl.setDocumentosKeyMap(documentosKeyMapPS);
     documentosKeyMapPS.compile(ctrl);
-    if (documentosKeyMapPS.getCountTotal() == 0) {
-      showSelecionarDocsPSDlg = false;
-      addMsg(FacesMessage.SEVERITY_INFO, "Sem documentos para este atendimento.");
-    }
   }
 
   public String getListaContas() {
@@ -831,5 +841,13 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   public Protocolo getProtocoloPS() {
     return protocoloPS;
+  }
+
+  public Boolean getVisualizarRecebidos() {
+    return visualizarRecebidos;
+  }
+
+  public void setVisualizarRecebidos(Boolean visualizarRecebidos) {
+    this.visualizarRecebidos = visualizarRecebidos;
   }
 }

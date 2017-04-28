@@ -11,7 +11,8 @@ public enum EstadosProtocoloEnum {
   ARQUIVADO("Arquivado"),
   RASCUNHO("Rascunho"),
   COMENTARIO("Comentário"),
-  REPASSADO("Repassado");
+  REPASSADO("Repassado"),
+  PRONTO_SOCORRO("Pronto Socorro");
 
   private String label;
 

@@ -334,7 +334,7 @@
                                                                          index="#{idx}"/>
                                                         </p:column>
                                                         <p:column
-                                                                renderd="#{protocoloCtrl.item.origem.nivel eq 'PRONTO_SOCORRO'}">
+                                                                rendered="#{protocoloCtrl.item.origem.nivel eq 'PRONTO_SOCORRO'}">
                                                             <p:commandButton value="Selecionar Docs."
                                                                              icon="fa fa-asterisk" ajax="true"
                                                                              action="#{protocoloCtrl.preSelecionarDocumentosPS(doc)}"
@@ -857,7 +857,7 @@
                                          icon="fa fa-check-square-o"
                                          ajax="true"
                                          process="@this"
-                                         update="docNaoSelecTab #{p:component('selectCountPS')} #{p:component('sumarioPnl')} #{p:component('actionsPnl')} #{p:component('actionsPnlUp')}"
+                                         update="selecionarDocsPSTab #{p:component('selectCountPS')} #{p:component('sumarioPnl')} #{p:component('actionsPnl')} #{p:component('actionsPnlUp')}"
                                          action="#{protocoloCtrl.documentosKeyMapPS.ctrl.selectAll}"
                                          style="margin-left: 5px;"
                                          rendered="#{protocoloCtrl.editing and (protocoloCtrl.item.estado eq 'RASCUNHO' or protocoloCtrl.item.estado eq 'RECUSADO')}"/>
@@ -865,7 +865,7 @@
                                          icon="fa fa-square-o"
                                          ajax="true"
                                          process="@this"
-                                         update="docNaoSelecTab #{p:component('selectCountPS')} #{p:component('sumarioPnl')} #{p:component('actionsPnl')} #{p:component('actionsPnlUp')}"
+                                         update="selecionarDocsPSTab #{p:component('selectCountPS')} #{p:component('sumarioPnl')} #{p:component('actionsPnl')} #{p:component('actionsPnlUp')}"
                                          style="margin-left: 5px;"
                                          action="#{protocoloCtrl.documentosKeyMapPS.ctrl.unselectAll}"
                                          rendered="#{protocoloCtrl.editing and (protocoloCtrl.item.estado eq 'RASCUNHO' or protocoloCtrl.item.estado eq 'RECUSADO')}"/>

@@ -31,6 +31,9 @@ public class Atendimento extends BaseEntity {
   @JoinColumn(name = "CD_CONVENIO")
   private Convenio convenio;
 
+  @Column(name = "DT_ATENDIMENTO")
+  private Date dataAtendimento;
+
   @Column(name = "DT_ALTA")
   private Date dataAlta;
   
@@ -69,6 +72,14 @@ public class Atendimento extends BaseEntity {
 
   public void setConvenio(Convenio convenio) {
     this.convenio = convenio;
+  }
+
+  public Date getDataAtendimento() {
+    return dataAtendimento;
+  }
+
+  public void setDataAtendimento(Date dataAtendimento) {
+    this.dataAtendimento = dataAtendimento;
   }
 
   public Date getDataAlta() {

@@ -393,7 +393,11 @@ input.ui-state-disabled {
 }
 
 .protocolo-estado--ENVIADO {
-  background-color: #202b93;
+  background-color: #125FD2;
+}
+
+.protocolo-estado--A_RECEBER {
+    background-color: #FFC300;
 }
 
 .protocolo-estado--ARQUIVADO {

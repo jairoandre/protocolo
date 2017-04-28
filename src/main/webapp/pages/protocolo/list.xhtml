@@ -110,6 +110,13 @@
                                     </p:autoComplete>
                                 </p:overlayPanel>
 
+                                <p:outputLabel for="visualizarRecebidosCheck" value="Visualizar Recebidos"
+                                               style="margin-left: 5px;"/>
+                                <p:selectBooleanCheckbox id="visualizarRecebidosCheck"
+                                                         value="#{protocoloCtrl.visualizarRecebidos}"
+                                                         style="margin-left: 5px;">
+                                    <p:ajax event="change" process="@this" />
+                                </p:selectBooleanCheckbox>
                             </div>
                         </f:facet>
 
@@ -120,8 +127,12 @@
                         <p:column headerText="" width="20" style="text-align: center;">
                             <h:panelGroup style="font-size: 20px; color: #555550;" styleClass="fa fa-file-text"
                                           rendered="#{item.estado eq 'RASCUNHO'}"/>
-                            <h:panelGroup style="font-size: 20px; color: #202b93;" styleClass="fa fa-arrow-circle-right"
-                                          rendered="#{item.estado eq 'ENVIADO'}"/>
+                            <h:panelGroup style="font-size: 20px; color: #125fd2;" styleClass="fa fa-arrow-circle-right"
+                                          rendered="#{item.estado eq 'ENVIADO' and
+                                          (empty sessionController.setor ? true : (sessionController.setor eq item.origem))}"/>
+                            <h:panelGroup style="font-size: 20px; color: #ffc300;" styleClass="fa fa-exclamation-circle"
+                                          rendered="#{item.estado eq 'ENVIADO' and
+                                          (empty sessionController.setor ? false : (sessionController.setor eq item.destino))}"/>
                             <h:panelGroup style="font-size: 20px; color: #008d0e;" styleClass="fa fa-thumbs-up"
                                           rendered="#{item.estado eq 'RECEBIDO'}"/>
                             <h:panelGroup style="font-size: 20px; color: #8d272e;" styleClass="fa fa-thumbs-down"
@@ -150,8 +161,20 @@
 
                         <p:column id="estado" headerText="Estado" width="75" sortBy="#{item.estado}"
                                   style="text-align: center;">
-                            <h:panelGroup styleClass="protocolo-estado protocolo-estado--#{item.estado}" layout="block">
-                                <h:outputText value="#{item.estado.label}"/>
+                            <h:panelGroup rendered="#{empty sessionController.setor or item.estado ne 'ENVIADO'}">
+                                <h:panelGroup styleClass="protocolo-estado protocolo-estado--#{item.estado}"
+                                              layout="block">
+                                    <h:outputText value="#{item.estado.label}"/>
+                                </h:panelGroup>
+                            </h:panelGroup>
+
+                            <h:panelGroup rendered="#{not empty sessionController.setor and item.estado eq 'ENVIADO'}">
+                                <h:panelGroup
+                                        styleClass="protocolo-estado protocolo-estado--#{sessionController.setor eq item.origem ? 'ENVIADO' : 'A_RECEBER'}"
+                                        layout="block">
+                                    <h:outputText
+                                            value="#{sessionController.setor eq item.origem ? 'ENVIADO' : 'A RECEBER'}"/>
+                                </h:panelGroup>
                             </h:panelGroup>
                         </p:column>
 
@@ -418,11 +441,14 @@
                               rendered="#{protocoloCtrl.renderDocumentosDlg}">
 
                         <f:facet name="header">
-                            <h:outputText value="#{protocoloCtrl.recebendo ? 'Receber' : 'Visualizar'} - Protocolo nº #{protocoloCtrl.item.id}"/>
+                            <h:outputText
+                                    value="#{protocoloCtrl.recebendo ? 'Receber' : 'Visualizar'} - Protocolo nº #{protocoloCtrl.item.id}"/>
                         </f:facet>
 
                         <h:panelGroup layout="block" style="margin: 0 0 5px 0;">
-                            <h:panelGrid columns="10" columnClasses="sumario-label, sumario-value, sumario-label, sumario-value, sumario-label, sumario-value, sumario-label, sumario-value, sumario-label, sumario-value" style="padding: 5px;">
+                            <h:panelGrid columns="10"
+                                         columnClasses="sumario-label, sumario-value, sumario-label, sumario-value, sumario-label, sumario-value, sumario-label, sumario-value, sumario-label, sumario-value"
+                                         style="padding: 5px;">
                                 <h:outputLabel value="Conta: "/>
                                 <h:outputText id="contaSumPnl"
                                               value="#{protocoloCtrl.item.contaFaturamento eq null ? 'N/A' : protocoloCtrl.item.contaFaturamento.id}"/>
@@ -608,7 +634,7 @@
 
                     </p:dialog>
                 </h:panelGroup>
-                
+
             </p:panel>
         </h:form>
     </ui:define>
