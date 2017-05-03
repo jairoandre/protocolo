@@ -297,6 +297,7 @@
                                                                           rendered="#{protocoloCtrl.isSecretaria()}"
                                                                           styleClass="left-align"
                                                                           width="90"/>
+                                                                <p:column headerText="Ação" styleClass="center-align" width="120"/>
                                                             </p:row>
                                                         </p:columnGroup>
                                                         <p:column style="text-align: center;">
@@ -358,7 +359,16 @@
                                                                                    locale="pt_BR" timeZone="GMT-03:00"/>
                                                             </h:outputText>
                                                         </p:column>
-
+                                                        <p:column style="text-align: center;">
+                                                            <p:menuButton id="menuButton" value="Ações">
+                                                                <p:menuitem id="addDocManualPSBtn" value="Incluir Doc. Manual"
+                                                                                icon="fa fa-doc"
+                                                                                 action="#{protocoloCtrl.preAddDocManualPS(doc)}" process="@this"
+                                                                                 rendered="#{protocoloCtrl.editing}"
+                                                                                 update="#{p:component('docManualPSDlgPnl')}"
+                                                                                 oncomplete="PF('docManualPSDlg').show()"/>
+                                                            </p:menuButton>
+                                                        </p:column>
                                                     </p:dataTable>
                                                 </p:tab>
                                             </p:tabView>
@@ -775,7 +785,7 @@
                                                   styleClass="left-align ellipsis-text"
                                                   width="300"/>
                                         <p:column
-                                                headerText="#{protocoloCtrl.item.origem.nivel eq 'SECRETARIA' ? 'Conselho/Prestador' : 'Convênio/Atendimento'}"
+                                                headerText="Conselho/Prestador"
                                                 sortBy="#{doc.consPrestConv}"
                                                 styleClass="left-align ellipsis-text"/>
                                         <p:column headerText="Referência"
@@ -874,6 +884,58 @@
                 </p:dialog>
             </h:panelGroup>
 
+            <h:panelGroup id="docManualPSDlgPnl">
+                <p:dialog id="docManualPSDlg" widgetVar="docManualPSDlg" modal="true" width="550"
+                          rendered="#{not empty protocoloCtrl.documentosKeyMapPS and
+                                      not empty protocoloCtrl.documentosKeyMapPS.ctrl and
+                                      not empty protocoloCtrl.documentosKeyMapPS.ctrl.docManualToAdd}">
+                    <f:facet name="header">
+                        <h:outputText value="Documento Manual"/>
+                    </f:facet>
+                    <h:panelGroup id="docManualPSForm" layout="block">
+                        <h:panelGrid id="docManualPSFormGrid" columns="2">
+                            <p:outputLabel value="Tipo *" styleClass="lance-label"/>
+                            <p:selectOneMenu value="#{protocoloCtrl.documentosKeyMapPS.ctrl.docManualToAdd.tipo}" required="true">
+                                <f:selectItem itemLabel="Selecione..." itemValue=""/>
+                                <f:selectItems value="#{protocoloCtrl.documentosKeyMapPS.ctrl.tiposDocManual}" var="tipo"
+                                               itemLabel="#{tipo.label}"
+                                               itemValue="#{tipo}"/>
+                            </p:selectOneMenu>
+                            <p:outputLabel value="Código *" styleClass="lance-label"/>
+                            <p:inputText id="docCodigoPS" value="#{protocoloCtrl.documentosKeyMapPS.ctrl.docManualToAdd.codigo}" required="true"
+                                         size="30"/>
+                            <p:outputLabel value="Criação *" styleClass="lance-label"/>
+                            <p:calendar id="docManualDatePS" value="#{protocoloCtrl.documentosKeyMapPS.ctrl.docManualToAdd.dataHoraCriacao}"
+                                        pattern="dd/MM/yyyy"
+                                        required="true" timeZone="GMT-03:00" mask="true" locale="pt_BR"/>
+                            <p:outputLabel value="Impressão *" styleClass="lance-label"/>
+                            <p:calendar id="docManualImpressaoPS"
+                                        value="#{protocoloCtrl.documentosKeyMapPS.ctrl.docManualToAdd.dataHoraImpressao}"
+                                        pattern="dd/MM/yyyy"
+                                        required="true" timeZone="GMT-03:00" mask="true" locale="pt_BR"/>
+                            <p:outputLabel value="Descrição" styleClass="lance-label"/>
+                            <p:inputText id="docManualObsPS" value="#{protocoloCtrl.documentosKeyMapPS.ctrl.docManualToAdd.descricao}"
+                                         maxlength="50"
+                                         size="50"/>
+                        </h:panelGrid>
+                    </h:panelGroup>
+                    <f:facet name="footer">
+                        <p:commandButton id="docManualAddPSBtn" value="Criar Documento Manual"
+                                         ajax="true" action="#{protocoloCtrl.documentosKeyMapPS.ctrl.addDocManual}"
+                                         process="@this docManualPSForm"
+                                         update="#{p:component('selectCountPS')} docManualPSForm"
+                                         onstart="openLoading();"
+                                         oncomplete="closingDocManualPSDlg(xhr, status, args);"/>
+                        <p:commandButton id="docManualCloseDlgPSBtn"
+                                         value="Fechar"
+                                         ajax="true"
+                                         style="margin-left: 5px;"
+                                         onclick="PF('docManualPSDlg').hide();"
+                                         process="@this"/>
+                    </f:facet>
+                </p:dialog>
+            </h:panelGroup>
+
             <!-- SCRIPTS -->
             <script type="application/javascript">
                 function closingComentariosDlg(xhr, status, args) {
@@ -887,6 +949,13 @@
                 function closingDocManualDlg(xhr, status, args) {
                     if (args &amp;&amp; !args.validationFailed) {
                         PF('docManualDlg').hide();
+                        window.scrollTo(0, 0);
+                    }
+                    closeLoading();
+                }
+                function closingDocManualPSDlg(xhr, status, args) {
+                    if (args &amp;&amp; !args.validationFailed) {
+                        PF('docManualPSDlg').hide();
                         window.scrollTo(0, 0);
                     }
                     closeLoading();

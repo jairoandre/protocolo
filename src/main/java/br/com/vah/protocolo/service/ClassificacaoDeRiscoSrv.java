@@ -56,10 +56,12 @@ public List<DocumentoProtocolo> guiaSadt(List<HDA> hdas){
 		DocumentoProtocolo guiaSADT = null;
 		
 		if (!hdas.isEmpty() && hdas.size() > 0){
+
+      HDA hda = hdas.get(0);
 			
 			/*GUIA SADT*/
 			for (int i = 0; i < conv.length; i++){
-				if (hdas.get(0).getAtendimento().getConvenio().getId() == conv[i]){
+				if (hda.getAtendimento().getConvenio().getId() == conv[i]){
 					possuiSADT = Boolean.FALSE;
 					break;
 				}
@@ -68,13 +70,14 @@ public List<DocumentoProtocolo> guiaSadt(List<HDA> hdas){
 			if (possuiSADT){
 				
 				guiaSADT = new DocumentoProtocolo();
-				guiaSADT.setId(10l);
-				guiaSADT.setCodigo(10000l); // Mesmo id do HDA
-				guiaSADT.setAtendimento(hdas.get(0).getAtendimento().getId());
+				guiaSADT.setCodigo(hda.getId()); // Mesmo id do HDA
+				guiaSADT.setAtendimento(hda.getAtendimento().getId());
 				guiaSADT.setDescricao(TipoDocumentoEnum.GUIA_SADT.getLabel());
 				guiaSADT.setTipo(TipoDocumentoEnum.GUIA_SADT);
-				
-				docs.add(guiaSADT);
+        guiaSADT.setDataHoraCriacao(hda.getDataInicio());
+        guiaSADT.setDataReferencia(hda.getDataInicio());
+        guiaSADT.setDataHoraImpressao(hda.getDataInicio());
+        docs.add(guiaSADT);
 			}
 		}
 		

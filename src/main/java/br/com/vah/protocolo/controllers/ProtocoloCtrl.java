@@ -122,6 +122,8 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   private Boolean visualizarRecebidos = false;
 
+  private Map<Long, Protocolo> protocolosPSMap;
+
   public ProtocoloCtrl() {}
 
   public ProtocoloCtrl(Logger logger, ProtocoloSrv service, SessionController session, AtendimentoSrv atendimentoSrv) {
@@ -457,6 +459,11 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     docManualToAdd.setDataHoraCriacao(new Date());
   }
 
+  public void preAddDocManualPS(DocumentoDTO dto) {
+    preSelecionarDocumentosPS(dto);
+    documentosKeyMapPS.getCtrl().preAddDocManual();
+  }
+
   public void addDocManual() {
     ItemProtocolo itemProtocolo = new ItemProtocolo();
     itemProtocolo.setProtocolo(getItem());
@@ -479,6 +486,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
   @Override
   public void onLoad() {
     super.onLoad();
+    protocolosPSMap = new HashMap<>();
     if (getItem().getId() != null) {
       setItem(service.initializeLists(getItem()));
       contas = new ArrayList<>(service.inferirContas(getItem(), null));
@@ -771,8 +779,9 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
       cld.add(Calendar.DAY_OF_MONTH, -2);
       protocoloPS.setInicio(cld.getTime());
 
-    } else {
+    } else if (protocolosPSMap.get(protocoloPS.getId()) == null) {
       protocoloPS = service.initializeLists(protocoloPS);
+      protocolosPSMap.put(protocoloPS.getId(), protocoloPS);
     }
     try {
       List<DocumentoDTO> docs = service.buscarDocumentos(protocoloPS, null, null);

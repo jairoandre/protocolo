@@ -56,8 +56,7 @@ public class HDASrv extends AbstractSrv<HDA> {
 			
 			/*DIAGNOSTICO DO ATENDIMENTO - ALTA PACIENTE*/
 			diagnosticoAtendimento = new DocumentoProtocolo();
-			diagnosticoAtendimento.setId(10001l);
-			diagnosticoAtendimento.setCodigo(1001l); // Mesmo id do HDA
+			diagnosticoAtendimento.setCodigo(hdas.get(0).getId()); // Mesmo id do HDA
 			diagnosticoAtendimento.setAtendimento(hdas.get(0).getAtendimento().getId());
 			diagnosticoAtendimento.setConselho(hdas.get(0).getPrestador().getConselho().getNome());
 			diagnosticoAtendimento.setPrestador(hdas.get(0).getPrestador().getNome());

@@ -119,12 +119,7 @@ public class DocumentoDTO {
   }
 
   public DocumentoDTO(DocumentoProtocolo docPs) {
-    this.codigo = docPs.getCodigo();
-    this.tipo = docPs.getTipo();
-    this.descricao = docPs.getDescricao();
-    this.conselho = "";
-    this.prestador = "";
-    this.consPrestConv = String.format("%s", this.descricao);
+    setFields(docPs);
     createDocumento();
   }
 

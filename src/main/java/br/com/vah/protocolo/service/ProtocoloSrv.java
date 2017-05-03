@@ -653,6 +653,9 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     new LinkedHashSet<>(att.getItens());
     new LinkedHashSet<>(att.getHistorico());
     new LinkedHashSet<>(att.getComentarios());
+    protocolo.setItens(att.getItens());
+    protocolo.setHistorico(att.getHistorico());
+    protocolo.setComentarios(att.getComentarios());
     return att;
   }
 

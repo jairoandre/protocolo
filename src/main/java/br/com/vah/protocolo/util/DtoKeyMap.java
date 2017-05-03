@@ -121,8 +121,20 @@ public class DtoKeyMap implements Serializable {
     }
   }
 
+  public int sortDataHoraCriacao(DocumentoDTO dto1, DocumentoDTO dto2) {
+    if (dto1.getDataHoraCriacao() != null) {
+      if (dto2.getDataHoraCriacao() != null) {
+        return dto1.getDataHoraCriacao().compareTo(dto2.getDataHoraCriacao());
+      } else {
+        return 1;
+      }
+    } else {
+      return dto2.getDataHoraCriacao() == null ? 0 : -1;
+    }
+  }
+
   public void sortEverything() {
-    map.values().forEach((list) -> Collections.sort(list, (o1, o2) -> o1.getDataHoraCriacao().compareTo(o2.getDataHoraCriacao())));
+    map.values().forEach((list) -> Collections.sort(list, this::sortDataHoraCriacao));
     Collections.sort(list, this::compareKeys);
   }
 
