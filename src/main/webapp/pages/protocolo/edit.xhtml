@@ -965,16 +965,17 @@
                             <p:commandLink action="#{protocoloCtrl.documentosKeyMapPS.ctrl.addDocPendente}"
                                              process="@this docText"
                                              update="docsPendentes"
-                                             style="margin-left: 5px;"><span class="fa fa-plus"/></p:commandLink>
+                                             style="margin-left: 5px; vertical-align: top; font-size: 25px;"><span class="fa fa-plus"/></p:commandLink>
                             <p:commandLink action="#{protocoloCtrl.documentosKeyMapPS.ctrl.removeDocPendente}"
                                              process="@this docText"
                                              update="docsPendentes"
-                                             style="margin-left: 5px;"><span class="fa fa-minus"/></p:commandLink>
+                                             style="margin-left: 5px; vertical-align: top; font-size: 25px;"><span class="fa fa-minus"/></p:commandLink>
                         </h:panelGroup>
                         <p:outputLabel value="Docs. Pendentes"/>
                         <h:panelGroup id="docsPendentes">
                             <h:outputText value="#{protocoloCtrl.documentosKeyMapPS.ctrl.item.docsPendentes}"
                                           style="font-weight: bold;"
+                                          escape="true"
                                           rendered="#{not empty protocoloCtrl.documentosKeyMapPS.ctrl.item.docsPendentes}"/>
                             <h:outputText value="Sem itens"
                                           style="font-weight: bold;"
