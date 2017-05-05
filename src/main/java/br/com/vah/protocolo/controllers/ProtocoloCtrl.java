@@ -17,6 +17,7 @@ import br.com.vah.protocolo.util.ViewUtils;
 
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
+import javax.faces.model.SelectItem;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -124,7 +125,10 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   private Map<Long, Protocolo> protocolosPSMap;
 
-  public ProtocoloCtrl() {}
+  private Boolean showAssinalarPendenciasDlg = false;
+
+  public ProtocoloCtrl() {
+  }
 
   public ProtocoloCtrl(Logger logger, ProtocoloSrv service, SessionController session, AtendimentoSrv atendimentoSrv) {
     super();
@@ -192,16 +196,17 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     }
 
   }
+
   /*PRONTO SOCORRO*/
   public Boolean isProntoSocorro() {
-	    SetorProtocolo origem = getItem().getOrigem();
-	    if (origem == null) {
-	      return false;
-	    } else {
-	      return SetorNivelEnum.PRONTO_SOCORRO.equals(origem.getNivel());
-	    }
+    SetorProtocolo origem = getItem().getOrigem();
+    if (origem == null) {
+      return false;
+    } else {
+      return SetorNivelEnum.PRONTO_SOCORRO.equals(origem.getNivel());
+    }
 
-	  }
+  }
 
   public void changeOrigem() {
     getItem().getItens().clear();
@@ -459,6 +464,42 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     docManualToAdd.setDataHoraCriacao(new Date());
   }
 
+  private List<SelectItem> docsCombo;
+
+  private String docText;
+
+  public String getDocText() {
+    return docText;
+  }
+
+  public void setDocText(String docText) {
+    this.docText = docText;
+  }
+
+  public List<SelectItem> getDocsCombo() {
+    return docsCombo;
+  }
+
+  public void preAssinalarPendencias(DocumentoDTO dto) {
+    showAssinalarPendenciasDlg = true;
+    preSelecionarDocumentosPS(dto);
+    final List<SelectItem> docsSelectItem = new ArrayList<>();
+    Protocolo protocoloPS = documentosKeyMapPS.getCtrl().getItem();
+    if (protocoloPS != null) {
+      documentosKeyMapPS.getList().forEach((keyEntry) -> {
+        keyEntry.getList().forEach((i) -> {
+          SelectItem selectItem = new SelectItem();
+          DocumentoProtocolo doc = i.getDocumento();
+          String val = String.format("%s - %d", doc.getTipo().getLabel(), doc.getCodigo());
+          selectItem.setLabel(val);
+          selectItem.setValue(val);
+          docsSelectItem.add(selectItem);
+        });
+      });
+    }
+    docsCombo = docsSelectItem;
+  }
+
   public void preAddDocManualPS(DocumentoDTO dto) {
     preSelecionarDocumentosPS(dto);
     documentosKeyMapPS.getCtrl().preAddDocManual();
@@ -544,6 +585,39 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
       }
     });
     contarDocumentos();
+  }
+
+  public void removeDocPendente() {
+    String textoAtual = getItem().getDocsPendentes();
+    StringJoiner joiner = new StringJoiner(";\n");
+    if (textoAtual != null && textoAtual.length() > 0) {
+      String[] values = textoAtual.split(";\n");
+      for (String value : values) {
+        if (!value.equals(docText)) {
+          joiner.add(value);
+        }
+      }
+    }
+    getItem().setDocsPendentes(joiner.toString());
+  }
+
+  public void addDocPendente() {
+    String textoAtual = getItem().getDocsPendentes();
+    Boolean addText = true;
+    StringJoiner joiner = new StringJoiner(";\n");
+    if (textoAtual != null && textoAtual.length() > 0) {
+      String[] values = textoAtual.split(";\n");
+      for (String value : values) {
+        joiner.add(value);
+        if (value.equals(docText)) {
+          addText = false;
+        }
+      }
+    }
+    if (addText) {
+      joiner.add(docText);
+    }
+    getItem().setDocsPendentes(joiner.toString());
   }
 
   public void removeFilterItem(ProtocoloFieldEnum filtro) {
@@ -858,5 +932,13 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   public void setVisualizarRecebidos(Boolean visualizarRecebidos) {
     this.visualizarRecebidos = visualizarRecebidos;
+  }
+
+  public Boolean getShowAssinalarPendenciasDlg() {
+    return showAssinalarPendenciasDlg;
+  }
+
+  public void setShowAssinalarPendenciasDlg(Boolean showAssinalarPendenciasDlg) {
+    this.showAssinalarPendenciasDlg = showAssinalarPendenciasDlg;
   }
 }

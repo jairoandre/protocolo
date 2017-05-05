@@ -278,17 +278,13 @@
                                                                           headerText="#{protocoloCtrl.item.origem.nivel eq 'SECRETARIA' ? 'Conselho/Prestador' : 'Convênio/Atendimento'}"
                                                                           sortBy="#{doc.consPrestConv}"
                                                                           styleClass="left-align ellipsis-text"/>
-                                                                <p:column headerText="Documentos"
-                                                                          width="150"
-                                                                          styleClass="left-align"
-                                                                          rendered="#{protocoloCtrl.item.origem.nivel eq 'PRONTO_SOCORRO'}"/>
                                                                 <p:column id="referenciaNaoRelac"
                                                                           headerText="Referência"
                                                                           sortBy="#{doc.dataReferencia}"
                                                                           rendered="#{protocoloCtrl.isSecretaria()}"
                                                                           styleClass="left-align" width="90"/>
                                                                 <p:column id="criacaoNaoRelac"
-                                                                          headerText="#{protocoloCtrl.isSecretaria() ? 'Criação' : 'Resposta'}"
+                                                                          headerText="#{protocoloCtrl.isSecretaria() ? 'Criação' : (protocoloCtrl.item.origem.nivel eq 'PRONTO_SOCORRO' ? 'Referência' : 'Resposta')}"
                                                                           sortBy="#{doc.dataHoraCriacao}"
                                                                           styleClass="left-align"
                                                                           width="90"/>
@@ -297,7 +293,8 @@
                                                                           rendered="#{protocoloCtrl.isSecretaria()}"
                                                                           styleClass="left-align"
                                                                           width="90"/>
-                                                                <p:column headerText="Ação" styleClass="center-align" width="120"/>
+                                                                <p:column styleClass="center-align" width="100"
+                                                                          rendered="#{protocoloCtrl.item.origem.nivel eq 'PRONTO_SOCORRO'}"/>
                                                             </p:row>
                                                         </p:columnGroup>
                                                         <p:column style="text-align: center;">
@@ -334,14 +331,6 @@
                                                                          value="#{doc.consPrestConv}"
                                                                          index="#{idx}"/>
                                                         </p:column>
-                                                        <p:column
-                                                                rendered="#{protocoloCtrl.item.origem.nivel eq 'PRONTO_SOCORRO'}">
-                                                            <p:commandButton value="Selecionar Docs."
-                                                                             icon="fa fa-asterisk" ajax="true"
-                                                                             action="#{protocoloCtrl.preSelecionarDocumentosPS(doc)}"
-                                                                             process="@this"
-                                                                             update="#{p:component('selecionarDocsPSDlgPnl')}"/>
-                                                        </p:column>
                                                         <p:column rendered="#{protocoloCtrl.isSecretaria()}">
                                                             <h:outputText value="#{doc.dataReferencia}">
                                                                 <f:convertDateTime pattern="dd/MM/yy" locale="pt_BR"/>
@@ -359,14 +348,27 @@
                                                                                    locale="pt_BR" timeZone="GMT-03:00"/>
                                                             </h:outputText>
                                                         </p:column>
-                                                        <p:column style="text-align: center;">
+                                                        <p:column style="text-align: center;"
+                                                                  rendered="#{protocoloCtrl.item.origem.nivel eq 'PRONTO_SOCORRO'}">
                                                             <p:menuButton id="menuButton" value="Ações">
-                                                                <p:menuitem id="addDocManualPSBtn" value="Incluir Doc. Manual"
-                                                                                icon="fa fa-doc"
-                                                                                 action="#{protocoloCtrl.preAddDocManualPS(doc)}" process="@this"
-                                                                                 rendered="#{protocoloCtrl.editing}"
-                                                                                 update="#{p:component('docManualPSDlgPnl')}"
-                                                                                 oncomplete="PF('docManualPSDlg').show()"/>
+                                                                <p:menuitem value="Selecionar Docs."
+                                                                            icon="fa fa-asterisk" ajax="true"
+                                                                            action="#{protocoloCtrl.preSelecionarDocumentosPS(doc)}"
+                                                                            process="@this"
+                                                                            update="#{p:component('selecionarDocsPSDlgPnl')}"/>
+                                                                <p:menuitem value="Incluir Doc. Manual"
+                                                                            icon="fa fa-file-text"
+                                                                            action="#{protocoloCtrl.preAddDocManualPS(doc)}"
+                                                                            process="@this"
+                                                                            rendered="#{protocoloCtrl.editing}"
+                                                                            update="#{p:component('docManualPSDlgPnl')}"
+                                                                            oncomplete="PF('docManualPSDlg').show()"/>
+                                                                <p:menuitem value="Assinalar Pendências"
+                                                                            icon="fa fa-warning" ajax="true"
+                                                                            action="#{protocoloCtrl.preAssinalarPendencias(doc)}"
+                                                                            process="@this"
+                                                                            update="#{p:component('assinalarPendenciasDlgPnl')}"
+                                                                            oncomplete="PF('assinalarPendenciasDlg').show()"/>
                                                             </p:menuButton>
                                                         </p:column>
                                                     </p:dataTable>
@@ -721,7 +723,8 @@
                           position="top"
                           rendered="#{protocoloCtrl.showSelecionarDocsPSDlg}" visible="true">
                     <f:facet name="header">
-                        <h:outputText value="Atendimento Nº. #{protocoloCtrl.protocoloPS.atendimento.id} | Documentos | "/>
+                        <h:outputText
+                                value="Atendimento Nº. #{protocoloCtrl.protocoloPS.atendimento.id} | Documentos | "/>
                         <h:panelGroup id="selectCountPS">
                             <h:outputText
                                     value="Total: #{protocoloCtrl.documentosKeyMapPS.countTotal} :: "/>
@@ -895,17 +898,22 @@
                     <h:panelGroup id="docManualPSForm" layout="block">
                         <h:panelGrid id="docManualPSFormGrid" columns="2">
                             <p:outputLabel value="Tipo *" styleClass="lance-label"/>
-                            <p:selectOneMenu value="#{protocoloCtrl.documentosKeyMapPS.ctrl.docManualToAdd.tipo}" required="true">
+                            <p:selectOneMenu value="#{protocoloCtrl.documentosKeyMapPS.ctrl.docManualToAdd.tipo}"
+                                             required="true">
                                 <f:selectItem itemLabel="Selecione..." itemValue=""/>
-                                <f:selectItems value="#{protocoloCtrl.documentosKeyMapPS.ctrl.tiposDocManual}" var="tipo"
+                                <f:selectItems value="#{protocoloCtrl.documentosKeyMapPS.ctrl.tiposDocManual}"
+                                               var="tipo"
                                                itemLabel="#{tipo.label}"
                                                itemValue="#{tipo}"/>
                             </p:selectOneMenu>
                             <p:outputLabel value="Código *" styleClass="lance-label"/>
-                            <p:inputText id="docCodigoPS" value="#{protocoloCtrl.documentosKeyMapPS.ctrl.docManualToAdd.codigo}" required="true"
+                            <p:inputText id="docCodigoPS"
+                                         value="#{protocoloCtrl.documentosKeyMapPS.ctrl.docManualToAdd.codigo}"
+                                         required="true"
                                          size="30"/>
                             <p:outputLabel value="Criação *" styleClass="lance-label"/>
-                            <p:calendar id="docManualDatePS" value="#{protocoloCtrl.documentosKeyMapPS.ctrl.docManualToAdd.dataHoraCriacao}"
+                            <p:calendar id="docManualDatePS"
+                                        value="#{protocoloCtrl.documentosKeyMapPS.ctrl.docManualToAdd.dataHoraCriacao}"
                                         pattern="dd/MM/yyyy"
                                         required="true" timeZone="GMT-03:00" mask="true" locale="pt_BR"/>
                             <p:outputLabel value="Impressão *" styleClass="lance-label"/>
@@ -914,7 +922,8 @@
                                         pattern="dd/MM/yyyy"
                                         required="true" timeZone="GMT-03:00" mask="true" locale="pt_BR"/>
                             <p:outputLabel value="Descrição" styleClass="lance-label"/>
-                            <p:inputText id="docManualObsPS" value="#{protocoloCtrl.documentosKeyMapPS.ctrl.docManualToAdd.descricao}"
+                            <p:inputText id="docManualObsPS"
+                                         value="#{protocoloCtrl.documentosKeyMapPS.ctrl.docManualToAdd.descricao}"
                                          maxlength="50"
                                          size="50"/>
                         </h:panelGrid>
@@ -933,6 +942,45 @@
                                          onclick="PF('docManualPSDlg').hide();"
                                          process="@this"/>
                     </f:facet>
+                </p:dialog>
+            </h:panelGroup>
+
+            <h:panelGroup id="assinalarPendenciasDlgPnl">
+                <p:dialog id="assinalarPendenciasDlg" widgetVar="assinalarPendenciasDlg" modal="true" width="600"
+                          rendered="#{protocoloCtrl.showAssinalarPendenciasDlg}">
+                    <f:facet name="header">
+                        <h:outputText
+                                value="Assinalar Pendências - Atendimento Nº. #{protocoloCtrl.documentosKeyMapPS.ctrl.item.atendimento.id}"/>
+                    </f:facet>
+                    <h:panelGrid columns="2">
+                        <p:outputLabel for="docPendente" value="Com Pendências: "/>
+                        <p:selectBooleanCheckbox id="docPendente" value="#{protocoloCtrl.documentosKeyMapPS.ctrl.item.comPendencias}">
+                            <p:ajax event="change" process="@this"/>
+                        </p:selectBooleanCheckbox>
+                        <p:outputLabel for="docText" value="Documentos: "/>
+                        <h:panelGroup layout="block" style="vertical-align: middle;">
+                            <p:selectOneMenu id="docText" value="#{protocoloCtrl.documentosKeyMapPS.ctrl.docText}">
+                                <f:selectItems value="#{protocoloCtrl.docsCombo}"/>
+                            </p:selectOneMenu>
+                            <p:commandLink action="#{protocoloCtrl.documentosKeyMapPS.ctrl.addDocPendente}"
+                                             process="@this docText"
+                                             update="docsPendentes"
+                                             style="margin-left: 5px;"><span class="fa fa-plus"/></p:commandLink>
+                            <p:commandLink action="#{protocoloCtrl.documentosKeyMapPS.ctrl.removeDocPendente}"
+                                             process="@this docText"
+                                             update="docsPendentes"
+                                             style="margin-left: 5px;"><span class="fa fa-minus"/></p:commandLink>
+                        </h:panelGroup>
+                        <p:outputLabel value="Docs. Pendentes"/>
+                        <h:panelGroup id="docsPendentes">
+                            <h:outputText value="#{protocoloCtrl.documentosKeyMapPS.ctrl.item.docsPendentes}"
+                                          style="font-weight: bold;"
+                                          rendered="#{not empty protocoloCtrl.documentosKeyMapPS.ctrl.item.docsPendentes}"/>
+                            <h:outputText value="Sem itens"
+                                          style="font-weight: bold;"
+                                          rendered="#{empty protocoloCtrl.documentosKeyMapPS.ctrl.item.docsPendentes}"/>
+                        </h:panelGroup>
+                    </h:panelGrid>
                 </p:dialog>
             </h:panelGroup>
 

@@ -77,6 +77,12 @@ public class Protocolo extends BaseEntity {
   @Column(name = "DT_FIM")
   private Date fim;
 
+  @Transient
+  private Boolean comPendencias = false;
+
+  @Transient
+  private String docsPendentes;
+
   @Override
   public Long getId() {
     return id;
@@ -205,6 +211,22 @@ public class Protocolo extends BaseEntity {
 
   public void setFim(Date fim) {
     this.fim = fim;
+  }
+
+  public Boolean getComPendencias() {
+    return comPendencias;
+  }
+
+  public void setComPendencias(Boolean comPendencias) {
+    this.comPendencias = comPendencias;
+  }
+
+  public String getDocsPendentes() {
+    return docsPendentes;
+  }
+
+  public void setDocsPendentes(String docsPendentes) {
+    this.docsPendentes = docsPendentes;
   }
 
   @Override

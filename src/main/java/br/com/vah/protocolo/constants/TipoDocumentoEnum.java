@@ -23,9 +23,9 @@ public enum TipoDocumentoEnum {
   DOC_MANUAL_SADT("SADT"),
   DOC_MANUAL_AUTORIZACAO_PS("Autorização (PS)"),
   HDA("HDA"),
-  CLASSIFICACAO_DE_RISCO("Classificação de Risco"),
-  DIAGNOSTICO_DO_ATENDIMENTO("Diagnóstico do Atendimento"),
-  GUIA_SADT("Guia SADT"),
+  CLASSIFICACAO_DE_RISCO("Class. de Risco"),
+  DIAGNOSTICO_DO_ATENDIMENTO("Diag. do Atend."),
+  GUIA_SADT("SADT"),
   ATENDIMENTO("Atendimento");
 
 
