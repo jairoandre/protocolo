@@ -117,7 +117,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   private String atendimentos;
 
-  private Boolean showSelecionarDocsPSDlg;
+  private Boolean showSelecionarDocsPSDlg = false;
 
   private Protocolo protocoloPS;
 
@@ -480,6 +480,10 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     return docsCombo;
   }
 
+  public void fecharAssinalarPendenciasDlg() {
+    showAssinalarPendenciasDlg = false;
+  }
+
   public void preAssinalarPendencias(DocumentoDTO dto) {
     showAssinalarPendenciasDlg = true;
     preSelecionarDocumentosPS(dto);
@@ -818,6 +822,15 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   public void fecharSelecionarPSDlg() {
     showSelecionarDocsPSDlg = false;
+    Protocolo item = documentosKeyMapPS.getCtrl().getItem();
+    item.setComPendencias(false);
+    documentosKeyMapPS.getList().forEach((i) -> {
+      i.getList().forEach((dto) -> {
+        if (!dto.getSelected()) {
+          item.setComPendencias(true);
+        }
+      });
+    });
   }
 
   public void preSelecionarDocumentosPS(DocumentoDTO dto) {
@@ -856,7 +869,11 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     } else if (protocolosPSMap.get(protocoloPS.getId()) == null) {
       protocoloPS = service.initializeLists(protocoloPS);
       protocolosPSMap.put(protocoloPS.getId(), protocoloPS);
+    } else {
+      protocoloPS = protocolosPSMap.get(protocoloPS.getId());
     }
+    dto.getItemProtocolo().setFilho(protocoloPS);
+    protocoloPS.setEstado(EstadosProtocoloEnum.PRONTO_SOCORRO);
     try {
       List<DocumentoDTO> docs = service.buscarDocumentos(protocoloPS, null, null);
       documentosKeyMapPS.addAll(docs, false);

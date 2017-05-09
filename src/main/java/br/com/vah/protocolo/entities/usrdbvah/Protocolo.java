@@ -77,10 +77,10 @@ public class Protocolo extends BaseEntity {
   @Column(name = "DT_FIM")
   private Date fim;
 
-  @Transient
+  @Column(name = "SN_PENDENCIAS")
   private Boolean comPendencias = false;
 
-  @Transient
+  @Column(name = "NM_DOCS_PENDENTES")
   private String docsPendentes;
 
   @Override

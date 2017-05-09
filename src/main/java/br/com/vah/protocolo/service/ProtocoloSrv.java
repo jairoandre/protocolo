@@ -479,6 +479,14 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     SetorNivelEnum nivelOrigem = origem.getNivel();
     SetorNivelEnum nivelDestino = destino.getNivel();
 
+    // Quando a origem é Pronto Socorro
+
+    if (SetorNivelEnum.PRONTO_SOCORRO.equals(nivelOrigem)) {
+      if (!SetorNivelEnum.FATURAMENTO_CENTRAL.equals(nivelDestino) && !SetorNivelEnum.SAME.equals(nivelDestino)) {
+        throw new ProtocoloBusinessException("Destino deve ser Faturamento Central ou SAME.");
+      }
+    }
+
     if (SetorNivelEnum.SECRETARIA.equals(nivelOrigem)) {
       if (protocolo.getContaFaturamento() == null) {
         throw new ProtocoloBusinessException("Por favor, indique a conta desta movimentação.");
