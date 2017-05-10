@@ -105,6 +105,8 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
 
   private Protocolo protocoloToVisualize;
 
+  private String listaAtendimentos;
+
   private String listaContas;
 
   private Convenio convenio;
@@ -885,6 +887,14 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     ctrl.setItem(protocoloPS);
     ctrl.setDocumentosKeyMap(documentosKeyMapPS);
     documentosKeyMapPS.compile(ctrl);
+  }
+
+  public String getListaAtendimentos() {
+    return listaAtendimentos;
+  }
+
+  public void setListaAtendimentos(String listaAtendimentos) {
+    this.listaAtendimentos = listaAtendimentos;
   }
 
   public String getListaContas() {

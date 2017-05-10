@@ -157,6 +157,11 @@
                                             </h:panelGrid>
                                             <h:panelGrid columns="3"
                                                          rendered="#{protocoloCtrl.editing and (protocoloCtrl.item.origem.nivel ne 'SECRETARIA' and protocoloCtrl.item.origem.nivel ne 'PRONTO_SOCORRO')}">
+                                                <p:outputLabel value="Atendimentos:" styleClass="lance-label"/>
+                                                <p:inputText id="listaAtendimentos" value="#{protocoloCtrl.listaAtendimentos}"
+                                                             placeholder="Atendimentos separados por ';'"
+                                                             style="width: 400px;"/>
+                                                <h:panelGroup/>
                                                 <p:outputLabel value="Contas:" styleClass="lance-label"/>
                                                 <p:inputText id="listaContas" value="#{protocoloCtrl.listaContas}"
                                                              placeholder="Contas separadas por ';'"
