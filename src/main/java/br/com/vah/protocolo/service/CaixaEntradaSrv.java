@@ -37,6 +37,7 @@ public class CaixaEntradaSrv extends AbstractSrv<CaixaEntrada> {
     caixa.setProtocolo(protocolo);
     if (protocolo.getAtendimento() != null) {
       caixa.setAtendimento(protocolo.getAtendimento());
+      caixa.setConvenio(protocolo.getAtendimento().getConvenio());
     }
     if (protocolo.getContaFaturamento() != null) {
       caixa.setContaFaturamento(protocolo.getContaFaturamento());
@@ -93,7 +94,7 @@ public class CaixaEntradaSrv extends AbstractSrv<CaixaEntrada> {
   }
 
 
-  public List<CaixaEntrada> getItensCaixaEntrada(Protocolo protocolo, Convenio convenio, String listaContas) {
+  public List<CaixaEntrada> getItensCaixaEntrada(Protocolo protocolo, Convenio convenio, String listaContas, String listaAtendimentos) {
     Criteria criteria = getSession().createCriteria(CaixaEntrada.class);
     Atendimento atendimento = protocolo.getAtendimento();
     criteria.add(Restrictions.eq("destino", protocolo.getOrigem()));
@@ -114,6 +115,19 @@ public class CaixaEntradaSrv extends AbstractSrv<CaixaEntrada> {
 
     List<RegFaturamento> ids = new ArrayList<>();
 
+    if (listaAtendimentos != null && !listaAtendimentos.isEmpty()) {
+      String[] atds = listaAtendimentos.split(";");
+      List<Atendimento> atendimentos = new ArrayList<>();
+      for (int i = 0, len = atds.length; i < len; i++) {
+        try {
+          Long l = Long.parseLong(atds[i]);
+          atendimentos.add(new Atendimento(l));
+        } catch (NumberFormatException nfe) {
+          System.out.println("Erro de conversão silenciado.");
+        }
+      }
+      criteria.add(Restrictions.in("atendimento", atendimentos));
+    }
     if (listaContas != null && !listaContas.isEmpty()) {
       String[] contas = listaContas.split(";");
 

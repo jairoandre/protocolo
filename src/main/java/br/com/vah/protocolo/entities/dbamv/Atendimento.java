@@ -43,6 +43,12 @@ public class Atendimento extends BaseEntity {
   @OneToMany
   @JoinColumn(name = "CD_ATENDIMENTO")
   private List<Protocolo> protocolos;
+
+  public Atendimento() {}
+
+  public Atendimento(Long l) {
+    this.id = l;
+  }
   
   @Override
   public Long getId() {

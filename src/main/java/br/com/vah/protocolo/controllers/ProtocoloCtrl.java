@@ -364,7 +364,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
           documentosKeyMap.addAll(documentos, false);
           documentosKeyMap.compile(this);
         } else {
-          documentos = service.buscarDocumentos(getItem(), convenio, listaContas);
+          documentos = service.buscarDocumentos(getItem(), convenio, listaContas, listaAtendimentos);
           aferirContas();
           documentosKeyMap.addAll(documentos, false);
           documentosKeyMap.compile(this);
@@ -877,7 +877,7 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     dto.getItemProtocolo().setFilho(protocoloPS);
     protocoloPS.setEstado(EstadosProtocoloEnum.PRONTO_SOCORRO);
     try {
-      List<DocumentoDTO> docs = service.buscarDocumentos(protocoloPS, null, null);
+      List<DocumentoDTO> docs = service.buscarDocumentos(protocoloPS, null, null, null);
       documentosKeyMapPS.addAll(docs, false);
     } catch (Exception e) {
       addMsg(FacesMessage.SEVERITY_WARN, "Erro na busca de documentos.");

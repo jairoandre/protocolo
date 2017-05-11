@@ -200,7 +200,9 @@ public class DocumentoDTO {
     this.tipo = TipoDocumentoEnum.PROTOCOLO;
     RegFaturamento conta = filho.getContaFaturamento();
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy HH:mm");
-    this.descricao = conta == null ? "Remessa" : String.format("%d - (%s à %s)", conta.getId(), sdf.format(conta.getInicio()), sdf.format(conta.getFim()));
+    this.descricao = conta == null
+        ? String.format("%d", filho.getAtendimento().getId())
+        : String.format("%d - (%s à %s)", conta.getId(), sdf.format(conta.getInicio()), sdf.format(conta.getFim()));
     this.conselho = "-";
     this.prestador = "-";
     this.dataHoraCriacao = filho.getDataResposta();

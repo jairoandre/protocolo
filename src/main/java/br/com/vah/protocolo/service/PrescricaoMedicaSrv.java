@@ -6,6 +6,7 @@ import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.Query;
 
+import br.com.vah.protocolo.constants.SetorNivelEnum;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.Session;
@@ -44,9 +45,6 @@ public class PrescricaoMedicaSrv extends AbstractSrv<PrescricaoMedica> {
     criteria.add(Restrictions.isNotNull("dataHoraImpressao"));
     criteria.setFetchMode("items", FetchMode.SELECT);
 
-    Criteria subCriteria = criteria.createCriteria("unidade", "u", JoinType.LEFT_OUTER_JOIN);
-    subCriteria.add(Restrictions.eq("u.setor", protocolo.getOrigem().getSetorMV()));
-
     // Remove itens já protocolados.
     DetachedCriteria dt = DetachedCriteria.forClass(DocumentoProtocolo.class, "dp");
     dt.setProjection(Projections.rowCount());
@@ -54,16 +52,26 @@ public class PrescricaoMedicaSrv extends AbstractSrv<PrescricaoMedica> {
     dt.add(Restrictions.in("dp.tipo", new TipoDocumentoEnum[] {TipoDocumentoEnum.PRESCRICAO, TipoDocumentoEnum.EVOLUCAO}));
     criteria.add(Subqueries.gt(2l, dt));
 
-    Disjunction disj = Restrictions.disjunction();
-    disj.add(Restrictions.eq("dataReferencia", dataReferencia));
 
-    Conjunction conj01 = Restrictions.conjunction();
-    conj01.add(Restrictions.lt("dataReferencia", dataReferencia));
-    conj01.add(Restrictions.between("dataHoraImpressao", begin, end));
+    if (protocolo.getOrigem().getNivel().equals(SetorNivelEnum.PRONTO_SOCORRO)) {
+      criteria.add(Restrictions.ge("dataReferencia", protocolo.getAtendimento().getDataAtendimento()));
+    } else {
 
-    disj.add(conj01);
+      Criteria subCriteria = criteria.createCriteria("unidade", "u", JoinType.LEFT_OUTER_JOIN);
+      subCriteria.add(Restrictions.eq("u.setor", protocolo.getOrigem().getSetorMV()));
 
-    criteria.add(disj);
+      Disjunction disj = Restrictions.disjunction();
+      disj.add(Restrictions.eq("dataReferencia", dataReferencia));
+
+      Conjunction conj01 = Restrictions.conjunction();
+      conj01.add(Restrictions.lt("dataReferencia", dataReferencia));
+      conj01.add(Restrictions.between("dataHoraImpressao", begin, end));
+
+      disj.add(conj01);
+
+      criteria.add(disj);
+
+    }
 
     return criteria.list();
   }

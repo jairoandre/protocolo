@@ -319,7 +319,7 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     return query.list().size() > 0;
   }
 
-  private Map<String, Object> buscarDocumentosMap(Protocolo protocolo, Date begin, Date end, Convenio convenio, String listaContas) {
+  private Map<String, Object> buscarDocumentosMap(Protocolo protocolo, Date begin, Date end, Convenio convenio, String listaContas, String listaAtendimentos) {
 
     final List<DocumentoDTO> result = new ArrayList<>();
     Map<String, Object> resultMap = new HashMap<>();
@@ -365,7 +365,9 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
         Date fimValidade = (Date) range[1];
         Date referencia = (Date) range[3];
         prescricoes.addAll(prescricaoMedicaSrv.consultarPrescricoes(protocolo, inicioValidade, fimValidade, referencia));
-        avisos.addAll(avisoCirurgiaSrv.consultarAvisos(protocolo, inicioValidade, fimValidade, referencia));
+        if (nivelOrigem.equals(SetorNivelEnum.SECRETARIA)) {
+          avisos.addAll(avisoCirurgiaSrv.consultarAvisos(protocolo, inicioValidade, fimValidade, referencia));
+        }
         registros.addAll(registroDocumentoSrv.consultarRegistros(protocolo, inicioValidade, fimValidade, referencia));
         evolucoes.addAll(evolucaoEnfermagemSrv.consultarEvolucoesEnfermagem(protocolo, inicioValidade, fimValidade, referencia));
         if (SetorNivelEnum.PRONTO_SOCORRO.equals(nivelOrigem) &&
@@ -377,7 +379,7 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
       });
 
       if (!hdas.isEmpty()) {
-        documentosPs.addAll(hdaSrv.diagnosticoPs(hdas));
+        // documentosPs.addAll(hdaSrv.diagnosticoPs(hdas));
         documentosPs.addAll(classificacaoDeRiscoSrv.guiaSadt(hdas));
       }
 
@@ -413,7 +415,7 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
 
     // Busque itens na caixa de entrada (documentos repassados, protocolos recebidos)
 
-    List<CaixaEntrada> caixaEntrada = caixaSrv.getItensCaixaEntrada(protocolo, convenio, listaContas);
+    List<CaixaEntrada> caixaEntrada = caixaSrv.getItensCaixaEntrada(protocolo, convenio, listaContas, listaAtendimentos);
 
     caixaEntrada.forEach((c) -> result.add(new DocumentoDTO(c)));
 
@@ -428,7 +430,7 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
     return resultMap;
   }
 
-  public List<DocumentoDTO> buscarDocumentos(Protocolo protocolo, Convenio convenio, String listaContas) throws ProtocoloBusinessException {
+  public List<DocumentoDTO> buscarDocumentos(Protocolo protocolo, Convenio convenio, String listaContas, String listaAtendimentos) throws ProtocoloBusinessException {
     Date begin = protocolo.getInicio();
     Date end = protocolo.getFim();
     if (SetorNivelEnum.SECRETARIA.equals(protocolo.getOrigem().getNivel()) || SetorNivelEnum.PRONTO_SOCORRO.equals(protocolo.getOrigem().getNivel())) {
@@ -448,12 +450,12 @@ public class ProtocoloSrv extends AbstractSrv<Protocolo> {
           }
           endCld.setTime(end);
         }
-        Map<String, Object> resultado = buscarDocumentosMap(protocolo, beginCld.getTime(), endCld.getTime(), convenio, listaContas);
+        Map<String, Object> resultado = buscarDocumentosMap(protocolo, beginCld.getTime(), endCld.getTime(), convenio, listaContas, listaAtendimentos);
         List<DocumentoDTO> documentos = (List<DocumentoDTO>) resultado.get("items");
         return documentos;
       }
     } else {
-      Map<String, Object> resultado = buscarDocumentosMap(protocolo, null, null, convenio, listaContas);
+      Map<String, Object> resultado = buscarDocumentosMap(protocolo, null, null, convenio, listaContas, listaAtendimentos);
       List<DocumentoDTO> documentos = (List<DocumentoDTO>) resultado.get("items");
       return documentos;
     }

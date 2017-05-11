@@ -275,7 +275,7 @@
                                                                           headerText="Cód."
                                                                           sortBy="#{doc.codigo}"
                                                                           styleClass="left-align"/>
-                                                                <p:column id="descNaoRelac" headerText="Descrição/Conta"
+                                                                <p:column id="descNaoRelac" headerText="Descrição"
                                                                           sortBy="#{doc.descricao}"
                                                                           styleClass="left-align ellipsis-text"
                                                                           width="300"/>
@@ -830,7 +830,6 @@
                                     <h:outputText value="#{doc.codigo}"/>
                                 </p:column>
                                 <p:column>
-                                    <h:outputText value="TESTE"/>
                                     <h:panelGroup rendered="#{doc.tipo eq 'PROTOCOLO'}">
                                         <p:commandButton icon="fa fa-eye"
                                                          value="#{doc.descricao}"
