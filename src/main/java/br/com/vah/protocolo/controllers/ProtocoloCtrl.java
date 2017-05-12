@@ -889,6 +889,17 @@ public class ProtocoloCtrl extends AbstractCtrl<Protocolo> {
     documentosKeyMapPS.compile(ctrl);
   }
 
+  public Boolean ehDocManual(DocumentoDTO dto) {
+    if (dto != null) {
+      for (int i = 0, len = TipoDocumentoEnum.documentosManuais.length; i < len; i++) {
+        if (TipoDocumentoEnum.documentosManuais[i].equals(dto.getTipo())) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   public String getListaAtendimentos() {
     return listaAtendimentos;
   }

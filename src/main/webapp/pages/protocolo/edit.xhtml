@@ -273,6 +273,7 @@
                                                                 <p:column width="20"/>
                                                                 <p:column id="codNaoRelac" width="100"
                                                                           headerText="Cód."
+                                                                          rendered="#{not (item.entry.key eq 'Documento Manual')}"
                                                                           sortBy="#{doc.codigo}"
                                                                           styleClass="left-align"/>
                                                                 <p:column id="descNaoRelac" headerText="Descrição"
@@ -311,7 +312,7 @@
                                                             <h:panelGroup id="checkBox"
                                                                           styleClass="checkBox fa #{doc.selected ? 'fa-check-square-o' : 'fa-square-o'}"/>
                                                         </p:column>
-                                                        <p:column>
+                                                        <p:column rendered="#{not (item.entry.key eq 'Documento Manual')}">
                                                             <h:outputText value="#{doc.codigo}"/>
                                                         </p:column>
                                                         <p:column>
@@ -586,7 +587,7 @@
                                          paginator="true" rows="10" paginatorPosition="bottom"
                                          sortBy="#{doc.dataHoraCriacao}" rowIndexVar="idx">
 
-                                <p:column headerText="Cód." width="50" styleClass="left-align">
+                                <p:column headerText="Cód." width="50" styleClass="left-align" rendered="#{not (item.entry.key eq 'Documento Manual')}">
                                     <h:outputText value="#{doc.codigo}"/>
                                 </p:column>
                                 <p:column headerText="Descrição" styleClass="left-align ellipsis-text" width="150">
@@ -789,6 +790,7 @@
                                         <p:column width="20"/>
                                         <p:column width="100"
                                                   headerText="Cód."
+                                                  rendered="#{not (item.entry.key eq 'Documento Manual')}"
                                                   sortBy="#{doc.codigo}"
                                                   styleClass="left-align"/>
                                         <p:column headerText="Descrição/Conta"
@@ -818,7 +820,7 @@
                                     <h:panelGroup
                                             styleClass="checkBox fa #{doc.selected ? 'fa-check-square-o' : 'fa-square-o'}"/>
                                 </p:column>
-                                <p:column>
+                                <p:column rendered="#{not (item.entry.key eq 'Documento Manual')}">
                                     <h:outputText value="#{doc.codigo}"/>
                                 </p:column>
                                 <p:column>
