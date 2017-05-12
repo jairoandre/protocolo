@@ -20,7 +20,7 @@ public class DocumentoProtocolo extends BaseEntity {
   private Long id;
 
   @Column(name = "CD_ITEM_PRONTUARIO", nullable = false)
-  private Long codigo;
+  private Long codigo = 0l;
 
   @Column(name = "CD_ATENDIMENTO")
   private Long atendimento;

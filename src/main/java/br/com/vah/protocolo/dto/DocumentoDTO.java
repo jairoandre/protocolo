@@ -191,7 +191,7 @@ public class DocumentoDTO {
     if (this.prestador != null && !this.prestador.isEmpty()) {
       joiner.add(this.prestador);
     }
-    this.consPrestConv = joiner.length() > 0 ? joiner.toString() : "N/A";
+    this.consPrestConv = joiner.length() > 0 ? joiner.toString() : this.tipo.getLabel();
   }
 
   public void setFields(Protocolo filho) {

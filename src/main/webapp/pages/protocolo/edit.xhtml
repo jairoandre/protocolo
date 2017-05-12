@@ -647,16 +647,8 @@
                                                itemLabel="#{tipo.label}"
                                                itemValue="#{tipo}"/>
                             </p:selectOneMenu>
-                            <p:outputLabel value="Código *" styleClass="lance-label"/>
-                            <p:inputText id="docCodigo" value="#{protocoloCtrl.docManualToAdd.codigo}" required="true"
-                                         size="30"/>
                             <p:outputLabel value="Criação *" styleClass="lance-label"/>
                             <p:calendar id="docManualDate" value="#{protocoloCtrl.docManualToAdd.dataHoraCriacao}"
-                                        pattern="dd/MM/yyyy"
-                                        required="true" timeZone="GMT-03:00" mask="true" locale="pt_BR"/>
-                            <p:outputLabel value="Impressão *" styleClass="lance-label"/>
-                            <p:calendar id="docManualImpressao"
-                                        value="#{protocoloCtrl.docManualToAdd.dataHoraImpressao}"
                                         pattern="dd/MM/yyyy"
                                         required="true" timeZone="GMT-03:00" mask="true" locale="pt_BR"/>
                             <p:outputLabel value="Descrição" styleClass="lance-label"/>
@@ -922,19 +914,9 @@
                                                itemLabel="#{tipo.label}"
                                                itemValue="#{tipo}"/>
                             </p:selectOneMenu>
-                            <p:outputLabel value="Código *" styleClass="lance-label"/>
-                            <p:inputText id="docCodigoPS"
-                                         value="#{protocoloCtrl.documentosKeyMapPS.ctrl.docManualToAdd.codigo}"
-                                         required="true"
-                                         size="30"/>
                             <p:outputLabel value="Criação *" styleClass="lance-label"/>
                             <p:calendar id="docManualDatePS"
                                         value="#{protocoloCtrl.documentosKeyMapPS.ctrl.docManualToAdd.dataHoraCriacao}"
-                                        pattern="dd/MM/yyyy"
-                                        required="true" timeZone="GMT-03:00" mask="true" locale="pt_BR"/>
-                            <p:outputLabel value="Impressão *" styleClass="lance-label"/>
-                            <p:calendar id="docManualImpressaoPS"
-                                        value="#{protocoloCtrl.documentosKeyMapPS.ctrl.docManualToAdd.dataHoraImpressao}"
                                         pattern="dd/MM/yyyy"
                                         required="true" timeZone="GMT-03:00" mask="true" locale="pt_BR"/>
                             <p:outputLabel value="Descrição" styleClass="lance-label"/>
