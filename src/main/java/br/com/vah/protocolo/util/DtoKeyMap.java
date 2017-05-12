@@ -68,21 +68,10 @@ public class DtoKeyMap implements Serializable {
       case PRESCRICAO:
       case EVOLUCAO:
         return "Prescrição/Evolução";
-      case DOC_MANUAL_EVOLUCAO:
-      case DOC_MANUAL_PRESCRICAO:
-      case DOC_MANUAL_EVOLUCAO_ANOTACAO:
-      case DOC_MANUAL_DESCRICAO_CIRURGICA:
-      case DOC_MANUAL_FOLHA_ANESTESICA:
-      case DOC_MANUAL_HDA:
-      case DOC_MANUAL_EVOLUCAO_ENFERMAGEM:
-      case DOC_MANUAL_EXAME_FISICO_EVOLUCAO_ENFERMAGEM:
-      case DOC_MANUAL_REGISTRO_SINAIS_VITAIS_PS:
-      case DOC_MANUAL_CLASSIFICACAO_RISCO:
-      case DOC_MANUAL_FOLHA_CLASSIFICACAO:
-      case DOC_MANUAL_SADT:
-      case DOC_MANUAL_AUTORIZACAO_PS:
-        return "Documento Manual";
       default:
+        if (tipo.isDocManual()) {
+          return "Documento Manual";
+        }
         return tipo.getLabel();
     }
   }
